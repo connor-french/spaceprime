@@ -1,40 +1,32 @@
 import numpy as np
-# to protect divide by zero problems (returns zero if dividing by zero)
-def divide_protected(x, y):
-    return x / y if y else 0
 
-# create a migration matrix scaled by population size
-def k_to_scaled_mig_matrix(k, rate):
-    # Convert the input matrix to a 1D array
-    k_flat = np.ravel(k)
+def migration_matrix(populations, rate, scale=True):
+    d = populations.shape[0] * populations.shape[1]
+    M = np.zeros((d, d))
+    
+    for i in range(populations.shape[0]):
+        for j in range(populations.shape[1]):
+            current_index = i * populations.shape[1] + j
+            # check the neighboring populations and calculate the migration rates. Looping through tuples was a neat trick! Saved a lot of time.
+            for di, dj in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                # check for edges
+                if 0 <= i + di < populations.shape[0] and 0 <= j + dj < populations.shape[1]:
+                    neighbor_index = (i + di) * populations.shape[1] + (j + dj)
+                    if scale:
+                        # mig = donor / recipient * rate unless the pop size is zero
+                        M[current_index, neighbor_index] = populations[i + di, j + dj] / populations[i, j] * rate if populations[i, j] != 0 else 0
+                    else:
+                        # in case someone doesn't want a scaled rate
+                        M[current_index, neighbor_index] = rate
 
-    # Initialize the migration matrix
-    m = np.zeros((k_flat.shape[0], k_flat.shape[0]))
 
-    # Iterate over each cell in the input matrix and compute the migration rates
-    for i in range(k_flat.shape[0]):
-        for j in range(k_flat.shape[0]):
-            if i != j:
-                wt_mig = rate * divide_protected(k_flat[j], k_flat[i])
-                if (i // 4 == j // 4) and abs(i - j) == 1:
-                    # Edge neighbor
-                    m[i, j] = wt_mig
-                elif (i % 4 == j % 4) and abs(i - j) == 4:
-                    # Edge neighbor
-                    m[i, j] = wt_mig
-                elif abs(i - j) == 3 or abs(i - j) == 12:
-                    # Corner neighbor
-                    m[i, j] = wt_mig
-                elif abs(i - j) == 4:
-                    # Center neighbor
-                    m[i, j] = wt_mig
-    return(m)
+    return M
 
 
 # test case 
 np.random.seed(10)
-krand = np.random.randint(20, size = (10,10))
+krand = np.random.randint(20, size = (5,5))
 
-migmat = k_to_scaled_mig_matrix(krand, 0.001)
+migmat = migration_matrix(krand, 0.001)
 
 migmat

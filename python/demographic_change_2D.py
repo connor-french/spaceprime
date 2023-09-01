@@ -66,6 +66,7 @@ def add_landscape_change(model, k_stack, timestep = 1, rate = 0.001, scale=True)
         # get the shape of the array
         n, m = kmat.shape
 
+        ##### Update population sizes #####
         # add population size changes according to the values of the current array
         for j in range(n):
             for k in range(m):
@@ -74,27 +75,52 @@ def add_landscape_change(model, k_stack, timestep = 1, rate = 0.001, scale=True)
                     # add a demographic change to each cell in the raster
                     model.add_population_parameters_change(time=step * timestep, population=f"pop_{j}_{k}", initial_size=kmat[j, k])
 
-        # add migration rate change for each time step
-        ## iterate through the population sizes
-        for i in range(n):
-            for j in range(m):
-                ## also index the neighboring cells
-                for di, dj in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-                    ## check for edges
-                    if 0 <= i + di < kmat.shape[0] and 0 <= j + dj < kmat.shape[1]:
-                        ## only update migration if the donor and recipient population sizes are different between time points
-                        if kmat[i + di, j + dj] != kmat_prev[i + di, j +dj] and kmat[i, j] != kmat_prev[i, j]:
-                            if scale:
-                                ## mig = donor / recipient * rate unless the pop size is zero
-                                r = kmat[i + di, j + dj] / kmat[i, j] * rate if kmat[i, j] != 0 else 0
-                                model.add_migration_rate_change(time = step * timestep, rate = r, source=f"pop_{i}_{j}", dest=f"pop_{i + di}_{j + dj}")
-                            else:
-                                model.add_migration_rate_change(time = step * timestep, rate = rate, source=f"pop_{i}_{j}", dest=f"pop_{i + di}_{j + dj}")
+        ##### Update migration rates #####
+        # calc migration rates for previous time step 
+        mig_prev = migration_matrix(kmat_prev, rate = rate)
+        # calc migration rates for current time step
+        mig_curr = migration_matrix(kmat, rate = rate)
+
+        # get difference between current and previous migration matrices
+        mig_diff = np.subtract(mig_curr, mig_prev)
+
+        # get indices of where the migration rates change
+        change_ind = np.transpose(np.nonzero(mig_diff != 0))
+
+        # loop through the indices of the migration rates that changed and add a migration rate change
+        for ind_pair in change_ind:
+            
+            # the index we get from the migration matrix is the ravelled index, so we need to unravel it to get the original population size matrix index
+            source_ind = np.unravel_index(ind_pair[0], kmat.shape)
+            dest_ind = np.unravel_index(ind_pair[1], kmat.shape)
+
+            model.add_migration_rate_change(time = step * timestep, rate = mig_curr[ind_pair[0]][ind_pair[1]], source = f"pop_{source_ind[0]}_{source_ind[1]}", dest = f"pop_{dest_ind[0]}_{dest_ind[1]}")
+
+            
+
+
+
+        # # add migration rate change for each time step
+        # ## iterate through the population sizes
+        # for i in range(n):
+        #     for j in range(m):
+        #         ## also index the neighboring cells
+        #         for di, dj in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+        #             ## check for edges
+        #             if 0 <= i + di < kmat.shape[0] and 0 <= j + dj < kmat.shape[1]:
+        #                 ## only update migration if the donor and recipient population sizes are different between time points
+        #                 if kmat[i + di, j + dj] != kmat_prev[i + di, j +dj] and kmat[i, j] != kmat_prev[i, j]:
+        #                     if scale:
+        #                         ## mig = donor / recipient * rate unless the pop size is zero
+        #                         r = kmat[i + di, j + dj] / kmat[i, j] * rate if kmat[i, j] != 0 else 0
+        #                         model.add_migration_rate_change(time = step * timestep, rate = r, source=f"pop_{i}_{j}", dest=f"pop_{i + di}_{j + dj}")
+        #                     else:
+        #                         model.add_migration_rate_change(time = step * timestep, rate = rate, source=f"pop_{i}_{j}", dest=f"pop_{i + di}_{j + dj}")
                     
-                    
+                            
+                
+    
     return model
-
-
 
 # generate a population size matrix
 np.random.seed(2384)

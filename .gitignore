@@ -154,3 +154,6 @@ cython_debug/
 
 # scratch data
 scratch-data/
+
+# script archive
+archive/

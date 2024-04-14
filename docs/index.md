@@ -10,6 +10,9 @@
 -   Free software: MIT License
 -   Documentation: <https://connor-french.github.io/spaceprime>
     
+## Vignettes
+- [Suitability to deme size transformation functions](background/trans-fns.md)
+
 
 ## Features
 

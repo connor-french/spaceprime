@@ -19,7 +19,7 @@ def raster_to_demes(
 ) -> np.ndarray:
     """
     Converts a raster to a 2D ndarray of deme sizes using different linear, threshold, or sigmoid transformation functions. For more detail about transformation functions, see [this brief overview](trans-fns.md).
-    Raster data should be continuous and positive. This function was created with the idea of taking in habitat suitability rasters scaled from 0 to 1, where 0 is no suitability and 1 is the highest suitability. However, it is flexible enough to accomodate other continuous rasters that can be coaxed to a 0 to 1 scale with the operation `(data - np.min(data)) / (np.max(data) - np.min(data))` by setting the `normalize` flag to `True`.
+    Raster data should be continuous and positive. This function was created with the idea of taking in habitat suitability rasters scaled from 0 to 1, where 0 is no suitability and 1 is the highest suitability. However, it is flexible enough to accommodate other continuous rasters that can be coaxed to a 0 to 1 scale with the operation `(data - np.min(data)) / (np.max(data) - np.min(data))` by setting the `normalize` flag to `True`.
 
 
     **Parameters:**

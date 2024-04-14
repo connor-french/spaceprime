@@ -5,7 +5,7 @@
 import pytest
 
 
-from spaceprime import spaceprime
+from spaceprime import utilities
 
 
 @pytest.fixture

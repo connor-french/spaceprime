@@ -9,4 +9,8 @@ __email__ = "french.connor.m@gmail.com"
 __version__ = "0.0.2"
 
 
-from spaceprime.utilities import raster_to_demes
+from spaceprime.utilities import (
+    raster_to_demes,
+    migration_matrix,
+    split_landscape_by_pop,
+)

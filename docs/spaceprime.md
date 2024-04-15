@@ -1,4 +1,0 @@
- 
-# spaceprime module
-
-::: spaceprime.spaceprime

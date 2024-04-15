@@ -33,7 +33,7 @@ repos:
   - id: black
     language_version: python3
 
-# Tell precommit.ci bot to update codoe format tools listed in the file
+# Tell precommit.ci bot to update code format tools listed in the file
 # versions every quarter
 # The default it so update weekly which is too many new pr's for many
 # maintainers (remove these lines if you aren't using the bot!)

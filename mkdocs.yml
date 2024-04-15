@@ -82,5 +82,5 @@ nav:
     - Examples:
         - examples/intro.ipynb
     - API Reference:
-          - spaceprime module: spaceprime.md
+          - utilities module: utilities.md
           - common module: common.md

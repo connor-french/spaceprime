@@ -1,0 +1,3 @@
+# demography module
+
+::: spaceprime.demography

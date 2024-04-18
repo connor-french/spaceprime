@@ -19,3 +19,9 @@ from spaceprime.utilities import (
     anc_to_deme_dict,
     sampled_cells_to_coords,
 )
+
+from spaceprime.demography import (
+    stepping_stone_2d,
+    add_landscape_change,
+    add_ancestral_populations,
+)

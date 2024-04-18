@@ -39,6 +39,12 @@ theme:
 plugins:
     - search
     - mkdocstrings
+        handlers:
+        python:
+            options:
+                docstring_style: google
+                docstring_section_style: table
+
     - git-revision-date
     - git-revision-date-localized:
           enable_creation_date: true
@@ -83,4 +89,4 @@ nav:
         - examples/intro.ipynb
     - API Reference:
           - utilities module: utilities.md
-          - common module: common.md
+          - demography module: demography.md

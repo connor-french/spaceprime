@@ -10,7 +10,12 @@ __version__ = "0.0.2"
 
 
 from spaceprime.utilities import (
+    create_raster,
     raster_to_demes,
-    migration_matrix,
+    calc_migration_matrix,
     split_landscape_by_pop,
+    max_thresh_from_coords,
+    coords_to_sample_dict,
+    anc_to_deme_dict,
+    sampled_cells_to_coords,
 )

@@ -1,5 +1,7 @@
 numpy
-rasterio >= 1.0.0
 typing
+rasterio >= 1.0.0
 scipy
 shapely
+geopandas
+scikit-allel

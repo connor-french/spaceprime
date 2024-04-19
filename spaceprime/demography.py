@@ -93,17 +93,18 @@ def add_landscape_change(
     scale: bool = True,
 ) -> msprime.Demography:
     """
-    Adds landscape change to the model.
+    If there are multiple time steps of deme size change, such as transformed species distribution model projections to past time periods, this function adds the changes to the model.
+    It updates the deme sizes and migration rates at each time step.
 
     Parameters:
       model (msprime.Demography): The model object to which the landscape change will be added.
       d (np.ndarray): The 3D array representing different time steps of population size change.
-      timestep (int, optional): The time step size. Defaults to None.
+      timestep (int, optional): The number of generations in between demographic events. Defaults to None.
       rate (Union[float, np.ndarray], optional): The migration rate. Defaults to 0.001.
       scale (bool, optional): Whether to scale the migration rate based on population size. Defaults to True.
 
     Returns:
-      model (msprime.Demography): The updated model object.
+      msprime.Demography: The updated model object.
     """
 
     # iterate through the first dimension of a 3D array, where the array represents different time steps of population size change
@@ -218,15 +219,15 @@ def add_ancestral_populations(
     Parameters:
       model (msprime.Demography): The demographic model to which ancestral populations will be added.
       anc_sizes (List[float]): A list of ancestral population sizes.
-      merge_time (float): The time at which the spatial simulation collapses into the collecting phase.
-      anc_id (Optional[np.ndarray], optional): An array of ancestral population IDs- the output of [split_landscape_by_pop](spaceprime.utilities:split_landscape_by_pop). Defaults to None.
+      merge_time (float): The time at which all demes in the spatial simulation merge into one or more ancestral populations.
+      anc_id (Optional[np.ndarray], optional): An array of ancestral population IDs- the output of [split_landscape_by_pop][utilities.split_landscape_by_pop]. Defaults to None.
       anc_merge_times (Optional[List[float]], optional): A list of merge times for ancestral populations.
         Defaults to None.
       anc_merge_sizes (Optional[List[float]], optional): A list of sizes for merged ancestral populations.
         Defaults to None.
 
     Returns:
-      model (msprime.Demography): The demographic model with the added ancestral populations.
+      msprime.Demography: The demographic model with the added ancestral populations.
 
     Raises:
       ValueError: If the model already contains ancestral populations.

@@ -85,6 +85,8 @@ nav:
     - FAQ: faq.md
     - Changelog: changelog.md
     - Report Issues: https://github.com/connor-french/spaceprime/issues
+    - Background:
+        - Suitability to deme size transformation functions: background/trans-fns.md
     - Examples:
         - examples/intro.ipynb
     - API Reference:

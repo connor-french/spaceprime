@@ -1,3 +1,8 @@
+"""
+Module responsible for pre-processing data for creating demographic models
+"""
+
+from os import path
 import numpy as np
 import numpy.ma as ma
 import geopandas as gpd
@@ -11,25 +16,27 @@ from typing import Union, Optional, List, Tuple, Dict
 import allel
 
 
-"""
-Module responsible for pre-processing data for creating demographic models
-"""
-
-
 ## create_raster ##
 def create_raster(
-    data: np.ndarray, reference_raster: rasterio.DatasetReader, output_file: str
+    data: np.ndarray,
+    reference_raster: rasterio.DatasetReader,
+    out_folder: str,
+    out_prefix: str,
 ) -> None:
     """
-    Creates a raster dataset from a numpy array and reference raster and writes it to a new file. The new raster dataset will have the same dimensions, crs, and transform as the reference raster.
+    Creates a raster dataset from a numpy array and reference raster and writes it to a new GeoTiff file.
+    The new raster dataset will have the same dimensions, crs, and transform as the reference raster.
 
     Parameters:
         data (np.ndarray): The numpy array containing the data you want for the raster.
         reference_raster (rasterio.DatasetReader): The reference rasterio DatasetReader object.
-        output_file (str): The path to the output file where the new raster dataset will be saved.
+        out_folder (str): The output folder location where the new raster dataset will be saved.
+        out_prefix (str): The prefix for the output file name.
+
+    Returns: None: The function writes the new raster dataset to the output file location
     """
     with rasterio.open(
-        output_file,
+        path.join(out_folder, f"{out_prefix}.tif"),
         "w",
         driver="GTiff",
         height=data.shape[0],
@@ -59,8 +66,10 @@ def raster_to_demes(
     slope: float = 0.05,
 ) -> np.ndarray:
     """
-    Converts a raster to a 2D ndarray of deme sizes using different linear, threshold, or sigmoid transformation functions. For more detail about transformation functions, see [this brief overview](trans-fns.md).
-    Raster data should be continuous and positive. This function was created with the idea of taking in habitat suitability rasters scaled from 0 to 1, where 0 is no suitability and 1 is the highest suitability. However, it is flexible enough to accommodate other continuous rasters that can be coaxed to a 0 to 1 scale with the operation `(data - np.min(data)) / (np.max(data) - np.min(data))` by setting the `normalize` flag to `True`.
+    Converts a raster to a 2D ndarray of deme sizes using either linear, threshold, or sigmoid transformation functions. For more detail about transformation functions, see [this brief overview](background/trans-fns.md).
+    Raster data should be continuous and positive.
+    This function was created with the idea of taking in habitat suitability rasters scaled from 0 to 1, where 0 is no suitability and 1 is the highest suitability.
+    However, it is flexible enough to accommodate other continuous rasters that can be coaxed to a 0 to 1 scale with the operation `(data - np.min(data)) / (np.max(data) - np.min(data))` by setting the `normalize` flag to `True`.
 
 
     Parameters:
@@ -73,7 +82,7 @@ def raster_to_demes(
         slope: The slope value for the "sigmoid" transformation method. Default is 0.05.
 
     Returns:
-        t: An ndarray of deme sizes.
+        np.ndarray: An ndarray of deme sizes.
     """
 
     def check_raster_input(raster):
@@ -154,7 +163,7 @@ def calc_migration_matrix(
         scale: Whether to scale the migration rate based on population size. Default is True.
 
     Returns:
-        M: The migration matrix as a 2D numpy array.
+        np.ndarray: The migration matrix as a 2D numpy array.
     """
     if not isinstance(demes, np.ndarray):
         raise TypeError("Invalid demes input. Expected numpy array.")
@@ -203,24 +212,24 @@ def calc_migration_matrix(
 def split_landscape_by_pop(
     raster: rasterio.DatasetReader,
     coords: List[Tuple[float, float]],
-    admix_id: List[int],
+    anc_pop_id: List[int],
     band_index: int = 1,
     mask_rast: bool = False,
 ) -> np.ma.MaskedArray:
     """
     Splits a landscape raster based on the ancestral population assigned to sampled individuals.
-    This function takes in a raster and a list of coordinates and population IDs assigned to each individual in the empirical data set.
+    This function takes in a raster and a list of coordinates and ancestral population IDs assigned to each individual in the empirical data set.
     It then interpolates the population IDs across the landscape and returns the new raster as a masked array.
 
     Parameters:
-        raster: The rasterio DatasetReader object representing the landscape raster that you want to divide.
-        coords: A list of tuples representing the coordinates assigned to each individual in the empirical data set.
-        admix_id: A list of population IDs assigned to each empirical individual.
+        raster (rasterio.DatasetReader): The rasterio DatasetReader object representing the landscape raster that you want to divide.
+        coords (List[Tuple[float, float]]): A list of tuples representing the coordinates assigned to each individual in the empirical data set.
+        anc_pop_id (List[int]): A list of ancestral population IDs assigned to each empirical individual.
         band_index: The index of the raster to read in. Default is 1. Note- rasterio begins indexing at 1 for raster bands.
         mask_rast: Whether to mask the interpolation by the landscape. Default is False.
 
     Returns:
-        z: The new population assignment raster as a masked array.
+        np.ma.MaskedArray: The new population assignment raster as a masked array.
     """
     # read in the raster. This imports the raster as a numpy array
     r2 = raster.read(band_index, masked=True)
@@ -251,7 +260,7 @@ def split_landscape_by_pop(
     # get all of the x, y indices of the input raster
     r_x, r_y = np.indices(raster.shape)
 
-    interp = NearestNDInterpolator(list(zip(indices_x, indices_y)), admix_id)
+    interp = NearestNDInterpolator(list(zip(indices_x, indices_y)), anc_pop_id)
     z = interp(r_x, r_y)
 
     # apply mask of the SDM landscape
@@ -266,16 +275,16 @@ def max_thresh_from_coords(
     coordinates: Union[List[Tuple[float, float]], gpd.GeoDataFrame],
 ) -> float:
     """
-    This function takes the coordinates of empirical sampling localities, finds which raster cells they belong to, extracts the values of the first layer raster values for those localities, and finds the minimum value.
-    This value is the maximum threshold value to determine a presence vs absence in a hinge model.
+    This function takes the coordinates of empirical sampling localities, finds which raster cells they belong to, extracts the values of the first layer for those localities, and finds the minimum value.
+    This value is the maximum threshold value to determine a presence vs absence in a threshold transformation.
     If the threshold is set any higher, empirical sampling localities will not be sampled in the simulations.
 
     Parameters:
-        raster: The rasterio DatasetReader object representing the raster data containing the suitability values.
-        coordinates: The longitude, latitude coordinates of the empirical sampling localities as a list of coordinate pair tuples or a geopandas GeoDataFrame.
+        raster (rasterio.DatasetReader): The rasterio DatasetReader object representing the raster data containing the suitability values.
+        coordinates (Union[List[Tuple[float, float]], gpd.GeoDataFrame]): The longitude, latitude coordinates of the empirical sampling localities as a list of coordinate pair tuples or a geopandas GeoDataFrame.
 
     Returns:
-        max_thresh: The maximum threshold value to determine a presence vs absence in a hinge model.
+        float: The maximum threshold value to determine a presence vs absence in a threshold transformation.
 
     Raises:
         TypeError: If the coordinates input is not a list, geopandas GeoDataFrame, or pandas DataFrame.
@@ -306,24 +315,26 @@ def coords_to_sample_dict(
     vcf_path: Optional[str] = None,
 ) -> Tuple[Dict[int, int], Dict[int, np.ndarray], Optional[Dict[int, np.ndarray]]]:
     """
-    Convert coordinates to sample dictionaries, optionally using empirical data, which is accepted as a path to a VCF file.
-    deme_dict_sim is used as input for the `sample` parameter in the `simulate` function, and the other two are used to aid in calculating genetic summary statistics.
-    If you want to create a sample dictionary for empirical data, which is useful for calculating genetic summary statistics, you must provide individual IDs and a path to a VCF file.
+    Convert sample coordinates to sample dictionaries, optionally using empirical data, which is accepted as a path to a VCF file.
 
     This function takes a raster, a list of coordinates, and optional individual IDs and VCF path.
     It masks the raster with the given coordinates, retrieves the cell IDs for each individual's locality,
-    and returns a sample dictionary containing the number of individuals to sample from the simulation.
+    and returns two dictionaries: a sample dictionary containing the number of individuals to sample from the simulation, and a sample dictionary containing the range of individual indices for each cell ID.
+    The first dictionary is used to sample individuals from the simulation, and the second dictionary is used to calculate genetic summary statistics from the sampled individuals.
 
     Parameters:
-        raster: The raster data as a numpy array or rasterio DatasetReader object.
-        coordinates: A list of (x, y) coordinates or a geopandas GeoDataFrame.
-        individual_ids: A list of individual IDs corresponding to those in the VCF file. Default is None.
-        vcf_path: The path to the VCF file. Default is None.
+        raster (Union[np.ndarray, rasterio.DatasetReader]): The raster data as a numpy array or rasterio DatasetReader object.
+        coordinates (Union[List[Tuple[float, float]], gpd.GeoDataFrame]): A list of (x, y) coordinates or a geopandas GeoDataFrame.
+        individual_ids (Optional[List[str]]): A list of individual IDs corresponding to those in the VCF file. Default is None.
+        vcf_path (Optional[str]): The path to the VCF file. Default is None.
 
     Returns:
-        deme_dict_sim: A dictionary containing the number of individuals to sample from the simulation for each cell ID.
-        deme_dict_sim_long: A dictionary containing the range of indices for each cell ID.
-        deme_dict_empirical: A dictionary containing the indices of individuals in the VCF file for each cell ID.
+        Tuple[Dict[int, int], Dict[int, np.ndarray], Optional[Dict[int, np.ndarray]]]: A tuple containing two or three dictionaries.
+        The first dictionary contains the number of individuals to sample from the simulation for each cell ID.
+        The second dictionary contains the indices of individuals for each cell ID.
+        The third, optional dictionary contains the indices of individuals in the VCF file for each cell ID.
+
+
     """
     # check for individual ids and vcf path
     if individual_ids is None:
@@ -416,20 +427,18 @@ def coords_to_sample_dict(
     return deme_dict_sim, deme_dict_sim_long, deme_dict_empirical
 
 
-# Create a dictionary to map deme IDs to their respective ancestral population assignments. Requires output sample dictionary from `coords_to_sample_dict_empirical()` and a raster with admixture population IDs for each deme, output from `split_landscape_by_admix_pop()`.
-# Returns a dictionary of the form `{admix_id: deme_id}`
 def anc_to_deme_dict(
     anc_pops: np.ndarray, deme_dict: Dict[int, int]
 ) -> Dict[int, List[int]]:
     """
-    Converts the ancestral population assignments of demes into a dictionary mapping ancestral population IDs to deme IDs.
+    Converts the ancestral population assignments of demes into a dictionary mapping ancestral population IDs to deme indices.
 
     Parameters:
-        anc_pops: An array containing the ancestral population assignments of all demes across the landscape.
-        deme_dict: A dictionary mapping deme IDs to the number of individuals being sampled from each deme.
+        anc_pops (np.ndarray): An array containing the ancestral population assignments of all demes across the landscape.
+        deme_dict (Dict[int, int]): A dictionary mapping deme indices to the number of individuals being sampled from each deme.
 
     Returns:
-        ap_dict: A dictionary mapping ancestral population IDs to deme IDs.
+        Dict[int, List[int]]: A dictionary mapping each ancestral population ID to the range of assigned deme indices.
     """
     # unravel the raster into one dimension for indexing
     r_1d = anc_pops.ravel()
@@ -450,14 +459,15 @@ def sampled_cells_to_coords(
     coordinates: Union[List[Tuple[float, float]], gpd.GeoDataFrame],
 ) -> Dict[int, List[float]]:
     """
-    Convert sampled cell indices to coordinates, where cells are pixels in the raster data used for simulations. The coordinates are the center of the cell.
+    Finds the cells a given set of coordinates belong to in a raster and returns a dictionary mapping the cell indices to the centroid coordinates of those cells.
+    The coordinates typically correspond to empirical data that the simulations need to be sampled from.
 
     Parameters:
-        raster: The raster data as a rasterio DatasetReader object.
-        coordinates: A list of (x, y) coordinates or a geopandas GeoDataFrame.
+        raster (rasterio.DatasetReader): The raster data as a rasterio DatasetReader object.
+        coordinates (Union[List[Tuple[float, float]], gpd.GeoDataFrame]): A list of (x, y) coordinates or a geopandas GeoDataFrame.
 
     Returns:
-        cell_dict: A dictionary mapping cell indices to their corresponding coordinates.
+        Dict[int, List[float]]: A dictionary mapping cell indices to their corresponding coordinates.
     """
 
     # check if raster is a rasterio.DatasetReader object

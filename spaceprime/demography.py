@@ -212,6 +212,7 @@ def add_ancestral_populations(
     anc_id: Optional[np.ndarray] = None,
     anc_merge_times: Optional[List[float]] = None,
     anc_merge_sizes: Optional[List[float]] = None,
+    migration_rate: Optional[float] = None,
 ) -> msprime.Demography:
     """
     Adds ancestral populations to the given demographic model.
@@ -222,9 +223,10 @@ def add_ancestral_populations(
       merge_time (float): The time at which all demes in the spatial simulation merge into one or more ancestral populations.
       anc_id (Optional[np.ndarray], optional): An array of ancestral population IDs- the output of [split_landscape_by_pop][utilities.split_landscape_by_pop]. Defaults to None.
       anc_merge_times (Optional[List[float]], optional): A list of merge times for ancestral populations.
-        Defaults to None.
+      Defaults to None.
       anc_merge_sizes (Optional[List[float]], optional): A list of sizes for merged ancestral populations.
-        Defaults to None.
+      Defaults to None.
+      migration_rate (Optional[float], optional): The symmetric migration rate between ancestral populations. Defaults to None.
 
     Returns:
       msprime.Demography: The demographic model with the added ancestral populations.
@@ -232,7 +234,7 @@ def add_ancestral_populations(
     Raises:
       ValueError: If the model already contains ancestral populations.
       ValueError: If the number of demes in the demographic model does not match the number of demes in the
-        admixture ID raster.
+      admixture ID raster.
 
     Note:
       The function adds ancestral populations to the given demographic model. If `anc_id` is not provided, a
@@ -240,7 +242,7 @@ def add_ancestral_populations(
       provided, a new ancestral population is added for each admixture population, with sizes specified in
       `anc_sizes`. The demes in the simulation are then merged into their respective ancestral populations
       based on the values in `anc_id`. If `anc_merge_times` is provided, the ancestral populations are merged
-      at the specified times.
+      at the specified times. If `migration_rate` is provided, symmetric migration is allowed between ancestral populations.
     """
 
     if any("ANC" in pop.name for pop in model.populations):
@@ -251,14 +253,14 @@ def add_ancestral_populations(
     # Rest of the code...
     if anc_id is None:
         # add an ancestral population
-        model.add_population(name="ANC", initial_size=anc_sizes[0])
+        model.add_population(name="ANC_1", initial_size=anc_sizes[0])
 
         # get names of populations for initiating the merge
         pop_names = [[pop.name] for pop in model.populations if "ANC" not in pop.name]
 
         # add the time when the spatial simulation collapses into the collecting phase
         [
-            model.add_population_split(time=merge_time, derived=name, ancestral="ANC")
+            model.add_population_split(time=merge_time, derived=name, ancestral="ANC_1")
             for name in pop_names
         ]
     else:
@@ -281,7 +283,7 @@ def add_ancestral_populations(
         for i in range(len(model.populations)):
             pop_name = model.populations[i].name
             if "ANC" not in pop_name:
-                anc_pop = f"ANC_{anc_id_1d[i]}"
+                anc_pop = f"ANC_{int(anc_id_1d[i])}"
                 model.add_population_split(
                     time=merge_time, derived=[pop_name], ancestral=anc_pop
                 )
@@ -331,5 +333,14 @@ def add_ancestral_populations(
                 model.add_population_split(
                     time=anc_merge_times[0], derived=anc_der_pops, ancestral=anc_n
                 )
+
+        # add migration between ancestral populations
+        if migration_rate is not None:
+            for i in range(1, len(anc_sizes) + 1):
+                for j in range(i + 1, len(anc_sizes) + 1):
+                    model.set_symmetric_migration_rate(
+                        populations=[f"ANC_{i}", f"ANC_{j}"],
+                        rate=migration_rate,
+                    )
 
     return model

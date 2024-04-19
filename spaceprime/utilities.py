@@ -211,8 +211,8 @@ def calc_migration_matrix(
 ## split_landscape_by_pop ##
 def split_landscape_by_pop(
     raster: rasterio.DatasetReader,
-    coords: List[Tuple[float, float]],
-    anc_pop_id: List[int],
+    coordinates: List[Tuple[float, float]],
+    anc_pop_id: List[Union[int, np.integer]],
     band_index: int = 1,
     mask_rast: bool = False,
 ) -> np.ma.MaskedArray:
@@ -223,21 +223,47 @@ def split_landscape_by_pop(
 
     Parameters:
         raster (rasterio.DatasetReader): The rasterio DatasetReader object representing the landscape raster that you want to divide.
-        coords (List[Tuple[float, float]]): A list of tuples representing the coordinates assigned to each individual in the empirical data set.
-        anc_pop_id (List[int]): A list of ancestral population IDs assigned to each empirical individual.
+        coordinates (Union[List[Tuple[float, float]], gpd.GeoDataFrame]): A list of (x, y) coordinates or a geopandas GeoDataFrame representing the coordinates assigned to each individual in the empirical data set.
+        anc_pop_id (List[Union[int, np.integer]]): A list of ancestral population IDs assigned to each empirical individual[^1].
         band_index: The index of the raster to read in. Default is 1. Note- rasterio begins indexing at 1 for raster bands.
         mask_rast: Whether to mask the interpolation by the landscape. Default is False.
 
     Returns:
         np.ma.MaskedArray: The new population assignment raster as a masked array.
+
+    Notes:
+        [^1]: These IDs are assigned to each empirical individual typically based on genetic clustering methods like STRUCTURE or PCA. The IDs are used to assign individuals to ancestral populations in the landscape.
     """
+    # check if coordinates is a list of tuples or a geopandas GeoDataFrame
+    if not isinstance(coordinates, list) and not isinstance(
+        coordinates, gpd.GeoDataFrame
+    ):
+        raise TypeError(
+            "The coordinates must be a list of tuples or a geopandas GeoDataFrame."
+        )
+
+    if isinstance(coordinates, gpd.GeoDataFrame):
+        # convert the geometry column to a list of tuples
+        coordinates = list(coordinates.geometry.apply(lambda geom: (geom.x, geom.y)))
+
+    if isinstance(anc_pop_id, pd.Series):
+        raise TypeError(
+            "The anc_pop_id must be a list of whole numbers. If using a pandas Series, convert it to a list using the to_list() method."
+        )
+
+    if not isinstance(anc_pop_id, list) or not all(
+        isinstance(x, (int, np.integer)) for x in anc_pop_id
+    ):
+        raise TypeError("The anc_pop_id must be a list of whole numbers.")
+
     # read in the raster. This imports the raster as a numpy array
     r2 = raster.read(band_index, masked=True)
 
     # get the x,y indices of the empirical sampled cells
     indices_x = []
     indices_y = []
-    for xy in coords:
+
+    for xy in coordinates:
 
         # mask requires an iterable as input, so I just repeated the two Point geometries in a list. Mask returns a single value since they overlap in the same place
         pt2 = [Point(xy), Point(xy)]
@@ -262,10 +288,11 @@ def split_landscape_by_pop(
 
     interp = NearestNDInterpolator(list(zip(indices_x, indices_y)), anc_pop_id)
     z = interp(r_x, r_y)
+    z = z.astype(int)
 
     # apply mask of the SDM landscape
     if mask_rast:
-        z = ma.masked_array(z, r2.mask, fill_value=-9, dtype=float)
+        z = ma.masked_array(z, r2.mask, fill_value=-9, dtype=int)
 
     return z  # Return the new raster as a masked array
 

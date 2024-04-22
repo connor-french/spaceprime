@@ -92,3 +92,4 @@ nav:
     - API Reference:
           - utilities module: utilities.md
           - demography module: demography.md
+          - analysis module: analysis.md

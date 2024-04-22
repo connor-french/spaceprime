@@ -6,7 +6,7 @@ for more information.
 
 __author__ = """Connor French"""
 __email__ = "french.connor.m@gmail.com"
-__version__ = "0.0.2"
+__version__ = "0.0.3"
 
 
 from spaceprime.utilities import (

@@ -2,7 +2,7 @@ numpy
 typing
 msprime
 rasterio >= 1.0.0
-scipy
+scipy 
 shapely
 geopandas
 scikit-allel

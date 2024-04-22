@@ -34,7 +34,11 @@ all = [
 ]
 
 extra = [
-    "pandas",
+    "esda >= 2.5.1",
+    "libpysal >= 4.10",
+    "sklearn",
+    "itertools",
+    "scipy",
 ]
 
 

@@ -36,7 +36,7 @@ jobs:
                   python -m unittest discover tests/
             - name: Build docs
               run: |
-                  mkdocs build
+                  mkdocs build -v
             # - name: Deploy to Netlify
             #   uses: nwtgck/actions-netlify@v2.0
             #   with:

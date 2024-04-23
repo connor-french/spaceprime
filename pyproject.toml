@@ -30,15 +30,22 @@ spaceprime = "spaceprime.cli:main"
 
 [project.optional-dependencies]
 all = [
-    "spaceprime[extra]",
+    "spaceprime[analysis]",
+    "spaceprime[plotting]",
 ]
 
-extra = [
+analysis = [
     "esda >= 2.5.1",
     "libpysal >= 4.10",
     "sklearn",
     "itertools",
-    "scipy",
+    "pandas",
+]
+
+plotting = [
+    "matplotlib",
+    "seaborn",
+    "pandas",
 ]
 
 

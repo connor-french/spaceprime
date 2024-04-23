@@ -25,3 +25,10 @@ from spaceprime.demography import (
     add_landscape_change,
     add_ancestral_populations,
 )
+
+# optional install of analysis tools
+try:
+    from spaceprime.analysis import filter_gt, calc_sumstats
+except ImportError:
+    filter_gt = None
+    calc_sumstats = None

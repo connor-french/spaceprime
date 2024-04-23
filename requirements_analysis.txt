@@ -1,0 +1,5 @@
+esda >= 2.5.1
+libpysal >= 4.10
+scikit-learn
+itertools
+pandas

@@ -17,7 +17,7 @@ from spaceprime.utilities import (
     max_thresh_from_coords,
     coords_to_sample_dict,
     anc_to_deme_dict,
-    sampled_cells_to_coords,
+    samples_to_deme_coords,
 )
 
 from spaceprime.demography import (

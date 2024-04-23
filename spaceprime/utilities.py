@@ -481,12 +481,13 @@ def anc_to_deme_dict(
     return ap_dict
 
 
-def sampled_cells_to_coords(
+def samples_to_deme_coords(
     raster: rasterio.DatasetReader,
     coordinates: Union[List[Tuple[float, float]], gpd.GeoDataFrame],
 ) -> Dict[int, List[float]]:
     """
     Finds the cells a given set of coordinates belong to in a raster and returns a dictionary mapping the cell indices to the centroid coordinates of those cells.
+    Because the cells correspond with demes in the 2D stepping stone models, the cell indices are considered deme indices.
     The coordinates typically correspond to empirical data that the simulations need to be sampled from.
 
     Parameters:

@@ -42,6 +42,7 @@ plugins:
         handlers:
             python:
                 options:
+                    paths: [spaceprime]
                     docstring_style: google
                     docstring_section_style: table
 

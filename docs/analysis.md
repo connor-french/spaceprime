@@ -1,3 +1,3 @@
 # analysis module
 
-::: analysis
+::: spaceprime.analysis

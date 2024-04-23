@@ -27,8 +27,4 @@ from spaceprime.demography import (
 )
 
 # optional install of analysis tools
-try:
-    from spaceprime.analysis import filter_gt, calc_sumstats
-except ImportError:
-    filter_gt = None
-    calc_sumstats = None
+from spaceprime.analysis import filter_gt, calc_sumstats

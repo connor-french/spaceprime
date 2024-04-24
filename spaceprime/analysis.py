@@ -21,7 +21,8 @@ def filter_gt(
     deme_dict_anc: dict = None,
     missing_data_perc: float = 0,
     r2_thresh: float = 0.1,
-    filter_segregating: bool = True,
+    filter_monomorphic: bool = True,
+    filter_singletons: bool = True,  # Added new parameter with default value True
 ) -> Tuple[
     allel.GenotypeArray,
     allel.AlleleCountsArray,
@@ -30,7 +31,7 @@ def filter_gt(
 ]:
     """
 
-    Filter genotype matrices output by ts.genotype_matrix() to filter out monomorphic sites, loci in linkage disequilibrium, and singletons, and recreate missing data patterns common to empirical genotype data.
+    Filter genotype matrices output by ts.genotype_matrix() to filter out monomorphic sites, loci in linkage disequilibrium, and recreate missing data patterns common to empirical genotype data.
     Returns the genotype matrix and allele counts matrix for the filtered loci, and optionally allele counts matrices for demes and ancestral populations.
     Parameters:
       gt (np.ndarray): The genotype matrix.
@@ -38,7 +39,8 @@ def filter_gt(
       deme_dict_anc (dict, optional): A dictionary containing the indices of individuals in each ancestral population. Defaults to None.
       missing_data_perc (float, optional): The percentage of missing data allowed. Defaults to 0.
       r2_thresh (float, optional): The threshold for linkage disequilibrium. Defaults to 0.1.
-      filter_segregating (bool, optional): Whether to filter for segregating sites. Defaults to True.
+      filter_monomorphic (bool, optional): Whether to filter out monomorphic sites, keeping only segregating sites. Defaults to True.
+      filter_singletons (bool, optional): Whether to filter out singletons. Defaults to True.
 
     Returns:
       Tuple[allel.GenotypeArray, allel.AlleleCountsArray, Optional[Dict[str, allel.AlleleCountsArray]], Optional[Dict[str, allel.AlleleCountsArray]]]: A tuple containing the filtered genotype matrix, the allele counts matrix, a dictionary of allele counts matrices for demes (if deme_dict_inds is provided), and a dictionary of allele counts matrices for ancestral populations (if deme_dict_anc is provided).
@@ -83,9 +85,9 @@ def filter_gt(
     # get the allele counts matrix for all individuals
     ac = gt.count_alleles(max_allele=1)
 
-    if filter_segregating:
-        # only retain segregating alleles
-        is_seg = ac.is_segregating()
+    if filter_monomorphic:
+        # only retain filter_monomorphicegating alleles
+        is_seg = ac.is_filter_monomorphicegating()
         gt = gt.compress(is_seg, axis=0)
         ac_seg = ac.compress(is_seg)
     else:
@@ -103,10 +105,11 @@ def filter_gt(
     ac_unlinked = ac_seg[loc_unlinked]
     gt_unlinked = gt[loc_unlinked]
 
-    # remove singletons
-    not_singleton = ~ac_unlinked.is_singleton(allele=1)
-    ac_unlinked = ac_unlinked[not_singleton]
-    gt_unlinked = gt_unlinked[not_singleton]
+    if filter_singletons:
+        # remove singletons
+        not_singleton = ~ac_unlinked.is_singleton(allele=1)
+        ac_unlinked = ac_unlinked[not_singleton]
+        gt_unlinked = gt_unlinked[not_singleton]
 
     if deme_dict_inds is not None:
         ac_unlinked_demes = gt_unlinked.count_alleles_subpops(
@@ -169,7 +172,7 @@ def calc_sumstats(
 
     Notes:
       This function calculates the following summary statistics, either species-wide or per ancestral population, if provided:
-      - Site Frequency Spectrum Hill numbers (q1 and q2), corrected for the number of segregating sites
+      - Site Frequency Spectrum Hill numbers (q1 and q2), corrected for the number of sites
       - Pi (nucleotide diversity)
       - Tajima's D
       - Pairwise Dxy

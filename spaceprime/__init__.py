@@ -14,10 +14,10 @@ from spaceprime.utilities import (
     raster_to_demes,
     calc_migration_matrix,
     split_landscape_by_pop,
-    max_thresh_from_coords,
+    mtp_thresh_from_coords,
     coords_to_sample_dict,
     anc_to_deme_dict,
-    samples_to_deme_coords,
+    coords_to_deme_dict,
 )
 
 from spaceprime.demography import (

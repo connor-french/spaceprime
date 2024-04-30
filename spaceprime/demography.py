@@ -21,7 +21,7 @@ def stepping_stone_2d(
     timestep: Optional[int] = None,
 ) -> msprime.Demography:
     """
-    Create a 2D stepping stone model.
+    Create a 2D stepping stone model, either for a single time step or for multiple time steps of deme size change.
 
     Parameters:
       d (numpy.ndarray): The demography matrix representing the population sizes.
@@ -219,7 +219,7 @@ def add_ancestral_populations(
     migration_rate: Optional[float] = None,
 ) -> msprime.Demography:
     """
-    Adds ancestral populations to the given demographic model.
+    Adds ancestral populations to the given demographic model, mapping demes in the spatial simulation to ancestral populations.
 
     Parameters:
       model (msprime.Demography): The demographic model to which ancestral populations will be added.

@@ -59,14 +59,15 @@ def create_raster(
 def raster_to_demes(
     raster: Union[np.ndarray, rasterio.DatasetReader],
     transformation: str = "linear",
-    max_local_size: int = 100,
+    max_local_size: int = 1000,
     normalize: bool = False,
     threshold: Optional[float] = None,
+    thresh_norm: bool = False,
     inflection_point: float = 0.5,
     slope: float = 0.05,
 ) -> np.ndarray:
     """
-    Converts a raster to a 2D ndarray of deme sizes using either linear, threshold, or sigmoid transformation functions. For more detail about transformation functions, see [this brief overview](background/trans-fns.md).
+    Converts a raster to a 2D np.ndarray of deme sizes using either linear, threshold, or sigmoid transformation functions. For more detail about transformation functions, see [this brief overview](background/trans-fns.md).
     Raster data should be continuous and positive.
     This function was created with the idea of taking in habitat suitability rasters scaled from 0 to 1, where 0 is no suitability and 1 is the highest suitability.
     However, it is flexible enough to accommodate other continuous rasters that can be coaxed to a 0 to 1 scale with the operation `(data - np.min(data)) / (np.max(data) - np.min(data))` by setting the `normalize` flag to `True`.
@@ -75,9 +76,10 @@ def raster_to_demes(
     Parameters:
         raster: The input raster data. It can be a numpy array or a rasterio DatasetReader with one or more layers.
         transformation: The transformation function to be used. Options are "linear", "threshold", and "sigmoid". Default is "linear".
-        max_local_size: The maximum local deme size. Default is 100.
+        max_local_size: The maximum local deme size. Default is 1000.
         normalize: Whether to normalize the raster data. Use if your data is not scaled from 0-1. Default is False.
         threshold: The threshold value for the "threshold" transformation method. Default is None.
+        thresh_norm: Whether to normalize the local deme size based on the average suitability above the threshold. This is useful when comparing thresholded simulations with linear or sigmoid simulations, to maintain similar landscape-wide population sizes across max_local_size values. Default is False.
         inflection_point: The inflection point for the "sigmoid" transformation method. Default is 0.5.
         slope: The slope value for the "sigmoid" transformation method. Default is 0.05.
 
@@ -100,6 +102,7 @@ def raster_to_demes(
 
     check_raster_input(raster)
     check_transformation_input(transformation)
+
     # if the input is a rasterio object, read in the raster
     if isinstance(raster, rasterio.DatasetReader):
         d = raster.read(masked=True).filled(0)
@@ -116,19 +119,25 @@ def raster_to_demes(
 
     if transformation == "linear":
         t = d * max_local_size  # Apply linear transformation to the raster data
-        t = np.ceil(t)  # Round up the deme sizes to the nearest integer
+
+        if threshold is not None:
+            t[t < max_local_size * threshold] = 1e-10
+
+        t = np.ceil(t)
 
     if transformation == "threshold":
         t = d  # Set the deme sizes to the raster data
-        avg_sdm = np.nanmean(
-            t[t >= threshold]
-        )  # Calculate the average suitability above the threshold
-        t[t >= threshold] = np.ceil(
-            avg_sdm * max_local_size
-        )  # Set the deme sizes above the threshold to the average multiplied by the maximum local size
-        t[t < threshold] = (
-            1e-10  # Set the deme sizes below the threshold to a very small value
-        )
+        if thresh_norm:
+            avg_sdm = np.nanmean(
+                t[t >= threshold]
+            )  # Calculate the average suitability above the threshold
+            t[t >= threshold] = np.ceil(
+                avg_sdm * max_local_size
+            )  # Set the deme sizes above the threshold to the average multiplied by the maximum local size
+        else:
+            t[t >= threshold] = max_local_size
+
+        t[t < threshold] = 1e-10
 
     if transformation == "sigmoid":
 
@@ -143,7 +152,7 @@ def raster_to_demes(
         )  # Apply sigmoid transformation to the raster data
         t = np.ceil(t)  # Round up the deme sizes to the nearest integer
 
-    t[t == 0] = 1e-10  # Set any deme sizes that are 0 to a very small value
+    t = np.where(t < 1e-10, 1e-10, t)  # Set any deme sizes less than 1e-10 to 1e-10
 
     return t  # Return the ndarray of deme sizes
 
@@ -211,13 +220,13 @@ def calc_migration_matrix(
 ## split_landscape_by_pop ##
 def split_landscape_by_pop(
     raster: rasterio.DatasetReader,
-    coordinates: List[Tuple[float, float]],
+    coordinates: Union[List[Tuple[float, float]], gpd.GeoDataFrame],
     anc_pop_id: List[Union[int, np.integer]],
     band_index: int = 1,
     mask_rast: bool = False,
 ) -> np.ma.MaskedArray:
     """
-    Splits a landscape raster based on the ancestral population assigned to sampled individuals.
+    Uses nearest-neighbor interpolation to classify a landscape raster based on the ancestral population assigned to sampled individuals.
     This function takes in a raster and a list of coordinates and ancestral population IDs assigned to each individual in the empirical data set.
     It then interpolates the population IDs across the landscape and returns the new raster as a masked array.
 
@@ -297,7 +306,7 @@ def split_landscape_by_pop(
     return z  # Return the new raster as a masked array
 
 
-def max_thresh_from_coords(
+def mtp_thresh_from_coords(
     raster: rasterio.DatasetReader,
     coordinates: Union[List[Tuple[float, float]], gpd.GeoDataFrame],
 ) -> float:
@@ -325,12 +334,10 @@ def max_thresh_from_coords(
             "Invalid coordinates input. Expected list of coordinate pairs or geopandas GeoDataFrame."
         )
 
-    # Read the first layer of the raster
-    raster_first_layer = raster.read(1, masked=True)
     # Mask the first layer with the coordinates
-    out_image = mask(raster_first_layer, xy, nodata="nan", filled=False)
+    out_image = mask(raster, xy)
     # Find the minimum value of the masked first layer
-    max_thresh = np.min(out_image[0])
+    max_thresh = np.nanmin(out_image[0][0])
 
     return max_thresh
 
@@ -342,7 +349,7 @@ def coords_to_sample_dict(
     vcf_path: Optional[str] = None,
 ) -> Tuple[Dict[int, int], Dict[int, np.ndarray], Optional[Dict[int, np.ndarray]]]:
     """
-    Convert sample coordinates to sample dictionaries, optionally using empirical data, which is accepted as a path to a VCF file.
+    Convert sample coordinates to sample dictionaries for simulation and analysis. Can optionally include empirical data, which is accepted as a path to a VCF file.
 
     This function takes a raster, a list of coordinates, and optional individual IDs and VCF path.
     It masks the raster with the given coordinates, retrieves the cell IDs for each individual's locality,
@@ -412,7 +419,7 @@ def coords_to_sample_dict(
     deme_dict_sim = {}
     for cid in np.unique(cell_id_array):
         num_inds = np.sum(cell_id_array == cid)
-        deme_dict_sim[cid] = num_inds
+        deme_dict_sim[int(cid)] = num_inds
 
     # get the range of indices for each cell id
     deme_dict_sim_long = {}
@@ -424,11 +431,11 @@ def coords_to_sample_dict(
             last_ind_prev = deme_dict_sim_long[cid_prev][
                 len(deme_dict_sim_long[cid_prev]) - 1
             ]  # get the last index of the previous cell id
-            deme_dict_sim_long[cid] = np.array(
+            deme_dict_sim_long[int(cid)] = np.array(
                 range(last_ind_prev + 1, last_ind_prev + deme_dict_sim[cid] + 1)
             )  # get the range of indices for the current cell id
         else:
-            deme_dict_sim_long[cid] = np.array(range(deme_dict_sim[cid]))
+            deme_dict_sim_long[int(cid)] = np.array(range(deme_dict_sim[cid]))
 
     if individual_ids is not None and vcf_path is not None:
         # read in the vcf
@@ -447,7 +454,7 @@ def coords_to_sample_dict(
         for cid in np.unique(cell_id_array):
             id_inds = np.where(cell_id_array == cid)
             id_ind_indices = ind_indices_array[id_inds]
-            deme_dict_empirical[cid] = id_ind_indices
+            deme_dict_empirical[int(cid)] = id_ind_indices
     else:
         deme_dict_empirical = None
 
@@ -481,7 +488,7 @@ def anc_to_deme_dict(
     return ap_dict
 
 
-def samples_to_deme_coords(
+def coords_to_deme_dict(
     raster: rasterio.DatasetReader,
     coordinates: Union[List[Tuple[float, float]], gpd.GeoDataFrame],
 ) -> Dict[int, List[float]]:
@@ -495,7 +502,7 @@ def samples_to_deme_coords(
         coordinates (Union[List[Tuple[float, float]], gpd.GeoDataFrame]): A list of (x, y) coordinates or a geopandas GeoDataFrame.
 
     Returns:
-        Dict[int, List[float]]: A dictionary mapping cell indices to their corresponding coordinates.
+        Dict[int, List[float]]: A dictionary mapping deme indices to their corresponding coordinates.
     """
 
     # check if raster is a rasterio.DatasetReader object

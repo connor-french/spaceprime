@@ -108,3 +108,4 @@ ENV/
 
 # manuscript
 manuscript/
+.Rproj.user

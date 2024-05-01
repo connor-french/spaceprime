@@ -191,7 +191,6 @@ def generate_param_combinations(args):
 
 
 def run_simulation(combo, args):
-    logging.debug("Demography setup started")
 
     # read in raster
     r = rasterio.open(args.raster)
@@ -210,30 +209,27 @@ def run_simulation(combo, args):
 
     demo_id = f"demo_{np.random.randint(0, 2**30)}"
 
-    try:
-        d = setup_demography(
-            raster=r,
-            coords=coords,
-            max_local_size=combo["max_local_size"],
-            threshold=combo["threshold"],
-            inflection_point=combo["inflection_point"],
-            slope=combo["slope"],
-            mig_rate=combo["mig_rate"],
-            scale=args.scale,
-            anc_pop_id=anc_pop_id,
-            timesteps=args.timesteps,
-            anc_sizes=combo["anc_sizes"],
-            merge_time=combo["merge_time"],
-            anc_merge_time=combo["anc_merge_time"],
-            anc_merge_size=combo["anc_merge_size"],
-            anc_mig_rate=combo["anc_mig_rate"],
-        )
-    except Exception as e:
-        logging.error(f"Error setting up demography: {e}")
+    d = setup_demography(
+        raster=r,
+        coords=coords,
+        max_local_size=combo["max_local_size"],
+        threshold=combo["threshold"],
+        inflection_point=combo["inflection_point"],
+        slope=combo["slope"],
+        mig_rate=combo["mig_rate"],
+        scale=args.scale,
+        anc_pop_id=anc_pop_id,
+        timesteps=args.timesteps,
+        anc_sizes=combo["anc_sizes"],
+        merge_time=combo["merge_time"],
+        anc_merge_time=combo["anc_merge_time"],
+        anc_merge_size=combo["anc_merge_size"],
+        anc_mig_rate=combo["anc_mig_rate"],
+    )
 
-    logging.debug("Finished setting up demography")
+    print("Finished setting up demography")
     start_time = time.time()
-    logging.debug("Beginning tree sequence simulations")
+    print("Beginning tree sequence simulations")
 
     for ncoal in range(args.num_coalescent_sims):
         # set a new random seed for each ancestry simulation

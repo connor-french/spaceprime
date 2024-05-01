@@ -161,7 +161,7 @@ def generate_param_combinations(args):
     for _ in range(args.num_param_combos):
         combo = {}
         # max_local_size
-        combo["max_local_size"] = get_random_value(args.max_local_size)
+        combo["max_local_size"] = np.ceil(get_random_value(args.max_local_size))
         # threshold
         combo["threshold"] = get_random_value(args.threshold)
         # inflection_point
@@ -171,13 +171,13 @@ def generate_param_combinations(args):
         # mig_rate
         combo["mig_rate"] = get_random_value(args.mig_rate)
         # anc_sizes
-        combo["anc_sizes"] = get_random_value(args.anc_sizes)
+        combo["anc_sizes"] = np.ceil(get_random_value(args.anc_sizes)).tolist()
         # merge_time
         combo["merge_time"] = get_random_value(args.merge_time)
         # anc_merge_time
-        combo["anc_merge_time"] = [get_random_value(args.anc_merge_time)]
+        combo["anc_merge_time"] = [np.ceil(get_random_value(args.anc_merge_time))]
         # anc_merge_size
-        combo["anc_merge_size"] = [get_random_value(args.anc_merge_size)]
+        combo["anc_merge_size"] = [np.ceil(get_random_value(args.anc_merge_size))]
         # anc_mig_rate
         combo["anc_mig_rate"] = get_random_value(args.anc_mig_rate)
         # mutation_rate

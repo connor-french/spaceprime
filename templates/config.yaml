@@ -1,0 +1,56 @@
+# config file for the spaceprime command line tool
+# This file is a template and should be modified to suit the user's needs.
+# For more information on the parameters, see the documentation at https://connor-french.github.io/spaceprime/
+
+# All list entries must be specified like this: [entry1, entry2, entry3]
+# All pairs of ints, used for specifying ranges, must be specified like this: [int1, int2]
+# All paths must be specified like this: "path/to/file"
+# All boolean values must be specified like this: true or false
+
+# global arguments #
+raster: "path/to/raster/file" #Path to raster file. Can be any raster format that rasterio can read.
+coords: "path/to/coords.csv" #Path to file containing sampling coordinates. Must be a CSV file containing columns 'longitude' and 'latitude'.
+individuals: null #Optional. Either a list or a path to file containing individual IDs. If a CSV, must contain a column named 'individual_id'. 
+  
+# demography setup arguments #
+normalize: false #Normalize raster values to [0,1] range. 
+transformation: "linear" #Transformation to apply to raster. Options are 'linear', 'threshold', 'sigmoid'. Default is 'linear'.
+max_local_size: [1000] #Maximum size of local demes. Accepts a single int or a pair of ints, specified like [100, 1000].
+threshold: null #Optional. Threshold value for a thresholded transformation. Accepts a single float or a pair of floats.
+inflection_point: [0.5] #Inflection point value for a sigmoid transformation. Accepts a single int or a pair of ints.
+slope: [0.05] #Slope value for a sigmoid transformation. Accepts a single float or a pair of floats.
+mig_rate: null #Optional. Global migration rate between demes. Accepts a single float or a pair of floats.
+scale: true #Scale the migration rate by donor and recipient deme size using the equation m = (N_donor / N_recipient) * m_global.
+anc_pop_id: null #Optional. List of ancestral population IDs or path to CSV file with column 'anc_pop_id'. Both have to be the same length as --coords. Only supply if you want to add ancestral populations.
+timestep: 1 #The list of timesteps representing the amount of time passing between each demographic event, in generations. If a single integer is provided, the function assumes that the time steps are equal
+anc_sizes: null #Optional. List of sizes for ancestral populations. Accepts a list of ints or a list of pairs of ints.
+merge_time: null #Time that demes merge into one or more ancestral populations. Measured in generations. Accepts a single int or a pair of ints.
+anc_merge_time: null #Merge time for ancestral populations. Measured in generations. Accepts a single int or a pair of ints.
+anc_merge_size: null #Merge size for ancestral populations. Accepts a single int or a pair of ints.
+anc_mig_rate: null #Migration rate between ancestral populations. Accepts a single int or a pair of ints.
+
+# simulation arguments #
+seq_length: 1000000 #Length of sequence to simulate. Measured in base pairs.
+mutation_rate: [1e-8] #Mutation rate per base pair per generation. Accepts a single float or a pair of floats.
+recombination_rate: [0] #Recombination rate per base pair per generation. Accepts a single float or a pair of floats.
+ploidy: 2 #Ploidy of individuals. Accepts an int.
+num_param_combos: 1 #Number of parameter combinations to simulate. Accepts an int.
+num_coalescent_sims: 1 #Number of coalescent simulations to run per parameter combination. Accepts an int.
+
+# analysis arguments #
+missing_data_perc: 0 #Percentage of data masked as missing. Accepts a single float between 0 and 1.
+r2_thresh: 0.1 #Threshold value for filtering sites based on linkage disequilibrium R^2.
+filter_monomorphic: true #Filter out monomorphic sites.
+filter_singletons: true #Filter out singleton sites.
+sumstats: "all" #List of summary statistics to calculate. Options are 'pi', 'tajima_d', 'sfs_h', 'fst', 'dxy', 'ibd', 'all'. For explanation of summary statistics, see the documentation. Default is all.
+within_anc_pop_sumstats: false #Whether to calculate summary statistics within ancestral populations.
+between_anc_pop_sumstats: false #Whether to calculate Fst and/or Dxy between ancestral populations.
+
+# output arguments #
+out_type: 3 #Type of output. 0 for writing tree sequences to file, 1 for writing VCFs to file, 2 for a CSV of genetic summary statistics, or 3 for writing all outputs to files.
+out_folder: null #Path to output folder. Default is the current working directory.
+out_prefix: "spaceprime" #Prefix for output files. Default is 'spaceprime'.
+verbose: false #Print verbose output.
+
+# CPU #
+cpu: 1 #Number of CPUs to use. Accepts an int.

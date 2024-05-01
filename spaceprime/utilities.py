@@ -292,6 +292,12 @@ def split_landscape_by_pop(
     indices_x = np.concatenate(indices_x)
     indices_y = np.concatenate(indices_y)
 
+    # check that the number of indices matches the number of population IDs. If they don't match, this means that some coordinates did not overlap with the raster
+    if len(indices_x) != len(anc_pop_id):
+        raise ValueError(
+            "Some coordinates did not overlap with the raster. Make sure all sampling coordinates overlap with a cell in the raster."
+        )
+
     # get all of the x, y indices of the input raster
     r_x, r_y = np.indices(raster.shape)
 

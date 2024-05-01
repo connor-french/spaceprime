@@ -1,7 +1,6 @@
 """Console script for spaceprime."""
 
 import argparse
-import sys
 import os
 import yaml
 import rasterio
@@ -10,23 +9,19 @@ import pandas as pd
 import numpy as np
 from geopandas import GeoDataFrame
 from shapely.geometry import Point
+import random
+import time
+from multiprocessing import Pool
 
 from . import utilities
 from . import demography
+from . import analysis
 
 
 # Check if list arguments have more than two elements
 def check_argument_length(arg, max_length):
     if len(arg) > max_length:
         raise ValueError(f"{arg} argument can have a maximum of {max_length} elements")
-
-
-def import_analysis_module(args):
-    if args.out_type == 2 or args.out_type == 3:
-        from . import analysis
-
-
-import random
 
 
 # Check if list arguments are lists, else convert to lists
@@ -109,7 +104,7 @@ def setup_demography(
     mig_rate,
     scale,
     anc_pop_id,
-    timestep,
+    timesteps,
     anc_sizes,
     merge_time,
     anc_merge_time,
@@ -129,37 +124,34 @@ def setup_demography(
         raster=raster, coordinates=coords, anc_pop_id=anc_pop_id
     )
 
-    # convert coords to sample dicts
-    sample_dicts = utilities.coords_to_sample_dict(raster=raster, coordinates=coords)
-    # convert anc_pop_id to deme dict
-    anc_pops = utilities.anc_to_deme_dict(
-        anc_pops=anc_pop_mat, deme_dict=sample_dicts[0]
-    )
-
     # create demography
-    demography = demography.stepping_stone_2d(
-        d=demes, rate=mig_rate, scale=scale, timestep=timestep
+    d = demography.stepping_stone_2d(
+        d=demes, rate=mig_rate, scale=scale, timesteps=timesteps
     )
 
     # add ancestral populations
-    demography = demography.add_ancestral_populations(
-        model=demography,
+    d = demography.add_ancestral_populations(
+        model=d,
         anc_sizes=anc_sizes,
         merge_time=merge_time,
-        anc_id=anc_pops,
+        anc_id=anc_pop_mat,
         anc_merge_times=anc_merge_time,
         anc_merge_sizes=anc_merge_size,
         migration_rate=anc_mig_rate,
     )
 
-    return demography
+    return d
 
 
 def get_random_value(arg):
     if arg is None:
         return None
+    elif isinstance(arg, (int, float)):
+        return arg
     elif len(arg) == 1:
         return arg[0]
+    elif isinstance(arg[0], list):
+        return [random.uniform(a, b) for a, b in arg]
     else:
         return random.uniform(arg[0], arg[1])
 
@@ -183,9 +175,9 @@ def generate_param_combinations(args):
         # merge_time
         combo["merge_time"] = get_random_value(args.merge_time)
         # anc_merge_time
-        combo["anc_merge_time"] = get_random_value(args.anc_merge_time)
+        combo["anc_merge_time"] = [get_random_value(args.anc_merge_time)]
         # anc_merge_size
-        combo["anc_merge_size"] = get_random_value(args.anc_merge_size)
+        combo["anc_merge_size"] = [get_random_value(args.anc_merge_size)]
         # anc_mig_rate
         combo["anc_mig_rate"] = get_random_value(args.anc_mig_rate)
         # mutation_rate
@@ -196,6 +188,219 @@ def generate_param_combinations(args):
         param_combos.append(combo)
 
     return param_combos
+
+
+def run_simulation(combo, args):
+    logging.debug("Demography setup started")
+
+    # read in raster
+    r = rasterio.open(args.raster)
+
+    # read in the coordinates
+    coords = read_coords(args.coords)
+
+    # read in individuals
+    individuals = read_individuals(args, coords)
+
+    # read in anc_pop_id
+    anc_pop_id = read_anc_pop_id(args.anc_pop_id)
+
+    # sample dictionaries for ancestry sims and optionally for sumstats
+    sample_dicts = utilities.coords_to_sample_dict(r, coords)
+
+    demo_id = f"demo_{np.random.randint(0, 2**30)}"
+
+    try:
+        d = setup_demography(
+            raster=r,
+            coords=coords,
+            max_local_size=combo["max_local_size"],
+            threshold=combo["threshold"],
+            inflection_point=combo["inflection_point"],
+            slope=combo["slope"],
+            mig_rate=combo["mig_rate"],
+            scale=args.scale,
+            anc_pop_id=anc_pop_id,
+            timesteps=args.timesteps,
+            anc_sizes=combo["anc_sizes"],
+            merge_time=combo["merge_time"],
+            anc_merge_time=combo["anc_merge_time"],
+            anc_merge_size=combo["anc_merge_size"],
+            anc_mig_rate=combo["anc_mig_rate"],
+        )
+    except Exception as e:
+        logging.error(f"Error setting up demography: {e}")
+
+    logging.debug("Finished setting up demography")
+    start_time = time.time()
+    logging.debug("Beginning tree sequence simulations")
+
+    for ncoal in range(args.num_coalescent_sims):
+        # set a new random seed for each ancestry simulation
+        ancestry_seed = np.random.randint(0, 2**30)
+        mutation_seed = np.random.randint(0, 2**30)
+
+        # simulate tree sequence
+        ts = msprime.sim_ancestry(
+            samples=sample_dicts[0],
+            demography=d,
+            sequence_length=args.seq_length,
+            recombination_rate=combo["recombination_rate"],
+            ploidy=args.ploidy,
+            random_seed=ancestry_seed,
+            record_provenance=False,
+        )
+
+        # simulate mutations
+        ts = msprime.sim_mutations(
+            ts, rate=combo["mutation_rate"], random_seed=mutation_seed
+        )
+
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+
+        # write metadata to csv
+        metadata = {
+            "ancestry_seed": ancestry_seed,
+            "mutation_seed": mutation_seed,
+            "max_local_size": (
+                str(combo["max_local_size"])
+                if isinstance(combo["max_local_size"], list)
+                else combo["max_local_size"]
+            ),
+            "threshold": (
+                str(combo["threshold"])
+                if isinstance(combo["threshold"], list)
+                else combo["threshold"]
+            ),
+            "inflection_point": (
+                str(combo["inflection_point"])
+                if isinstance(combo["inflection_point"], list)
+                else combo["inflection_point"]
+            ),
+            "slope": (
+                str(combo["slope"])
+                if isinstance(combo["slope"], list)
+                else combo["slope"]
+            ),
+            "mig_rate": (
+                str(combo["mig_rate"])
+                if isinstance(combo["mig_rate"], list)
+                else combo["mig_rate"]
+            ),
+            "anc_sizes": (
+                str(combo["anc_sizes"])
+                if isinstance(combo["anc_sizes"], list)
+                else combo["anc_sizes"]
+            ),
+            "merge_time": (
+                str(combo["merge_time"])
+                if isinstance(combo["merge_time"], list)
+                else combo["merge_time"]
+            ),
+            "anc_merge_time": (
+                str(combo["anc_merge_time"])
+                if isinstance(combo["anc_merge_time"], list)
+                else combo["anc_merge_time"]
+            ),
+            "anc_merge_size": (
+                str(combo["anc_merge_size"])
+                if isinstance(combo["anc_merge_size"], list)
+                else combo["anc_merge_size"]
+            ),
+            "anc_mig_rate": (
+                str(combo["anc_mig_rate"])
+                if isinstance(combo["anc_mig_rate"], list)
+                else combo["anc_mig_rate"]
+            ),
+            "mutation_rate": (
+                str(combo["mutation_rate"])
+                if isinstance(combo["mutation_rate"], list)
+                else combo["mutation_rate"]
+            ),
+            "recombination_rate": (
+                str(combo["recombination_rate"])
+                if isinstance(combo["recombination_rate"], list)
+                else combo["recombination_rate"]
+            ),
+            "demo_id": demo_id,
+            "coal_rep": ncoal,
+            "sim_time": elapsed_time,
+        }
+        metadata_file = os.path.join(args.out_folder, f"{args.out_prefix}_metadata.csv")
+        if os.path.exists(metadata_file):
+            pd.DataFrame(metadata, index=[0]).to_csv(
+                metadata_file, mode="a", header=False, index=False
+            )
+        else:
+            pd.DataFrame(metadata, index=[0]).to_csv(metadata_file, index=False)
+
+        # if out_type is 0 or 3, write tree sequence to file
+        if args.out_type == 0 or args.out_type == 3:
+            ts_file = os.path.join(
+                args.out_folder, f"{args.out_prefix}_ancestry_{ancestry_seed}.trees"
+            )
+            ts.dump(ts_file)
+
+        # if out_type is 1 or 3, write VCF to file
+        if args.out_type == 1 or args.out_type == 3:
+            vcf_file = os.path.join(
+                args.out_folder, f"{args.out_prefix}_vcf_{ancestry_seed}.vcf"
+            )
+            ts.write_vcf(vcf_file, ploidy=args.ploidy, individual_names=individuals)
+
+        # if out_type is 2 or 3, calculate summary statistics
+        #### NEED TO FINISH THIS ####
+        if args.out_type == 2 or args.out_type == 3:
+            # convert tree sequence to a genotype matrix
+            gt = ts.genotype_matrix()
+            # get necessary dictionaries
+            coords_dict = utilities.coords_to_deme_dict(r, coords)
+
+            # split landscape by population if within_anc_pop_sumstats is True or if between_anc_pop_sumstats is True
+            if args.within_anc_pop_sumstats or args.between_anc_pop_sumstats:
+                anc_pop_mat = utilities.split_landscape_by_pop(r, coords, anc_pop_id)
+                deme_dict_anc = utilities.anc_to_deme_dict(anc_pop_mat, sample_dicts[1])
+            else:
+                deme_dict_anc = None
+
+            # filter genotype matrix
+            _, ac_filt, ac_demes, ac_anc = analysis.filter_gt(
+                gt,
+                deme_dict_inds=sample_dicts[1],
+                deme_dict_anc=deme_dict_anc,
+                missing_data_perc=args.missing_data_perc,
+                r2_thresh=args.r2_thresh,
+                filter_monomorphic=args.filter_monomorphic,
+                filter_singletons=args.filter_singletons,
+            )
+
+            # calculate summary statistics
+            sumstats = analysis.calc_sumstats(
+                ac=ac_filt,
+                coords_dict=coords_dict,
+                anc_demes_dict=deme_dict_anc,
+                ac_demes=ac_demes,
+                ac_anc=ac_anc,
+                between_anc_pop_sumstats=args.between_anc_pop_sumstats,
+                return_df=True,
+                precision=6,
+            )
+
+            # add columns containing the ancestry and mutation seeds
+            sumstats["ancestry_seed"] = ancestry_seed
+            sumstats["mutation_seed"] = mutation_seed
+
+            # write summary statistics to file
+            sumstats_file = os.path.join(
+                args.out_folder, f"{args.out_prefix}_sumstats.csv"
+            )
+            if os.path.exists(sumstats_file):
+                sumstats.to_csv(sumstats_file, mode="a", header=False, index=False)
+            else:
+                sumstats.to_csv(sumstats_file, index=False)
+
+        print("Finished simulating tree sequences")
 
 
 def main():
@@ -213,14 +418,12 @@ def main():
         "-r",
         "--raster",
         type=str,
-        required=True,
         help="Path to raster file. Can be any raster format that rasterio can read.",
     )
     parser.add_argument(
         "-co",
         "--coords",
         type=str,
-        required=True,
         help="Path to file containing sampling coordinates. Must be a CSV file containing columns 'longitude' and 'latitude'.",
     )
     parser.add_argument(
@@ -237,7 +440,7 @@ def main():
         "--normalize",
         type=bool,
         default=False,
-        help="Normalize the raster. Default is False.",
+        help="Normalize the raster to [0, 1] range. Default is False.",
     )
     demography_parser.add_argument(
         "-t",
@@ -291,7 +494,7 @@ def main():
         "--scale",
         type=bool,
         default=True,
-        help="Scale the migration rate by focal and neighbor deme size. Default is True.",
+        help="Scale the migration rate by donor and recipient deme size using the equation m = (N_donor / N_recipient) * m_global. Default is True.",
     )
     demography_parser.add_argument(
         "-a",
@@ -302,10 +505,10 @@ def main():
     )
     demography_parser.add_argument(
         "-ts",
-        "--timestep",
+        "--timesteps",
         type=int,
         default=1,
-        help="Time that passes between each raster projection for demography. Measured in generations. Default is 1.",
+        help="The list of timesteps representing the amount of time passing between each demographic event, in generations. If a single integer is provided, the function assumes that the time steps are equal. Default is 1.",
     )
     demography_parser.add_argument(
         "-as",
@@ -400,7 +603,7 @@ def main():
         "--missing_data_perc",
         type=float,
         default=0,
-        help="Percentage of data masked as missing. Default is 0.",
+        help="Percentage of data masked as missing. Accepts a single float between 0 and 1. Default is 0.",
     )
     analysis_parser.add_argument(
         "-rt",
@@ -443,7 +646,7 @@ def main():
         "--between_anc_pop_sumstats",
         type=bool,
         default=False,
-        help="Whether to calculate Fst or Dxy between ancestral populations. Defaults to False.",
+        help="Whether to calculate Fst and/or Dxy between ancestral populations. Defaults to False.",
     )
     # Output
     parser.add_argument(
@@ -451,14 +654,14 @@ def main():
         "--out_type",
         type=int,
         default=3,
-        help="Type of output. 0 for writing tree sequences to file, 1 for writing VCFs to file, 2 for a CSV of genetic summary statistics, or 3 for writing all outputs to files. Default is 0.",
+        help="Type of output. 0 for writing tree sequences to file, 1 for writing VCFs to file, 2 for a CSV of genetic summary statistics, or 3 for writing all outputs to files. Default is 3.",
     )
     parser.add_argument(
         "-of",
         "--out_folder",
         type=str,
         default=None,
-        help="Path to output folder. Default is None, which will return files in the working directory.",
+        help="Path to output folder. Default is the current working directory.",
     )
     parser.add_argument(
         "-op",
@@ -484,9 +687,6 @@ def main():
 
     args = parser.parse_args()
 
-    # import analysis module if needed
-    import_analysis_module(args)
-
     # Check if params YAML file exists. If so, update command line arguments with parameters from YAML file
     if args.params is not None:
         if not os.path.exists(args.params):
@@ -498,35 +698,36 @@ def main():
             for key, value in params.items():
                 setattr(args, key, value)
 
-    max_local_size = check_list_argument(args.max_local_size)
-    inflection_point = check_list_argument(args.inflection_point)
-    slope = check_list_argument(args.slope)
-    mig_rate = check_list_argument(args.mig_rate)
-    anc_pop_id = check_list_argument(args.anc_pop_id)
-    anc_sizes = check_list_argument(args.anc_sizes)
+    args.max_local_size = check_list_argument(args.max_local_size)
+    args.inflection_point = check_list_argument(args.inflection_point)
+    args.slope = check_list_argument(args.slope)
+    args.mig_rate = check_list_argument(args.mig_rate)
+    args.anc_pop_id = check_list_argument(args.anc_pop_id)
+    args.anc_sizes = check_list_argument(args.anc_sizes)
     # make sure anc_sizes is a list of single value or a list of lists with two values in each element
-    if anc_sizes is not None:
-        if isinstance(anc_sizes[0], list):
-            anc_sizes = [list(map(int, size)) for size in anc_sizes]
-            for size in anc_sizes:
+    if args.anc_sizes[0] is not None:
+        if isinstance(args.anc_sizes[0], list):
+            args.anc_sizes = [list(map(int, size)) for size in args.anc_sizes]
+            for size in args.anc_sizes:
                 if len(size) != 2:
                     raise ValueError(
                         f"Each element in --anc_sizes must have two values"
                     )
         else:
-            anc_sizes = [int(size) for size in anc_sizes]
-    anc_merge_time = check_list_argument(args.anc_merge_time)
-    anc_merge_size = check_list_argument(args.anc_merge_size)
-    anc_mig_rate = check_list_argument(args.anc_mig_rate)
+            args.anc_sizes = [int(size) for size in args.anc_sizes]
+
+    args.anc_merge_time = check_list_argument(args.anc_merge_time)
+    args.anc_merge_size = check_list_argument(args.anc_merge_size)
+    args.anc_mig_rate = check_list_argument(args.anc_mig_rate)
 
     # Check if list arguments that are supposed to be priors have more than two elements
-    check_argument_length(max_local_size, 2)
-    check_argument_length(inflection_point, 2)
-    check_argument_length(slope, 2)
-    check_argument_length(mig_rate, 2)
-    check_argument_length(anc_merge_time, 2)
-    check_argument_length(anc_merge_size, 2)
-    check_argument_length(anc_mig_rate, 2)
+    check_argument_length(args.max_local_size, 2)
+    check_argument_length(args.inflection_point, 2)
+    check_argument_length(args.slope, 2)
+    check_argument_length(args.mig_rate, 2)
+    check_argument_length(args.anc_merge_time, 2)
+    check_argument_length(args.anc_merge_size, 2)
+    check_argument_length(args.anc_mig_rate, 2)
 
     # check if raster file exists
     if not os.path.exists(args.raster):
@@ -537,161 +738,14 @@ def main():
         if not os.path.exists(args.out_folder):
             raise FileNotFoundError(f"Output folder {args.out_folder} not found")
 
-    # read in raster
-    r = rasterio.open(args.raster)
-
-    # read in the coordinates
-    coords = read_coords(args.coords)
-
-    # read in individuals
-    individuals = read_individuals(args, coords)
-
-    # read in anc_pop_id
-    anc_pop_id = read_anc_pop_id(anc_pop_id)
-
-    # sample dictionaries for ancestry sims and optionally for sumstats
-    sample_dicts = utilities.coords_to_sample_dict(r, coords)
-
     # generate parameter combinations
     param_combos = generate_param_combinations(args)
 
-    for combo in param_combos:
-        demography = setup_demography(
-            raster=r,
-            coords=coords,
-            max_local_size=combo["max_local_size"],
-            threshold=combo["threshold"],
-            inflection_point=combo["inflection_point"],
-            slope=combo["slope"],
-            mig_rate=combo["mig_rate"],
-            scale=args.scale,
-            anc_pop_id=anc_pop_id,
-            timestep=args.timestep,
-            anc_sizes=combo["anc_sizes"],
-            merge_time=combo["merge_time"],
-            anc_merge_time=combo["anc_merge_time"],
-            anc_merge_size=combo["anc_merge_size"],
-            anc_mig_rate=combo["anc_mig_rate"],
-        )
-
-        # loop through num_coalescent_sims
-        for _ in range(args.num_coalescent_sims):
-            # set a new random seed for each ancestry simulation
-            ancestry_seed = np.random.randint(0, 3**31)
-            mutation_seed = np.random.randint(0, 3**31)
-
-            # simulate tree sequence
-            ts = msprime.sim_ancestry(
-                samples=sample_dicts[0],
-                demography=demography,
-                sequence_length=args.seq_length,
-                recombination_rate=combo["recombination_rate"],
-                ploidy=args.ploidy,
-                random_seed=ancestry_seed,
-                record_provenance=False,
-            )
-
-            # simulate mutations
-            ts = msprime.sim_mutations(
-                ts, rate=combo["mutation_rate"], random_seed=mutation_seed
-            )
-
-            # write metadata to csv
-            metadata = {
-                "ancestry_seed": ancestry_seed,
-                "mutation_seed": mutation_seed,
-                "max_local_size": combo["max_local_size"],
-                "threshold": combo["threshold"],
-                "inflection_point": combo["inflection_point"],
-                "slope": combo["slope"],
-                "mig_rate": combo["mig_rate"],
-                "anc_sizes": combo["anc_sizes"],
-                "merge_time": combo["merge_time"],
-                "anc_merge_time": combo["anc_merge_time"],
-                "anc_merge_size": combo["anc_merge_size"],
-                "anc_mig_rate": combo["anc_mig_rate"],
-                "mutation_rate": combo["mutation_rate"],
-                "recombination_rate": combo["recombination_rate"],
-            }
-            metadata_file = os.path.join(
-                args.out_folder, f"{args.out_prefix}_metadata_{ancestry_seed}.csv"
-            )
-            if os.path.exists(metadata_file):
-                pd.DataFrame(metadata, index=[0]).to_csv(
-                    metadata_file, mode="a", header=False, index=False
-                )
-            else:
-                pd.DataFrame(metadata, index=[0]).to_csv(metadata_file, index=False)
-
-            # if out_type is 0 or 3, write tree sequence to file
-            if args.out_type == 0 or args.out_type == 3:
-                ts_file = os.path.join(
-                    args.out_folder, f"{args.out_prefix}_ancestry_{ancestry_seed}.trees"
-                )
-                ts.dump(ts_file)
-
-            # if out_type is 1 or 3, write VCF to file
-            if args.out_type == 1 or args.out_type == 3:
-                vcf_file = os.path.join(
-                    args.out_folder, f"{args.out_prefix}_vcf_{ancestry_seed}.vcf"
-                )
-                ts.write_vcf(vcf_file, ploidy=args.ploidy, individual_names=individuals)
-
-            # if out_type is 2 or 3, calculate summary statistics
-            #### NEED TO FINISH THIS ####
-            if args.out_type == 2 or args.out_type == 3:
-                # convert tree sequence to a genotype matrix
-                gt = ts.genotype_matrix()
-                # get necessary dictionaries
-                coords_dict = utilities.coords_to_deme_dict(r, coords)
-
-                # split landscape by population if within_anc_pop_sumstats is True or if between_anc_pop_sumstats is True
-                if args.within_anc_pop_sumstats or args.between_anc_pop_sumstats:
-                    anc_pop_mat = utilities.split_landscape_by_pop(
-                        r, coords, anc_pop_id
-                    )
-                    deme_dict_anc = utilities.anc_to_deme_dict(
-                        anc_pop_mat, sample_dicts[1]
-                    )
-                else:
-                    deme_dict_anc = None
-
-                # filter genotype matrix
-                _, ac_filt, ac_demes, ac_anc = analysis.filter_gt(
-                    gt,
-                    deme_dict_inds=sample_dicts[1],
-                    deme_dict_anc=deme_dict_anc,
-                    missing_data_perc=args.missing_data_perc,
-                    r2_thresh=args.r2_thresh,
-                    filter_monomorphic=args.filter_monomorphic,
-                    filter_singletons=args.filter_singletons,
-                )
-
-                # calculate summary statistics
-                sumstats = analysis.calculate_sumstats(
-                    ac=ac_filt,
-                    coords_dict=coords_dict,
-                    anc_demes_dict=deme_dict_anc,
-                    ac_demes=ac_demes,
-                    ac_anc=ac_anc,
-                    between_anc_pop_sumstats=args.between_anc_pop_sumstats,
-                    return_df=True,
-                    precision=6,
-                )
-
-                # add columns containing the ancestry and mutation seeds
-                sumstats["ancestry_seed"] = ancestry_seed
-                sumstats["mutation_seed"] = mutation_seed
-
-                # write summary statistics to file
-                sumstats_file = os.path.join(
-                    args.out_folder, f"{args.out_prefix}_sumstats.csv"
-                )
-                if os.path.exists(sumstats_file):
-                    sumstats.to_csv(sumstats_file, mode="a", header=False, index=False)
-                else:
-                    sumstats.to_csv(sumstats_file, index=False)
-
-
-if __name__ == "__main__":
-    sys.exit(main())  # pragma: no cover
+    # run simulations in parallel
+    if args.cpu == 1:
+        if __name__ == "__main__":
+            for combo in param_combos:
+                run_simulation(combo, args)
+    else:
+        with Pool(args.cpu) as p:
+            p.starmap(run_simulation, [(combo, args) for combo in param_combos])

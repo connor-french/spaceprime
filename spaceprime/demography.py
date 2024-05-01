@@ -18,7 +18,7 @@ def stepping_stone_2d(
     d: np.ndarray,
     rate: Union[float, np.ndarray],
     scale: bool = True,
-    timestep: Optional[int] = None,
+    timesteps: Union[int, List[int]] = None,
 ) -> msprime.Demography:
     """
     Create a 2D stepping stone model, either for a single time step or for multiple time steps of deme size change.
@@ -30,7 +30,7 @@ def stepping_stone_2d(
         If a numpy.ndarray, it represents a migration matrix with shape (N, N),
         where N is the total number of populations.
       scale (bool): Whether to scale the migration rate matrix. Default is True.
-      timestep (int, optional): The number of generations in between demographic events. Default is None.
+      timesteps (Union[int, List[int]]): The list of timesteps representing the amount of time passing between each demographic event, in generations. If a single integer is provided, the function assumes that the time steps are equal.
 
 
     Returns:
@@ -79,7 +79,7 @@ def stepping_stone_2d(
 
     # if there are multiple time steps of population size change
     if len(d.shape) == 3:
-        model = add_landscape_change(model, d, timestep, rate, scale)
+        model = add_landscape_change(model, d, timesteps, rate, scale)
 
     model.sort_events()
 
@@ -89,7 +89,7 @@ def stepping_stone_2d(
 def add_landscape_change(
     model: msprime.Demography,
     d: np.ndarray,
-    timestep: Optional[int] = None,
+    timesteps: Union[int, List[int]],
     rate: Union[float, np.ndarray] = 0.001,
     scale: bool = True,
 ) -> msprime.Demography:
@@ -100,13 +100,19 @@ def add_landscape_change(
     Parameters:
       model (msprime.Demography): The model object to which the landscape change will be added.
       d (np.ndarray): The 3D array representing different time steps of population size change.
-      timestep (int, optional): The number of generations in between demographic events. Defaults to None.
+      timesteps (Union[int, List[int]]): The list of timesteps representing the amount of time passing between each demographic event, in generations. If a single integer is provided, the function assumes that the time steps are equal.
       rate (Union[float, np.ndarray], optional): The migration rate. Defaults to 0.001.
       scale (bool, optional): Whether to scale the migration rate based on population size. Defaults to True.
 
     Returns:
       msprime.Demography: The updated model object.
     """
+
+    # check if the number of timesteps matches the number of layers in d, if timesteps is a list
+    if isinstance(timesteps, list):
+        assert (
+            len(timesteps) == d.shape[0] - 1
+        ), "Number of timesteps should match the number of layers in d - 1"
 
     # iterate through the first dimension of a 3D array, where the array represents different time steps of population size change
     # omit the most ancient time step (have to set its migration rate differently)
@@ -123,6 +129,12 @@ def add_landscape_change(
         # get the shape of the array
         n, m = kmat.shape
 
+        # get the time for the demographic event
+        if isinstance(timesteps, int):
+            demo_time = timesteps * step
+        else:
+            demo_time = sum(timesteps[:step])
+
         ##### Update population sizes #####
         # add population size changes according to the values of the current array
         for j in range(n):
@@ -131,7 +143,7 @@ def add_landscape_change(
                 if kmat[j, k] != kmat_prev[j, k]:
                     # add a demographic change to each cell in the raster
                     model.add_population_parameters_change(
-                        time=step * timestep,
+                        time=demo_time,
                         population=f"deme_{j}_{k}",
                         initial_size=kmat[j, k],
                     )
@@ -159,14 +171,14 @@ def add_landscape_change(
                                     else 0
                                 )
                                 model.add_migration_rate_change(
-                                    time=step * timestep,
+                                    time=demo_time,
                                     rate=r,
                                     source=f"deme_{i}_{j}",
                                     dest=f"deme_{i + di}_{j + dj}",
                                 )
                             else:
                                 model.add_migration_rate_change(
-                                    time=step * timestep,
+                                    time=demo_time,
                                     rate=rate,
                                     source=f"deme_{i}_{j}",
                                     dest=f"deme_{i + di}_{j + dj}",
@@ -184,14 +196,14 @@ def add_landscape_change(
                                     else 0
                                 )
                                 model.add_migration_rate_change(
-                                    time=step * timestep,
+                                    time=demo_time,
                                     rate=r,
                                     source=f"deme_{i}_{j}",
                                     dest=f"deme_{i + di}_{j + dj}",
                                 )
                             else:
                                 model.add_migration_rate_change(
-                                    time=step * timestep,
+                                    time=demo_time,
                                     rate=rate,
                                     source=f"deme_{i}_{j}",
                                     dest=f"deme_{i + di}_{j + dj}",
@@ -254,11 +266,15 @@ def add_ancestral_populations(
             "Model already contains ancestral populations. You need to re-initialize the 2D stepping stone model before adding ancestral populations."
         )
 
-    # Rest of the code...
+    # check merge time
     if isinstance(merge_time, list):
         raise ValueError("merge_time should be a single float or int, not a list.")
     elif not isinstance(merge_time, (float, int)):
         raise TypeError("merge_time should be a float or int.")
+
+    # throw an error if anc_merge_times is not None and is not a list
+    if anc_merge_times is not None and not isinstance(anc_merge_times, list):
+        raise TypeError("anc_merge_times should be a list.")
 
     if anc_id is None:
         # add an ancestral population

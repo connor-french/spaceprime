@@ -20,13 +20,15 @@ from . import analysis
 
 # Check if list arguments have more than two elements
 def check_argument_length(arg, max_length):
-    if len(arg) > max_length:
+    if arg is not None and len(arg) > max_length:
         raise ValueError(f"{arg} argument can have a maximum of {max_length} elements")
 
 
 # Check if list arguments are lists, else convert to lists
 def check_list_argument(arg):
-    if isinstance(arg, list):
+    if arg is None:
+        return None
+    elif isinstance(arg, list):
         return arg
     else:
         return [arg]

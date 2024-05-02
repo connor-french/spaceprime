@@ -122,9 +122,10 @@ def setup_demography(
         slope=slope,
     )
     # split landscape by population
-    anc_pop_mat = utilities.split_landscape_by_pop(
-        raster=raster, coordinates=coords, anc_pop_id=anc_pop_id
-    )
+    if anc_pop_id is not None:
+        anc_pop_mat = utilities.split_landscape_by_pop(
+            raster=raster, coordinates=coords, anc_pop_id=anc_pop_id
+        )
 
     # create demography
     d = demography.stepping_stone_2d(

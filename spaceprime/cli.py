@@ -289,7 +289,9 @@ def run_simulation(combo, args):
     # if map is True, return a dictionary mapping samples to all nonzero demes
     # replace the sample dictionary with this dictionary
     if args.map:
-        sample_dicts[0] = get_map_dict(d)
+        samples = get_map_dict(d)
+    else:
+        samples = sample_dicts[0]
 
     for ncoal in range(args.num_coalescent_sims):
         # set a new random seed for each ancestry simulation
@@ -298,7 +300,7 @@ def run_simulation(combo, args):
 
         # simulate tree sequence
         ts = msprime.sim_ancestry(
-            samples=sample_dicts[0],
+            samples=samples,
             demography=d,
             sequence_length=args.seq_length,
             recombination_rate=combo["recombination_rate"],

@@ -81,7 +81,7 @@ def read_individuals(args, coords):
 
 
 def read_anc_pop_id(anc_pop_id):
-    if anc_pop_id[0] is not None and not len(anc_pop_id) > 1:
+    if anc_pop_id is not None and not len(anc_pop_id) > 1:
         if not os.path.exists(anc_pop_id[0]):
             raise FileNotFoundError(f"anc_pop_id file {anc_pop_id[0]} not found")
         else:

@@ -6,6 +6,7 @@ import numpy as np
 from typing import Union, List, Optional
 import msprime
 from .utilities import calc_migration_matrix
+import warnings
 
 
 ## not sure if I should add a subclass or not. There are only two new functions, so might not be worth it.
@@ -269,6 +270,13 @@ def add_ancestral_populations(
     # convert anc_sizes to a list if it is a single value
     if not isinstance(anc_sizes, list):
         anc_sizes = [anc_sizes]
+
+    # set anc_id to None and throw a warning if anc_sizes is less than 2
+    if len(anc_sizes) < 2 and anc_id is not None:
+        warnings.warn(
+            "anc_sizes is less than two, but you provided a list of anc_id's. If you meant to setup more than one anc_size, provide a list of sizes to anc_size. Otherwise, you're fine."
+        )
+        anc_id = None
 
     # check merge time
     if isinstance(merge_time, list):

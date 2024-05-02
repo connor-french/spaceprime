@@ -173,15 +173,31 @@ def generate_param_combinations(args):
         # mig_rate
         combo["mig_rate"] = get_random_value(args.mig_rate)
         # anc_sizes
-        combo["anc_sizes"] = np.ceil(get_random_value(args.anc_sizes)).tolist()
+        if args.anc_sizes is not None:
+            combo["anc_sizes"] = np.ceil(get_random_value(args.anc_sizes)).tolist()
+        else:
+            combo["anc_sizes"] = None
         # merge_time
         combo["merge_time"] = get_random_value(args.merge_time)
         # anc_merge_time
-        combo["anc_merge_time"] = [np.ceil(get_random_value(args.anc_merge_time))]
+        if args.anc_merge_time is not None:
+            combo["anc_merge_time"] = np.ceil(
+                get_random_value(args.anc_merge_time)
+            ).tolist()
+        else:
+            combo["anc_merge_time"] = None
         # anc_merge_size
-        combo["anc_merge_size"] = [np.ceil(get_random_value(args.anc_merge_size))]
+        if args.anc_merge_size is not None:
+            combo["anc_merge_size"] = np.ceil(
+                get_random_value(args.anc_merge_size)
+            ).tolist()
+        else:
+            combo["anc_merge_size"] = None
         # anc_mig_rate
-        combo["anc_mig_rate"] = get_random_value(args.anc_mig_rate)
+        if args.anc_mig_rate is not None:
+            combo["anc_mig_rate"] = get_random_value(args.anc_mig_rate)
+        else:
+            combo["anc_mig_rate"] = None
         # mutation_rate
         combo["mutation_rate"] = get_random_value(args.mutation_rate)
         # recombination_rate

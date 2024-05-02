@@ -96,6 +96,40 @@ def read_anc_pop_id(anc_pop_id):
         return anc_pop_id
 
 
+# for outputting a map of genetic diversity
+def get_map_dict(m):
+    nzp = []
+
+    for i in range(len(m.populations)):
+        if m.populations[i].initial_size >= 2.0 and m.populations[i].name != "ANC":
+            nzp.append(m.populations[i].name)
+
+    map_dict = {key: 2 for key in nzp}
+    return map_dict
+
+
+# get coalescent times for each deme if the map is True
+def get_coal_times(tseq, raster):
+    coal_list = []
+    for j in range(tseq.num_populations):
+        # Get the samples corresponding to this population
+        samples = tseq.samples(population=j)
+        # Simplify the tree sequence to just these samples
+        ts_pop = tseq.simplify(samples=samples)
+        tree = ts_pop
+        # only calc diversity if there is at least two individuals
+        if tree.num_samples > 1:
+            coal_list.append(tseq.diversity(samples))
+        else:
+            coal_list.append(-1)
+
+    coal_1d = np.array(coal_list)[:-3]
+
+    coal_array = np.reshape(coal_1d, newshape=raster.shape)
+
+    return coal_array
+
+
 def setup_demography(
     raster,
     coords,
@@ -252,6 +286,11 @@ def run_simulation(combo, args):
     start_time = time.time()
     print("Beginning tree sequence simulations")
 
+    # if map is True, return a dictionary mapping samples to all nonzero demes
+    # replace the sample dictionary with this dictionary
+    if args.map:
+        sample_dicts[0] = get_map_dict(d)
+
     for ncoal in range(args.num_coalescent_sims):
         # set a new random seed for each ancestry simulation
         ancestry_seed = np.random.randint(0, 2**30)
@@ -352,70 +391,86 @@ def run_simulation(combo, args):
         else:
             pd.DataFrame(metadata, index=[0]).to_csv(metadata_file, index=False)
 
-        # if out_type is 0 or 3, write tree sequence to file
-        if args.out_type == 0 or args.out_type == 3:
-            ts_file = os.path.join(
-                args.out_folder, f"{args.out_prefix}_ancestry_{ancestry_seed}.trees"
-            )
-            ts.dump(ts_file)
+        if args.map:
+            coal_array = get_coal_times(ts, r)
 
-        # if out_type is 1 or 3, write VCF to file
-        if args.out_type == 1 or args.out_type == 3:
-            vcf_file = os.path.join(
-                args.out_folder, f"{args.out_prefix}_vcf_{ancestry_seed}.vcf"
-            )
-            ts.write_vcf(vcf_file, ploidy=args.ploidy, individual_names=individuals)
-
-        # if out_type is 2 or 3, calculate summary statistics
-        #### NEED TO FINISH THIS ####
-        if args.out_type == 2 or args.out_type == 3:
-            # convert tree sequence to a genotype matrix
-            gt = ts.genotype_matrix()
-            # get necessary dictionaries
-            coords_dict = utilities.coords_to_deme_dict(r, coords)
-
-            # split landscape by population if within_anc_pop_sumstats is True or if between_anc_pop_sumstats is True
-            if args.within_anc_pop_sumstats or args.between_anc_pop_sumstats:
-                anc_pop_mat = utilities.split_landscape_by_pop(r, coords, anc_pop_id)
-                deme_dict_anc = utilities.anc_to_deme_dict(anc_pop_mat, sample_dicts[1])
-            else:
-                deme_dict_anc = None
-
-            # filter genotype matrix
-            _, ac_filt, ac_demes, ac_anc = analysis.filter_gt(
-                gt,
-                deme_dict_inds=sample_dicts[1],
-                deme_dict_anc=deme_dict_anc,
-                missing_data_perc=args.missing_data_perc,
-                r2_thresh=args.r2_thresh,
-                filter_monomorphic=args.filter_monomorphic,
-                filter_singletons=args.filter_singletons,
+            utilities.create_raster(
+                coal_array,
+                r,
+                out_folder=args.out_folder,
+                out_prefix=f"{args.out_prefix}_diversity_map_{ancestry_seed}",
             )
 
-            # calculate summary statistics
-            sumstats = analysis.calc_sumstats(
-                ac=ac_filt,
-                coords_dict=coords_dict,
-                anc_demes_dict=deme_dict_anc,
-                ac_demes=ac_demes,
-                ac_anc=ac_anc,
-                between_anc_pop_sumstats=args.between_anc_pop_sumstats,
-                return_df=True,
-                precision=6,
-            )
+        # only output other files if args.map is False
+        else:
+            # if out_type is 0 or 3, write tree sequence to file
+            if args.out_type == 0 or args.out_type == 3:
+                ts_file = os.path.join(
+                    args.out_folder, f"{args.out_prefix}_ancestry_{ancestry_seed}.trees"
+                )
+                ts.dump(ts_file)
 
-            # add columns containing the ancestry and mutation seeds
-            sumstats["ancestry_seed"] = ancestry_seed
-            sumstats["mutation_seed"] = mutation_seed
+            # if out_type is 1 or 3, write VCF to file
+            if args.out_type == 1 or args.out_type == 3:
+                vcf_file = os.path.join(
+                    args.out_folder, f"{args.out_prefix}_vcf_{ancestry_seed}.vcf"
+                )
+                ts.write_vcf(vcf_file, ploidy=args.ploidy, individual_names=individuals)
 
-            # write summary statistics to file
-            sumstats_file = os.path.join(
-                args.out_folder, f"{args.out_prefix}_sumstats.csv"
-            )
-            if os.path.exists(sumstats_file):
-                sumstats.to_csv(sumstats_file, mode="a", header=False, index=False)
-            else:
-                sumstats.to_csv(sumstats_file, index=False)
+            # if out_type is 2 or 3, calculate summary statistics
+            #### NEED TO FINISH THIS ####
+            if args.out_type == 2 or args.out_type == 3:
+                # convert tree sequence to a genotype matrix
+                gt = ts.genotype_matrix()
+                # get necessary dictionaries
+                coords_dict = utilities.coords_to_deme_dict(r, coords)
+
+                # split landscape by population if within_anc_pop_sumstats is True or if between_anc_pop_sumstats is True
+                if args.within_anc_pop_sumstats or args.between_anc_pop_sumstats:
+                    anc_pop_mat = utilities.split_landscape_by_pop(
+                        r, coords, anc_pop_id
+                    )
+                    deme_dict_anc = utilities.anc_to_deme_dict(
+                        anc_pop_mat, sample_dicts[1]
+                    )
+                else:
+                    deme_dict_anc = None
+
+                # filter genotype matrix
+                _, ac_filt, ac_demes, ac_anc = analysis.filter_gt(
+                    gt,
+                    deme_dict_inds=sample_dicts[1],
+                    deme_dict_anc=deme_dict_anc,
+                    missing_data_perc=args.missing_data_perc,
+                    r2_thresh=args.r2_thresh,
+                    filter_monomorphic=args.filter_monomorphic,
+                    filter_singletons=args.filter_singletons,
+                )
+
+                # calculate summary statistics
+                sumstats = analysis.calc_sumstats(
+                    ac=ac_filt,
+                    coords_dict=coords_dict,
+                    anc_demes_dict=deme_dict_anc,
+                    ac_demes=ac_demes,
+                    ac_anc=ac_anc,
+                    between_anc_pop_sumstats=args.between_anc_pop_sumstats,
+                    return_df=True,
+                    precision=6,
+                )
+
+                # add columns containing the ancestry and mutation seeds
+                sumstats["ancestry_seed"] = ancestry_seed
+                sumstats["mutation_seed"] = mutation_seed
+
+                # write summary statistics to file
+                sumstats_file = os.path.join(
+                    args.out_folder, f"{args.out_prefix}_sumstats.csv"
+                )
+                if os.path.exists(sumstats_file):
+                    sumstats.to_csv(sumstats_file, mode="a", header=False, index=False)
+                else:
+                    sumstats.to_csv(sumstats_file, index=False)
 
         print("Finished simulating tree sequences")
 
@@ -673,6 +728,15 @@ def main():
         default=3,
         help="Type of output. 0 for writing tree sequences to file, 1 for writing VCFs to file, 2 for a CSV of genetic summary statistics, or 3 for writing all outputs to files. Default is 3.",
     )
+
+    parser.add_argument(
+        "-map",
+        "--map",
+        type=bool,
+        default=False,
+        help="If True, simulate the entire landscape and output a GeoTiff. Overrides out_type. Default is False.",
+    )
+
     parser.add_argument(
         "-of",
         "--out_folder",

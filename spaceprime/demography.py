@@ -266,6 +266,10 @@ def add_ancestral_populations(
             "Model already contains ancestral populations. You need to re-initialize the 2D stepping stone model before adding ancestral populations."
         )
 
+    # convert anc_sizes to a list if it is a single value
+    if not isinstance(anc_sizes, list):
+        anc_sizes = [anc_sizes]
+
     # check merge time
     if isinstance(merge_time, list):
         raise ValueError("merge_time should be a single float or int, not a list.")

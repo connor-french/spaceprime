@@ -268,7 +268,7 @@ def add_ancestral_populations(
         )
 
     # convert anc_sizes to a list if it is a single value
-    if not isinstance(anc_sizes, list):
+    if anc_sizes is not None and anc_sizes is not isinstance(anc_sizes, list):
         anc_sizes = [anc_sizes]
 
     # set anc_id to None and throw a warning if anc_sizes is less than 2
@@ -284,9 +284,9 @@ def add_ancestral_populations(
     elif not isinstance(merge_time, (float, int)):
         raise TypeError("merge_time should be a float or int.")
 
-    # throw an error if anc_merge_times is not None and is not a list
+    # convert anc_merge_times to a list if it is a single value
     if anc_merge_times is not None and not isinstance(anc_merge_times, list):
-        raise TypeError("anc_merge_times should be a list.")
+        anc_merge_times = [anc_merge_times]
 
     if anc_id is None:
         # add an ancestral population

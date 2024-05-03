@@ -307,6 +307,7 @@ def run_simulation(combo, args):
         samples = sample_dicts[0]
 
     for ncoal in range(args.num_coalescent_sims):
+        np.random.seed()
         # set a new random seed for each ancestry simulation
         ancestry_seed = np.random.randint(0, 2**30)
         mutation_seed = np.random.randint(0, 2**30)

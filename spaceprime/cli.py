@@ -17,6 +17,15 @@ from . import utilities
 from . import demography
 from . import analysis
 
+# set up logging
+import logging
+
+logging.basicConfig(filename="iddc.log", level=logging.DEBUG)
+# write logs to a file
+
+
+logging.info("spaceprime CLI script started")
+
 
 # Check if list arguments have more than two elements
 def check_argument_length(arg, max_length):
@@ -122,6 +131,7 @@ def get_coal_times(tseq, raster, num_anc_pops):
             coal_list.append(tseq.diversity(samples))
         else:
             coal_list.append(-1)
+        logging.debug(f"Finished calculating diversity for deme {j}")
 
     coal_1d = np.array(coal_list)[:-num_anc_pops]
 
@@ -246,7 +256,7 @@ def generate_param_combinations(args):
 
 
 def run_simulation(combo, args):
-
+    logging.info(f"Running simulation with parameters: {combo}")
     # read in raster
     r = rasterio.open(args.raster)
 
@@ -263,7 +273,7 @@ def run_simulation(combo, args):
     sample_dicts = utilities.coords_to_sample_dict(r, coords)
 
     demo_id = f"demo_{np.random.randint(0, 2**30)}"
-
+    logging.info(f"Setting up demography with ID: {demo_id}")
     d = setup_demography(
         raster=r,
         coords=coords,
@@ -283,6 +293,7 @@ def run_simulation(combo, args):
     )
 
     print("Finished setting up demography")
+    logging.info("Beginning tree sequence simulations")
     start_time = time.time()
     print("Beginning tree sequence simulations")
 
@@ -393,6 +404,7 @@ def run_simulation(combo, args):
         else:
             pd.DataFrame(metadata, index=[0]).to_csv(metadata_file, index=False)
 
+        logging.info("Beginning coalescent array calculations")
         if args.map:
             if anc_pop_id is not None:
                 coal_array = get_coal_times(ts, r, len(set(anc_pop_id)))
@@ -405,9 +417,10 @@ def run_simulation(combo, args):
                 out_folder=args.out_folder,
                 out_prefix=f"{args.out_prefix}_diversity_map_{ancestry_seed}",
             )
+        logging.info("Finished coalescent array calculations and wrote to file")
 
         # only output other files if args.map is False
-        else:
+        if not args.map:
             # if out_type is 0 or 3, write tree sequence to file
             if args.out_type == 0 or args.out_type == 3:
                 ts_file = os.path.join(
@@ -826,12 +839,12 @@ def main():
 
     # generate parameter combinations
     param_combos = generate_param_combinations(args)
+    logging.info("Generated parameter combinations")
 
     # run simulations in parallel
     if args.cpu == 1:
-        if __name__ == "__main__":
-            for combo in param_combos:
-                run_simulation(combo, args)
+        for combo in param_combos:
+            run_simulation(combo, args)
     else:
         with Pool(args.cpu) as p:
             p.starmap(run_simulation, [(combo, args) for combo in param_combos])

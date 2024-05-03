@@ -311,7 +311,7 @@ def add_ancestral_populations(
                 f"The number of demes in the demographic model is {len(model.populations)}, while the number of demes in the admixture ID raster is {len(anc_id_1d)}. They need to be the same."
             )
 
-        # add a new ancestral population for each admixture population
+        # add a new ancestral population
         for i in range(1, len(anc_sizes) + 1):
             anc_pop_name = f"ANC_{i}"
             model.add_population(name=anc_pop_name, initial_size=anc_sizes[i - 1])

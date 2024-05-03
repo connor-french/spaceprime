@@ -109,7 +109,7 @@ def get_map_dict(m):
 
 
 # get coalescent times for each deme if the map is True
-def get_coal_times(tseq, raster):
+def get_coal_times(tseq, raster, num_anc_pops):
     coal_list = []
     for j in range(tseq.num_populations):
         # Get the samples corresponding to this population
@@ -123,7 +123,7 @@ def get_coal_times(tseq, raster):
         else:
             coal_list.append(-1)
 
-    coal_1d = np.array(coal_list)[:-3]
+    coal_1d = np.array(coal_list)[:-num_anc_pops]
 
     coal_array = np.reshape(coal_1d, newshape=raster.shape)
 
@@ -394,7 +394,7 @@ def run_simulation(combo, args):
             pd.DataFrame(metadata, index=[0]).to_csv(metadata_file, index=False)
 
         if args.map:
-            coal_array = get_coal_times(ts, r)
+            coal_array = get_coal_times(ts, r, len(set(anc_pop_id)))
 
             utilities.create_raster(
                 coal_array,

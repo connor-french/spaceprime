@@ -394,7 +394,10 @@ def run_simulation(combo, args):
             pd.DataFrame(metadata, index=[0]).to_csv(metadata_file, index=False)
 
         if args.map:
-            coal_array = get_coal_times(ts, r, len(set(anc_pop_id)))
+            if anc_pop_id is not None:
+                coal_array = get_coal_times(ts, r, len(set(anc_pop_id)))
+            else:
+                coal_array = get_coal_times(ts, r, 1)
 
             utilities.create_raster(
                 coal_array,

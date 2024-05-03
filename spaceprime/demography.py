@@ -282,6 +282,10 @@ def add_ancestral_populations(
     if anc_merge_times is not None and not isinstance(anc_merge_times, list):
         anc_merge_times = [anc_merge_times]
 
+    # convert anc_merge_sizes to a list if it is a single value
+    if anc_merge_sizes is not None and not isinstance(anc_merge_sizes, list):
+        anc_merge_sizes = [anc_merge_sizes]
+
     if anc_id is None:
         # add an ancestral population
         model.add_population(name="ANC_1", initial_size=anc_sizes[0])

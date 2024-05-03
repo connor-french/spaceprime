@@ -118,17 +118,19 @@ def get_map_dict(m):
 
 
 # get coalescent times for each deme if the map is True
-def get_coal_times(tseq, raster, num_anc_pops):
+def get_coal_times(tseq, raster, num_anc_pops, min_num_inds=2, ploidy=2):
+    # account for merged ancestral population
+    if num_anc_pops > 1:
+        num_anc_pops += 1
+
     coal_list = []
     for j in range(tseq.num_populations):
         # Get the samples corresponding to this population
         samples = tseq.samples(population=j)
-        # Simplify the tree sequence to just these samples
-        ts_pop = tseq.simplify(samples=samples)
-        tree = ts_pop
-        # only calc diversity if there is at least two individuals
-        if tree.num_samples > 1:
-            coal_list.append(tseq.diversity(samples))
+        if len(samples) > ploidy * min_num_inds:
+            # Simplify the tree sequence to just these samples
+            ts_pop = tseq.simplify(samples=samples)
+            coal_list.append(ts_pop.diversity(samples))
         else:
             coal_list.append(-1)
         logging.debug(f"Finished calculating diversity for deme {j}")

@@ -216,12 +216,6 @@ def add_landscape_change(
     return model
 
 
-# anc_id = admix_id_rast
-# asl = anc_sizes
-# amt_list = anc_merge_times
-# ams_list = anc_merge_sizes
-
-
 def add_ancestral_populations(
     model: msprime.Demography,
     anc_sizes: List[float],
@@ -268,7 +262,7 @@ def add_ancestral_populations(
         )
 
     # convert anc_sizes to a list if it is a single value
-    if anc_sizes is not None and anc_sizes is not isinstance(anc_sizes, list):
+    if anc_sizes is not None and not isinstance(anc_sizes, list):
         anc_sizes = [anc_sizes]
 
     # set anc_id to None and throw a warning if anc_sizes is less than 2

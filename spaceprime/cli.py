@@ -409,9 +409,19 @@ def run_simulation(combo, args):
         logging.info("Beginning coalescent array calculations")
         if args.map:
             if anc_pop_id is not None:
-                coal_array = get_coal_times(ts, r, len(set(anc_pop_id)))
+                if args.threshold is not None:
+                    min_num_inds = args.threshold * combo["max_local_size"]
+                coal_array = get_coal_times(
+                    ts,
+                    r,
+                    len(set(anc_pop_id)),
+                    ploidy=args.ploidy,
+                    min_num_inds=min_num_inds,
+                )
             else:
-                coal_array = get_coal_times(ts, r, 1)
+                coal_array = get_coal_times(
+                    ts, r, 1, ploidy=args.ploidy, min_num_inds=min_num_inds
+                )
 
             utilities.create_raster(
                 coal_array,

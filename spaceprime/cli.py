@@ -107,14 +107,17 @@ def read_anc_pop_id(anc_pop_id):
 
 
 # for outputting a map of genetic diversity
-def get_map_dict(m):
+def get_map_dict(m, min_num_inds=2):
     nzp = []
 
     for i in range(len(m.populations)):
-        if m.populations[i].initial_size >= 2.0 and m.populations[i].name != "ANC":
+        if (
+            m.populations[i].initial_size >= min_num_inds
+            and m.populations[i].name != "ANC"
+        ):
             nzp.append(m.populations[i].name)
 
-    map_dict = {key: 2 for key in nzp}
+    map_dict = {key: min_num_inds for key in nzp}
     return map_dict
 
 
@@ -128,13 +131,15 @@ def get_coal_times(tseq, raster, num_anc_pops, min_num_inds=2, ploidy=2):
     for j in range(tseq.num_populations):
         # Get the samples corresponding to this population
         samples = tseq.samples(population=j)
-        if len(samples) > ploidy * min_num_inds:
+        logging.info(f"Number of samples in deme {j}: {len(samples)}")
+        if len(samples) >= ploidy * min_num_inds:
             # Simplify the tree sequence to just these samples
             ts_pop = tseq.simplify(samples=samples)
-            coal_list.append(ts_pop.diversity(samples))
+            div_pi = ts_pop.diversity(samples)
+            coal_list.append(div_pi)
+            logging.debug(f"Diversity for deme {j} is {div_pi}")
         else:
             coal_list.append(-1)
-        logging.debug(f"Finished calculating diversity for deme {j}")
 
     coal_1d = np.array(coal_list)[:-num_anc_pops]
 
@@ -307,7 +312,12 @@ def run_simulation(combo, args):
     # if map is True, return a dictionary mapping samples to all nonzero demes
     # replace the sample dictionary with this dictionary
     if args.map:
-        samples = get_map_dict(d)
+        if args.threshold is not None:
+            min_num_inds = args.threshold * combo["max_local_size"]
+        else:
+            min_num_inds = 2
+
+        samples = get_map_dict(d, min_num_inds=min_num_inds)
     else:
         samples = sample_dicts[0]
 
@@ -417,6 +427,7 @@ def run_simulation(combo, args):
             if anc_pop_id is not None:
                 if args.threshold is not None:
                     min_num_inds = args.threshold * combo["max_local_size"]
+                    logging.info(f"min_num_inds: {min_num_inds}")
                 else:
                     min_num_inds = 2
 
@@ -430,6 +441,7 @@ def run_simulation(combo, args):
             else:
                 if args.threshold is not None:
                     min_num_inds = args.threshold * combo["max_local_size"]
+                    logging.info(f"min_num_inds: {min_num_inds}")
                 else:
                     min_num_inds = 2
 

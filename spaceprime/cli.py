@@ -10,7 +10,6 @@ import numpy as np
 from numpy.random import default_rng
 from geopandas import GeoDataFrame
 from shapely.geometry import Point
-import random
 import time
 from multiprocessing import Pool
 
@@ -433,9 +432,7 @@ def run_simulation(combo, args):
                     sample_num=2,
                 )
             else:
-                coal_array = get_coal_times(
-                    ts, r, 1, ploidy=args.ploidy, min_num_inds=min_num_inds
-                )
+                coal_array = get_coal_times(ts, r, 1, ploidy=args.ploidy, sample_num=2)
 
             utilities.create_raster(
                 coal_array,

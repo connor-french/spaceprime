@@ -21,7 +21,7 @@ from . import analysis
 # set up logging
 import logging
 
-logging.basicConfig(filename="iddc.log", level=logging.DEBUG)
+logging.basicConfig(filename="iddc.log", level=logging.INFO)
 # write logs to a file
 
 
@@ -107,7 +107,7 @@ def read_anc_pop_id(anc_pop_id):
 
 
 # for outputting a map of genetic diversity
-def get_map_dict(m, min_num_inds=2):
+def get_map_dict(m, min_num_inds=2, sample_num=2):
     nzp = []
 
     for i in range(len(m.populations)):
@@ -117,12 +117,12 @@ def get_map_dict(m, min_num_inds=2):
         ):
             nzp.append(m.populations[i].name)
 
-    map_dict = {key: min_num_inds for key in nzp}
+    map_dict = {key: sample_num for key in nzp}
     return map_dict
 
 
 # get coalescent times for each deme if the map is True
-def get_coal_times(tseq, raster, num_anc_pops, min_num_inds=2, ploidy=2):
+def get_coal_times(tseq, raster, num_anc_pops, sample_num=2, ploidy=2):
     # account for merged ancestral population
     if num_anc_pops > 1:
         num_anc_pops += 1
@@ -131,13 +131,11 @@ def get_coal_times(tseq, raster, num_anc_pops, min_num_inds=2, ploidy=2):
     for j in range(tseq.num_populations):
         # Get the samples corresponding to this population
         samples = tseq.samples(population=j)
-        logging.info(f"Number of samples in deme {j}: {len(samples)}")
-        if len(samples) >= ploidy * min_num_inds:
+        if len(samples) == ploidy * sample_num:
             # Simplify the tree sequence to just these samples
             ts_pop = tseq.simplify(samples=samples)
-            div_pi = ts_pop.diversity(samples)
+            div_pi = ts_pop.diversity()
             coal_list.append(div_pi)
-            logging.debug(f"Diversity for deme {j} is {div_pi}")
         else:
             coal_list.append(-1)
 
@@ -313,7 +311,9 @@ def run_simulation(combo, args):
     # replace the sample dictionary with this dictionary
     if args.map:
         if args.threshold is not None:
-            min_num_inds = args.threshold * combo["max_local_size"]
+            min_num_inds = np.floor(args.threshold * combo["max_local_size"]).astype(
+                int
+            )
         else:
             min_num_inds = 2
 
@@ -425,26 +425,14 @@ def run_simulation(combo, args):
         logging.info("Beginning coalescent array calculations")
         if args.map:
             if anc_pop_id is not None:
-                if args.threshold is not None:
-                    min_num_inds = args.threshold * combo["max_local_size"]
-                    logging.info(f"min_num_inds: {min_num_inds}")
-                else:
-                    min_num_inds = 2
-
                 coal_array = get_coal_times(
                     ts,
                     r,
                     len(set(anc_pop_id)),
                     ploidy=args.ploidy,
-                    min_num_inds=min_num_inds,
+                    sample_num=2,
                 )
             else:
-                if args.threshold is not None:
-                    min_num_inds = args.threshold * combo["max_local_size"]
-                    logging.info(f"min_num_inds: {min_num_inds}")
-                else:
-                    min_num_inds = 2
-
                 coal_array = get_coal_times(
                     ts, r, 1, ploidy=args.ploidy, min_num_inds=min_num_inds
                 )

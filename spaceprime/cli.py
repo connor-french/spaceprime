@@ -417,6 +417,9 @@ def run_simulation(combo, args):
             if anc_pop_id is not None:
                 if args.threshold is not None:
                     min_num_inds = args.threshold * combo["max_local_size"]
+                else:
+                    min_num_inds = 2
+
                 coal_array = get_coal_times(
                     ts,
                     r,
@@ -425,6 +428,11 @@ def run_simulation(combo, args):
                     min_num_inds=min_num_inds,
                 )
             else:
+                if args.threshold is not None:
+                    min_num_inds = args.threshold * combo["max_local_size"]
+                else:
+                    min_num_inds = 2
+
                 coal_array = get_coal_times(
                     ts, r, 1, ploidy=args.ploidy, min_num_inds=min_num_inds
                 )

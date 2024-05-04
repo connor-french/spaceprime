@@ -231,19 +231,19 @@ def generate_param_combinations(args):
         combo["mig_rate"] = get_random_value(args.mig_rate)
         # anc_sizes
         if args.anc_sizes is not None:
-            combo["anc_sizes"] = get_random_value(args.anc_sizes).tolist()
+            combo["anc_sizes"] = get_random_value(args.anc_sizes)
         else:
             combo["anc_sizes"] = None
         # merge_time
         combo["merge_time"] = get_random_value(args.merge_time)
         # anc_merge_time
         if args.anc_merge_time is not None:
-            combo["anc_merge_time"] = get_random_value(args.anc_merge_time).tolist()
+            combo["anc_merge_time"] = get_random_value(args.anc_merge_time)
         else:
             combo["anc_merge_time"] = None
         # anc_merge_size
         if args.anc_merge_size is not None:
-            combo["anc_merge_size"] = get_random_value(args.anc_merge_size).tolist()
+            combo["anc_merge_size"] = get_random_value(args.anc_merge_size)
         else:
             combo["anc_merge_size"] = None
         # anc_mig_rate

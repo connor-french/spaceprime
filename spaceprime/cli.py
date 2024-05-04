@@ -7,6 +7,7 @@ import rasterio
 import msprime
 import pandas as pd
 import numpy as np
+from numpy.random import default_rng
 from geopandas import GeoDataFrame
 from shapely.geometry import Point
 import random
@@ -195,6 +196,7 @@ def setup_demography(
 
 
 def get_random_value(arg):
+    rng = default_rng()
     if arg is None:
         return None
     elif isinstance(arg, (int, float)):
@@ -202,9 +204,15 @@ def get_random_value(arg):
     elif len(arg) == 1:
         return arg[0]
     elif isinstance(arg[0], list):
-        return [random.uniform(a, b) for a, b in arg]
+        if isinstance(arg[0][0], int):
+            return [rng.integers(a, b + 1) for a, b in arg]
+        else:
+            return [rng.uniform(a, b) for a, b in arg]
     else:
-        return random.uniform(arg[0], arg[1])
+        if isinstance(arg[0], int):
+            return rng.integers(arg[0], arg[1] + 1)
+        else:
+            return rng.uniform(arg[0], arg[1])
 
 
 def generate_param_combinations(args):
@@ -212,7 +220,7 @@ def generate_param_combinations(args):
     for _ in range(args.num_param_combos):
         combo = {}
         # max_local_size
-        combo["max_local_size"] = np.ceil(get_random_value(args.max_local_size))
+        combo["max_local_size"] = get_random_value(args.max_local_size)
         # threshold
         combo["threshold"] = get_random_value(args.threshold)
         # inflection_point
@@ -223,23 +231,19 @@ def generate_param_combinations(args):
         combo["mig_rate"] = get_random_value(args.mig_rate)
         # anc_sizes
         if args.anc_sizes is not None:
-            combo["anc_sizes"] = np.ceil(get_random_value(args.anc_sizes)).tolist()
+            combo["anc_sizes"] = get_random_value(args.anc_sizes).tolist()
         else:
             combo["anc_sizes"] = None
         # merge_time
         combo["merge_time"] = get_random_value(args.merge_time)
         # anc_merge_time
         if args.anc_merge_time is not None:
-            combo["anc_merge_time"] = np.ceil(
-                get_random_value(args.anc_merge_time)
-            ).tolist()
+            combo["anc_merge_time"] = get_random_value(args.anc_merge_time).tolist()
         else:
             combo["anc_merge_time"] = None
         # anc_merge_size
         if args.anc_merge_size is not None:
-            combo["anc_merge_size"] = np.ceil(
-                get_random_value(args.anc_merge_size)
-            ).tolist()
+            combo["anc_merge_size"] = get_random_value(args.anc_merge_size).tolist()
         else:
             combo["anc_merge_size"] = None
         # anc_mig_rate
@@ -258,6 +262,7 @@ def generate_param_combinations(args):
 
 
 def run_simulation(combo, args):
+    rng = default_rng()
     logging.info(f"Running simulation with parameters: {combo}")
     # read in raster
     r = rasterio.open(args.raster)
@@ -274,7 +279,7 @@ def run_simulation(combo, args):
     # sample dictionaries for ancestry sims and optionally for sumstats
     sample_dicts = utilities.coords_to_sample_dict(r, coords)
 
-    demo_id = f"demo_{np.random.randint(0, 2**30)}"
+    demo_id = f"demo_{rng.integers(0, 2**30)}"
     logging.info(f"Setting up demography with ID: {demo_id}")
     d = setup_demography(
         raster=r,
@@ -307,10 +312,10 @@ def run_simulation(combo, args):
         samples = sample_dicts[0]
 
     for ncoal in range(args.num_coalescent_sims):
-        np.random.seed()
+        rng = default_rng()
         # set a new random seed for each ancestry simulation
-        ancestry_seed = np.random.randint(0, 2**30)
-        mutation_seed = np.random.randint(0, 2**30)
+        ancestry_seed = rng.integers(0, 2**30)
+        mutation_seed = rng.integers(0, 2**30)
 
         # simulate tree sequence
         ts = msprime.sim_ancestry(

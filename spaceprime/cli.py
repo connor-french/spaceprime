@@ -775,7 +775,7 @@ def main():
         "--map",
         type=bool,
         default=False,
-        help="If True, simulate the entire landscape and output a GeoTiff. Overrides out_type. Default is False.",
+        help="Simulate the genetic diversity for each deme across entire landscape and output a GeoTiff. Overrides out_type. Default is False.",
     )
 
     parser.add_argument(

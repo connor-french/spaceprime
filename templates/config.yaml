@@ -48,6 +48,7 @@ between_anc_pop_sumstats: false #Whether to calculate Fst and/or Dxy between anc
 
 # output arguments #
 out_type: 3 #Type of output. 0 for writing tree sequences to file, 1 for writing VCFs to file, 2 for a CSV of genetic summary statistics, or 3 for writing all outputs to files.
+map: False #Simulate the genetic diversity for each deme across entire landscape and output a GeoTiff. Overrides out_type. Default is False.
 out_folder: null #Path to output folder. Default is the current working directory.
 out_prefix: "spaceprime" #Prefix for output files. Default is 'spaceprime'.
 verbose: false #Print verbose output.

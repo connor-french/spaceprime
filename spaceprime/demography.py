@@ -28,8 +28,8 @@ def stepping_stone_2d(
       d (numpy.ndarray): The demography matrix representing the population sizes.
       rate (float or numpy.ndarray): The migration rate(s) between populations.
         If a float, it represents a constant migration rate for all populations.
-        If a numpy.ndarray, it represents a migration matrix with shape (N, N),
-        where N is the total number of populations.
+        If a numpy.ndarray, it represents a migration matrix with shape (T, N, N),
+        where N is the total number of populations and T is the number of time steps - 1, if T > 1.
       scale (bool): Whether to scale the migration rate matrix. Default is True.
       timesteps (Union[int, List[int]]): The list of timesteps representing the amount of time passing between each demographic event, in generations. If a single integer is provided, the function assumes that the time steps are equal.
 
@@ -52,6 +52,7 @@ def stepping_stone_2d(
         N = n * m
         d1 = d  # so I don't have to repeat a bunch of code for the 3D case
     elif len(d.shape) == 3:
+        t = d.shape[0]
         n = d.shape[1]
         m = d.shape[2]
         N = n * m
@@ -65,18 +66,27 @@ def stepping_stone_2d(
             index = j * m + k
             model.populations[index].name = f"deme_{j}_{k}"
 
-    # setup migration rate matrices
+    # setup migration rate matrices and check if the user provided their own migration matrix(es)
     if np.array(rate).ndim == 0:
         if scale:
             model.migration_matrix = calc_migration_matrix(d1, rate, scale=True)
         else:
             model.migration_matrix = calc_migration_matrix(d1, rate, scale=False)
     else:
-        assert rate.shape == (
-            N,
-            N,
-        ), f"Expected a migration matrix with the shape {(N, N)} and instead got {rate.shape}"
-        model.migration_matrix = rate
+        if len(rate.shape) == 2:
+            assert rate.shape == (
+                N,
+                N,
+            ), f"Expected a migration matrix with the shape {(N, N)} and instead got {rate.shape}"
+            model.migration_matrix = rate
+        else:
+            # if the user supplies a 3D array of migration matrices
+            assert rate.shape == (
+                t,
+                N,
+                N,
+            ), f"Expected a migration matrix with the shape {(t, N, N)} and instead got {rate.shape}"
+            model.migration_matrix = rate[0]
 
     # if there are multiple time steps of population size change
     if len(d.shape) == 3:
@@ -136,6 +146,13 @@ def add_landscape_change(
         else:
             demo_time = sum(timesteps[:step])
 
+        # if the user provides a scalar migration rate, calculate the migration matrices for all time steps
+        if np.array(rate).ndim == 0:
+            migmat = calc_migration_matrix(kmat, rate, scale=scale)
+        # if the user provides a 3D array of migration matrices, get the migration matrix for the current time step
+        else:
+            migmat = rate[step]
+
         ##### Update population sizes #####
         # add population size changes according to the values of the current array
         for j in range(n):
@@ -152,63 +169,39 @@ def add_landscape_change(
         ##### Update migration rates #####
         # add migration rate change for each time step
         # this is updating time steps from the present to the past
-        # ## iterate through the population sizes
+
         for i in range(n):
             for j in range(m):
-                ## also index the neighboring cells
                 for di, dj in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-                    ## check for edges
+                    # check for edges
                     if 0 <= i + di < kmat.shape[0] and 0 <= j + dj < kmat.shape[1]:
                         ## only update migration if the donor and recipient population sizes are different between time points
                         if (
                             kmat_prev[i + di, j + dj] != kmat[i + di, j + dj]
                             and kmat[i, j] != kmat_prev[i, j]
                         ):
-                            if scale:
-                                ## mig = donor / recipient * rate unless the pop size is zero
-                                r = (
-                                    (kmat[i, j] / kmat[i + di, j + dj]) * rate
-                                    if kmat[i + di, j + dj] > 1e-9 and kmat[i, j] > 1e-9
-                                    else 0
-                                )
-                                model.add_migration_rate_change(
-                                    time=demo_time,
-                                    rate=r,
-                                    source=f"deme_{i}_{j}",
-                                    dest=f"deme_{i + di}_{j + dj}",
-                                )
-                            else:
-                                model.add_migration_rate_change(
-                                    time=demo_time,
-                                    rate=rate,
-                                    source=f"deme_{i}_{j}",
-                                    dest=f"deme_{i + di}_{j + dj}",
-                                )
+                            # get the migration rate from the migration matrix
+                            rate = migmat[i + di, j + dj]
+                            model.add_migration_rate_change(
+                                time=demo_time,
+                                rate=rate,
+                                source=f"deme_{i}_{j}",
+                                dest=f"deme_{i + di}_{j + dj}",
+                            )
+                        ## have the deme migrate to neighbors if the more ancient time step has an empty deme
                         elif (
                             kmat_prev[i + di, j + dj] != kmat[i + di, j + dj]
                             and kmat[i, j] != kmat_prev[i, j]
                             and kmat_anc[i, j] <= 1e-9
                         ):
-                            ## have the deme migrate to neighbors if the more ancient time step has an empty deme
-                            if scale:
-                                r = (
-                                    (kmat[i, j] / kmat[i + di, j + dj]) * rate
-                                    if kmat[i + di, j + dj] > 1e-9 and kmat[i, j] > 1e-9
-                                    else 0
-                                )
-                                model.add_migration_rate_change(
-                                    time=demo_time,
-                                    rate=r,
-                                    source=f"deme_{i}_{j}",
-                                    dest=f"deme_{i + di}_{j + dj}",
-                                )
-                            else:
-                                model.add_migration_rate_change(
-                                    time=demo_time,
-                                    rate=rate,
-                                    source=f"deme_{i}_{j}",
-                                    dest=f"deme_{i + di}_{j + dj}",
-                                )
+                            # get the migration rate from the migration matrix
+                            rate = migmat[i + di, j + dj]
+                            model.add_migration_rate_change(
+                                time=demo_time,
+                                rate=rate,
+                                source=f"deme_{i}_{j}",
+                                dest=f"deme_{i + di}_{j + dj}",
+                            )
 
     # sort the events to make sure everything runs in order
     model.sort_events()

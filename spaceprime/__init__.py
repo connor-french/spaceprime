@@ -21,9 +21,8 @@ from spaceprime.utilities import (
 )
 
 from spaceprime.demography import (
-    stepping_stone_2d,
     add_landscape_change,
-    add_ancestral_populations,
+    spDemography,
 )
 
 # optional install of analysis tools

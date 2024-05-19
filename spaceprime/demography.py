@@ -40,14 +40,24 @@ def add_landscape_change(
     # create a list to store each calculated migration matrix if the user provides a scale for migration rate
     mig_array = []
 
+    # have to set the migration rate differently for the most recent time step, since it's specified prior to add_landscape_change
+    if np.array(rate).ndim == 0:
+        mig_array.append(calc_migration_matrix(d[0], rate, scale=scale))
+    # if the user provides a 3D array of migration matrices, get the migration matrix for the current time step
+    else:
+        mig_array.append(rate[0])
+
     # iterate through the first dimension of a 3D array, where the array represents different time steps of population size change
     # omit the most ancient time step (have to set its migration rate differently)
-    for step in range(1, d.shape[0] - 1):
+    for step in range(1, d.shape[0]):
         # get the population size values of the current array
         kmat = d[step]
 
         # get the population size values of array from the more ancient time step
-        kmat_anc = d[step + 1]
+        if step < d.shape[0] - 1:
+            kmat_anc = d[step + 1]
+        else:
+            kmat_anc = None
 
         # get the population size values array from the more recent time step
         kmat_prev = d[step - 1]
@@ -107,8 +117,11 @@ def add_landscape_change(
                                 dest=f"deme_{i + di}_{j + dj}",
                             )
                         ## have the deme migrate to neighbors if the more ancient time step has an empty deme
+
                         elif (
-                            kmat_prev[i + di, j + dj] != kmat[i + di, j + dj]
+                            ## only do this if kmat_anc is not none
+                            kmat_anc is not None
+                            and kmat_prev[i + di, j + dj] != kmat[i + di, j + dj]
                             and kmat[i, j] != kmat_prev[i, j]
                             and kmat_anc[i, j] <= 1e-9
                         ):
@@ -120,6 +133,7 @@ def add_landscape_change(
                                 source=f"deme_{i}_{j}",
                                 dest=f"deme_{i + di}_{j + dj}",
                             )
+
     # convert the list of migration matrices to a numpy array
     mig_array = np.array(mig_array)
 

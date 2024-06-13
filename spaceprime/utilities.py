@@ -123,7 +123,9 @@ def raster_to_demes(
         if threshold is not None:
             t[t < max_local_size * threshold] = 1e-10
 
-        t = np.ceil(t)
+        t[t > 1e-10] = np.ceil(
+            t[t > 1e-10]
+        )  # Round up the deme sizes to the nearest integer
 
     if transformation == "threshold":
         t = d  # Set the deme sizes to the raster data
@@ -150,11 +152,17 @@ def raster_to_demes(
         t = (
             sigmoid_v(d, inflection_point, slope) * max_local_size
         )  # Apply sigmoid transformation to the raster data
-        t = np.ceil(t)  # Round up the deme sizes to the nearest integer
+
+        if threshold is not None:
+            t[t < max_local_size * threshold] = 1e-10
+
+        t[t > 1e-10] = np.ceil(
+            t[t > 1e-10]
+        )  # Round up the deme sizes to the nearest integer
 
     t = np.where(t < 1e-10, 1e-10, t)  # Set any deme sizes less than 1e-10 to 1e-10
 
-    return t  # Return the ndarray of deme sizes
+    return t
 
 
 ######################

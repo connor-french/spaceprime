@@ -109,3 +109,6 @@ ENV/
 # manuscript
 manuscript/
 .Rproj.user
+
+# sandbox
+sandbox*

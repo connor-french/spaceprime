@@ -5,8 +5,10 @@ import pandas as pd
 from shapely.geometry import shape
 import geopandas as gpd
 import rasterio
-import spaceprime as sp
+import spaceprime
 import contextily as ctx
+from typing import List
+from matplotlib import pyplot as plt
 
 
 def validate_demographic_model(demo):
@@ -70,7 +72,7 @@ def get_outgoing_migration_rates(
 
 
 def plot_model(
-    demo: sp.spDemography,
+    demo: spaceprime.spDemography,
     raster: rasterio.DatasetReader,
     timestep: int,
     cmap: str = "viridis",
@@ -81,7 +83,7 @@ def plot_model(
     Plots the demes and migration rates for a given timestep as an interactive map.
 
     Parameters:
-      demo (sp.spDemography): The demographic model to plot.
+      demo (spaceprime.spDemography): The demographic model to plot.
       raster (rasterio.DatasetReader): The raster dataset used to create the demes matrix(es).
       timestep (int): The index of the desired timestep to plot.
       cmap (str, optional): The colormap to use for the deme sizes. Defaults to 'viridis'.
@@ -156,7 +158,7 @@ def plot_model(
 
 
 def plot_landscape(
-    demo: sp.spDemography,
+    demo: spaceprime.spDemography,
     raster: rasterio.DatasetReader,
     timestep: int,
     cmap: str = "viridis",
@@ -167,7 +169,7 @@ def plot_landscape(
     Plots a static map of a transformed landscape at the timestep of your choice.
 
     Parameters:
-        demo (sp.spDemography): The demographic model to plot.
+        demo (spaceprime.spDemography): The demographic model to plot.
         raster (rasterio.DatasetReader): The raster dataset used to create the demes matrix(es).
         timestep (int): The timestep to plot.
         cmap (str, optional): The colormap to use. Defaults to "viridis".
@@ -180,7 +182,6 @@ def plot_landscape(
     Note:
         Setting `basemap=True` requires an internet connection to download the basemap tiles. It may take some time to load the tiles depending on your internet speed.
         Since this function returns a `matplotlib` axes object, you can further modify the plot with the `matplotlib` library.
-
 
     """
 
@@ -212,3 +213,37 @@ def plot_landscape(
         plot = ctx.add_basemap(plot, crs=gdf.crs, source=ctx.providers.CartoDB.Positron)
 
     return plot
+
+
+def plot_timeseries(demo: spaceprime.spDemography, times: List[float], units: str = ""):
+    """
+    Plots the total number of individuals across the landscape across time.
+
+    Parameters:
+        demo (spaceprime.spDemography): The demographic model to plot.
+        times (List[float]): A list of times that each landscape timestep corresponds with. This can be in whatever unit you choose.
+        units (str, optional): The units of time the timesteps are specified in. Defaults to a blank string.
+    """
+
+    validate_demographic_model(demo)
+
+    # check if the times list is greater than 1
+    if len(times) < 2:
+        raise ValueError("The times list must contain more than one value.")
+
+    # check if the length of the times list is equal to the number of timesteps
+    if len(times) != len(demo.demes):
+        raise ValueError(
+            f"The length of the times list must be equal to the number of timesteps in the demographic model ({len(demo.demes)})."
+        )
+
+    # Get the total number of individuals at each timestep
+    total_individuals = [np.sum(d) for d in demo.demes]
+
+    # Plot the timeseries as a line plot, using attractive formatting
+    plt.figure(figsize=(10, 6))
+    plt.plot(times, total_individuals, marker="o", color="#224146")
+    plt.xlabel(f"Time ({units})")
+    plt.ylabel("Total number of individuals across the landscape")
+
+    plt.show()

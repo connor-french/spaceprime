@@ -54,6 +54,9 @@ def demo(demes, mig_mat):
     d.demes = []
     d.demes.append(demes)
 
+    # add a second timestep to the demes array
+    d.demes.append(demes * 2)
+
     d.migration_array = []
     d.migration_array.append(mig_mat)
 
@@ -108,7 +111,7 @@ def test_plot_landscape_demo(demo, raster):
 
 def test_plot_landscape_timestep(demo, raster):
     with pytest.raises(ValueError):
-        plot.plot_landscape(demo, raster, 2)
+        plot.plot_landscape(demo, raster, 3)
 
 
 def test_plot_landscape_returns_plot(demo, raster):

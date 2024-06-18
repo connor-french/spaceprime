@@ -2,9 +2,23 @@
 
 import numpy as np
 import pandas as pd
+from shapely.geometry import shape
 import geopandas as gpd
 import rasterio
 import spaceprime as sp
+import contextily as ctx
+
+
+def validate_demographic_model(demo):
+    if not hasattr(demo, "demes") or not hasattr(demo, "migration_array"):
+        raise ValueError(
+            "The demographic model must have 'demes' and 'migration_array' attributes. You may have forgotten to populate the spDemography object with `stepping_stone_2d()`."
+        )
+
+
+def validate_timestep(timestep, demo):
+    if timestep < 0 or timestep >= len(demo.demes):
+        raise ValueError(f"The timestep must be between 0 and {len(demo.demes) - 1}.")
 
 
 def get_outgoing_migration_rates(
@@ -82,7 +96,16 @@ def plot_model(
       # Plot the model at timestep 1
       plot_model(demo, raster, 1)
 
+    Notes:
+        Since this function returns a `folium` map object, you can further modify the map or save it to an HTML file with the `folium` library.
+
     """
+
+    # check that the demography object contains demes and migration_array attributes
+    validate_demographic_model(demo)
+
+    # check if the number of timesteps is valid
+    validate_timestep(timestep, demo)
 
     # Get the demes matrix for the specified timestep
     demes_matrix = demo.demes[timestep]
@@ -128,5 +151,64 @@ def plot_model(
         legend=legend,
         tiles=tiles,
     )
+
+    return plot
+
+
+def plot_landscape(
+    demo: sp.spDemography,
+    raster: rasterio.DatasetReader,
+    timestep: int,
+    cmap: str = "viridis",
+    legend: bool = True,
+    basemap: bool = False,
+):
+    """
+    Plots a static map of a transformed landscape at the timestep of your choice.
+
+    Parameters:
+        demo (sp.spDemography): The demographic model to plot.
+        raster (rasterio.DatasetReader): The raster dataset used to create the demes matrix(es).
+        timestep (int): The timestep to plot.
+        cmap (str, optional): The colormap to use. Defaults to "viridis".
+        legend (bool, optional): Whether to show the colorbar legend. Defaults to True.
+        basemap (bool, optional): Whether to add a basemap. Requires an internet connection. Defaults to False.
+
+    Returns:
+        matplotlib.axes.Axes: A plot of the transformed landscape.
+
+    Note:
+        Setting `basemap=True` requires an internet connection to download the basemap tiles. It may take some time to load the tiles depending on your internet speed.
+        Since this function returns a `matplotlib` axes object, you can further modify the plot with the `matplotlib` library.
+
+
+    """
+
+    validate_demographic_model(demo)
+    validate_timestep(timestep, demo)
+
+    demes_matrix = demo.demes[timestep]
+    mask = demes_matrix > 1e-10
+
+    # plot the demes matrix
+    array = np.arange(demes_matrix.size).reshape(demes_matrix.shape).astype(np.int32)
+
+    shapes = rasterio.features.shapes(array, mask=mask, transform=raster.transform)
+
+    dummy_vals = []
+    geometry = []
+    for shapedict, value in shapes:
+        dummy_vals.append(value)
+        geometry.append(shape(shapedict))
+
+    gdf = gpd.GeoDataFrame({"dummy": dummy_vals, "geometry": geometry}, crs=raster.crs)
+    # add the deme sizes to this gdf
+    gdf["deme_size"] = demes_matrix.flatten()
+
+    # use gdf.plot to plot the demes matrix
+    plot = gdf.plot(column="deme_size", cmap=cmap, legend=legend)
+
+    if basemap:
+        plot = ctx.add_basemap(plot, crs=gdf.crs, source=ctx.providers.CartoDB.Positron)
 
     return plot

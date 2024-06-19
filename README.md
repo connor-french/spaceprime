@@ -16,11 +16,11 @@
 
 This page provides an overview of the package and its main features. For more detailed information, please refer to the [documentation](https://connor-french.github.io/spaceprime).  
 
-**Note for R users**: *spaceprime* is coded in Python, yet many interested users may come from an R background. I have an [*spaceprime* for R users]() vignette (COMING SOON) that provides a brief introduction to the Python concepts necessary to use *spaceprime* in a practical walk-through of an example analysis. Additionally, it is possible to use Python code in R using the `reticulate` package. For more information on how to use Python code in R, see the [reticulate documentation](https://rstudio.github.io/reticulate/).
+**Note for R users**: *spaceprime* is coded in Python, yet many interested users may come from an R background. I have a [*spaceprime* for R users]() vignette (COMING SOON) that provides a brief introduction to the Python concepts necessary to use *spaceprime* in a practical walk-through of an example analysis. Additionally, it is possible to use Python code in R using the *reticulate* package. For more information on how to use Python code in R, see the [reticulate documentation](https://rstudio.github.io/reticulate/).
 
 ## Main features
 *spaceprime* includes a number of features:
-- Convert habitat suitability values into demographic parameters, including deme sizes and migration rates and their change through time using **very little code**. Code complexity does not increase with model complexity, allowing users to focus on the biological questions they are interested in.
+- **Convert habitat suitability values into demographic parameters**, including deme sizes, migration rates, and their change through time using **very little code**. Code complexity does not increase with model complexity, allowing users to focus on the biological questions they are interested in.
 - Simulate spatially explicit genetic data under a coalescent model with *msprime*. The modeling approach is **fully coalescent** with no forward-time component, allowing for **computationally efficient simulations** of large spatially explicit models. 
 - Visualize demographic models to facilitate model interpretation and model checking.
 - Compute genetic summary statistics for simulated and empirical data to facilitate comparison with empirical data.  
@@ -57,5 +57,4 @@ To install spaceprime from source, run this command in your terminal:
 ```
 pip install git+https://github.com/connor-french/spaceprime
 ```
-
 

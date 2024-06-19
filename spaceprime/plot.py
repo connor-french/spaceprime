@@ -238,12 +238,12 @@ def plot_timeseries(demo: spaceprime.spDemography, times: List[float], units: st
         )
 
     # Get the total number of individuals at each timestep
-    total_individuals = [np.sum(d) for d in demo.demes]
+    total_individuals = [np.nansum(d) for d in demo.demes]
 
     # Plot the timeseries as a line plot, using attractive formatting
-    plt.figure(figsize=(10, 6))
-    plt.plot(times, total_individuals, marker="o", color="#224146")
-    plt.xlabel(f"Time ({units})")
-    plt.ylabel("Total number of individuals across the landscape")
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.plot(times, total_individuals, marker="o", color="#224146")
+    ax.set_xlabel(f"Time ({units})")
+    ax.set_ylabel("Total number of individuals across the landscape")
 
-    plt.show()
+    return fig, ax

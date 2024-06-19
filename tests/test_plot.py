@@ -8,6 +8,8 @@ from spaceprime import demography
 import rasterio
 from math import isclose
 import matplotlib
+from matplotlib import pyplot as plt
+import folium
 
 
 @pytest.fixture
@@ -68,17 +70,7 @@ def raster():
     return rasterio.open("tests/data/demes_raster.tif")
 
 
-# def write_rasterio_dataset(demes):
-#   # Create a raster with the same values as demes
-#   raster_shape = demes.shape
-#   raster_transform = rasterio.transform.from_origin(0, 0, 1, 1)  # Assuming pixel size of 1
-#   raster_crs = rasterio.crs.CRS.from_epsg(4326)  # Assuming EPSG code 4326 for geographic coordinates
-
-#   with rasterio.open("tests/data/demes_raster.tif", "w", driver="GTiff", height=raster_shape[0], width=raster_shape[1],
-#               count=1, dtype=demes.dtype, crs=raster_crs, transform=raster_transform) as dst:
-#     dst.write(demes, 1)  # Write the raster values to the dataset
-
-
+# get_outgoing_migration_rates
 def test_get_outgoing_migration_rates_values(demes, mig_mat):
     outgoing_migration_rates = plot.get_outgoing_migration_rates(demes, mig_mat)
     assert outgoing_migration_rates.shape == (4, 5)
@@ -91,29 +83,90 @@ def test_get_outgoing_migration_rates_values(demes, mig_mat):
     assert isclose(outgoing_migration_rates["mig_west"].sum(), 0.02666666, rel_tol=1e-5)
 
 
+def test_get_outgoing_migration_rates_navalue(demes, mig_mat):
+    """Test that get_outgoing_migration_rates skips NA values in the migration matrix"""
+
+    omr = plot.get_outgoing_migration_rates(demes, mig_mat, na_value=200)
+
+    assert omr.shape == (3, 5)
+
+
+# plot_model
 def test_plot_model_timestep(demo, raster) -> None:
-    # check to make sure the function raises a ValueError if the timestep is invalid
+    """Test that the plot_model function raises a ValueError if the timestep is invalid"""
+
     with pytest.raises(ValueError):
         plot.plot_model(demo, raster, 2)
 
 
 def test_plot_model_demo(demo, raster) -> None:
+    """Test that the plot_model function raises a ValueError if the demography object isn't populated with deme sizes yet"""
+
     d1 = demography.spDemography()
     with pytest.raises(ValueError):
         plot.plot_model(d1, raster, 0)
 
 
-def test_plot_landscape_demo(demo, raster):
+def test_plot_model_returns_plot(demo, raster) -> None:
+    # Call the function
+    p = plot.plot_model(demo, raster, 0)
+
+    # Test 1: Check if a folium.Map object is returned
+    assert isinstance(p, folium.Map)
+
+
+# plot_landscape
+def test_plot_landscape_demo(demo, raster) -> None:
+    """Test that the plot_landscape function raises a ValueError if the demography object isn't populated with deme sizes yet"""
+
     d1 = demography.spDemography()
     with pytest.raises(ValueError):
         plot.plot_landscape(d1, raster, 0)
 
 
-def test_plot_landscape_timestep(demo, raster):
+def test_plot_landscape_timestep(demo, raster) -> None:
+    """Test that the plot_landscape function raises a ValueError if the timestep is invalid"""
+
     with pytest.raises(ValueError):
         plot.plot_landscape(demo, raster, 3)
 
 
-def test_plot_landscape_returns_plot(demo, raster):
+def test_plot_landscape_returns_plot(demo, raster) -> None:
+    """Test that the plot_landscape function returns a matplotlib axes object"""
+
     p = plot.plot_landscape(demo, raster, 0)
     assert isinstance(p, matplotlib.axes.Axes)
+
+
+# plot_timeseries
+def test_plot_timeseries_data(demo):
+    """Test that the plot_timeseries function returns the correct data"""
+
+    times = [0, 1]
+
+    fig, ax = plot.plot_timeseries(demo, times, "Generations")
+    x_plot, y_plot = ax.lines[0].get_xydata().T
+
+    # get the y values
+    total_individuals = [np.nansum(d) for d in demo.demes]
+
+    assert np.all(x_plot == times)
+    assert np.all(y_plot == total_individuals)
+
+
+def test_plot_timeseries_times_length_1(demo):
+    """Test that the plot_timeseries function raises a ValueError if the times list is less than 2"""
+
+    times = [0]
+
+    with pytest.raises(ValueError):
+        plot.plot_timeseries(demo, times, "Generations")
+
+
+def test_plot_timeseries_times_length_not_equal_to_timesteps(demo):
+    """Test that the plot_timeseries function raises a ValueError if the length of the times list is not equal to the number of timesteps"""
+
+    times = [0, 1, 2]
+
+    with pytest.raises(ValueError):
+        plot.plot_timeseries(demo, times, "Generations")

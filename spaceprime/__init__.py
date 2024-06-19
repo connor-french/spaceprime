@@ -33,8 +33,9 @@ except ImportError:
     calc_sumstats = None
 
 # optional install of plotting tools
-try:
-    from spaceprime.plot import get_outgoing_migration_rates, plot_model
-except ImportError:
-    get_outgoing_migration_rates = None
-    plot_model = None
+from spaceprime.plot import (
+    get_outgoing_migration_rates,
+    plot_model,
+    plot_landscape,
+    plot_timeseries,
+)

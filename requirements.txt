@@ -6,3 +6,5 @@ scipy
 shapely
 geopandas
 scikit-allel
+contextily
+matplotlib

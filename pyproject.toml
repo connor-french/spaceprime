@@ -31,7 +31,6 @@ spaceprime = "spaceprime.cli:main"
 [project.optional-dependencies]
 all = [
     "spaceprime[analysis]",
-    "spaceprime[plotting]",
 ]
 
 analysis = [
@@ -39,12 +38,6 @@ analysis = [
     "libpysal >= 4.10",
     "sklearn",
     "itertools",
-    "pandas",
-]
-
-plotting = [
-    "matplotlib",
-    "seaborn",
     "pandas",
 ]
 

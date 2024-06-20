@@ -84,17 +84,17 @@ markdown_extensions:
 
 nav:
     - Home: index.md
-    - Installation: installation.md
-    - Usage: usage.md
-    - Contributing: contributing.md
-    - FAQ: faq.md
-    - Changelog: changelog.md
-    - Report Issues: https://github.com/connor-french/spaceprime/issues
-    - Background:
-        - Suitability to deme size transformation functions: background/trans-fns.md
-    - Examples:
+    - Vignettes:
         - examples/intro.ipynb
-    - API Reference:
-          - utilities module: utilities.md
-          - demography module: demography.md
-          - analysis module: analysis.md
+        - Suitability to deme size transformation functions: trans-fns.md    
+    - Reference:
+        - utilities module: utilities.md
+        - demography module: demography.md
+        - analysis module: analysis.md
+    - Contributing: contributing.md
+    - Changelog: changelog.md
+    
+    #- Installation: installation.md
+    #- Usage: usage.md
+    #- FAQ: faq.md
+    #- Report Issues: https://github.com/connor-french/spaceprime/issues

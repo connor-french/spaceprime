@@ -1,0 +1,111 @@
+---
+title: "*spaceprime*"
+format: 
+  gfm:
+    eval: false
+    echo: true
+
+---
+
+
+[![image](https://img.shields.io/pypi/v/spaceprime.svg)](https://pypi.python.org/pypi/spaceprime)
+
+
+**A python package to facilitate spatially explicit coalescent modeling in *msprime***
+
+
+-   Free software: MIT License
+-   Documentation: <https://connor-french.github.io/spaceprime>
+
+## *Overview*
+*spaceprime* is a Python package that facilitates the use of **spatially explicit coalescent modeling** in the *msprime* library. The package is designed to make it easier for practitioners to **convert spatial maps of habitat suitability into extensible two-dimensional stepping-stone models of gene flow**, where each pixel of the map represents a deme and demes are able to migrate with their neighbors. Demes and migration rates are able to change over time according to habitat suitability model projections to different time periods. These demographic parameters are then used to simulate genetic data under a coalescent model with *msprime* as the simulator, which can be used to infer the demographic history of the population. The package is designed to be **user-friendly and intuitive**, allowing users to easily simulate and analyze spatially explicit genetic data.  
+
+This page provides an overview of the package and its main features. For more detailed information, please refer to the [documentation](https://connor-french.github.io/spaceprime).  
+
+**Note for R users**: *spaceprime* is coded in Python, yet many interested users may come from an R background. I have a [*spaceprime* for R users]() vignette (COMING SOON) that provides a brief introduction to the Python concepts necessary to use *spaceprime* in a practical walk-through of an example analysis. Additionally, it is possible to use Python code in R using the *reticulate* package. For more information on how to use Python code in R, see the [reticulate documentation](https://rstudio.github.io/reticulate/).
+
+## Main features
+*spaceprime* includes a number of features:
+- **Convert habitat suitability values into demographic parameters**, including deme sizes, migration rates, and their change through time using **very little code**. Code complexity does not increase with model complexity, allowing users to focus on the biological questions they are interested in.
+- Simulate spatially explicit genetic data under a coalescent model with *msprime*. The modeling approach is **fully coalescent** with no forward-time component, allowing for **computationally efficient simulations** of large spatially explicit models. 
+- Visualize demographic models to facilitate model interpretation and model checking.
+- Compute genetic summary statistics for simulated and empirical data to facilitate comparison with empirical data.  
+- Extensibility: *spaceprime* is designed to be interoperable with *msprime*, where users can setup a model with *spaceprime*, then customize it using the full range of *msprime* functionality. 
+
+## Installation
+
+### Stable release
+
+*spaceprime* can be installed using `pip` or `conda`. Due to the package's reliance on `msprime`, the `pip` installation is only available on unix-based systems (MacOS, Linux). Windows users should install *spaceprime* using `conda`.
+
+To install *spaceprime* using `pip`, run the following command in your terminal:
+
+```{bash}
+pip install spaceprime
+```
+
+To install *spaceprime* using `conda`, run the following command in your terminal:
+
+```{bash}
+conda install -c conda-forge spaceprime
+```
+
+The `mamba` package manager can also be used to install *spaceprime* using `conda`. `mamba` tends to be much faster than conda. To install *spaceprime* using `mamba`, install `mamba`, then run the following command in your terminal:
+
+```{bash}
+mamba install -c conda-forge spaceprime
+```
+
+### From source
+
+To install spaceprime from source, run this command in your terminal:
+
+```{bash}
+pip install git+https://github.com/connor-french/spaceprime
+```
+
+### Extras
+
+To install the `analysis` module, which is imported separately from the main package to reduce the number of dependencies:
+
+```{bash}
+pip install spaceprime[analysis]
+```
+
+or  
+
+```{bash}
+conda install -c conda-forge spaceprime[analysis]
+```
+
+## Usage
+
+To use spaceprime in a project:
+
+```{python}
+import spaceprime
+```
+
+To use the `analysis` module, which is imported separately from the main package to reduce the number of dependencies:
+
+```{python}
+from spaceprime import analysis
+```
+
+> [!IMPORTANT]  
+> Make sure to install the relevant analysis dependencies with `pip install spaceprime[analysis]` or `conda install -c conda-forge spaceprime[analysis]`.
+
+## Quickstart
+
+```{python}
+#| label: qs-import
+#| eval: true
+
+import spaceprime as sp
+import geopandas as gpd
+```
+
+
+
+## Report Issues
+[https://github.com/connor-french/spaceprime/issues](https://github.com/connor-french/spaceprime/issues)

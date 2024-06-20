@@ -58,6 +58,7 @@ plugins:
           allow_errors: false
           ignore: ["conf.py"]
           execute_ignore: ["*ignore.ipynb"]
+    - callouts
           
 markdown_extensions:
     - admonition
@@ -67,7 +68,10 @@ markdown_extensions:
     - footnotes
     - meta
     - md_in_html
+    - nl2br
+    - admonition
     - pymdownx.superfences
+    - pymdownx.details
     - pymdownx.highlight:
           linenums: true
     - toc:

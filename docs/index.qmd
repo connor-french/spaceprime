@@ -97,12 +97,26 @@ from spaceprime import analysis
 
 ## Quickstart
 
+### 1. Read in packages and data
+
+[Packages we're loading and why]
+
+The data we're using in this example is a GeoTiff raster file of habitat suitability values for this cute frog, *Phyllomedusa distincta*:  
+
+![](images/pdistincta.jpg)  
+
+You can download the data [here]().
+
+[Explanation of sample data]
+
 ```{python}
 #| label: qs-import
 #| eval: true
 
 import spaceprime as sp
 import geopandas as gpd
+
+
 ```
 
 

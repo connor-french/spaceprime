@@ -203,14 +203,15 @@ def plot_landscape(
         geometry.append(shape(shapedict))
 
     gdf = gpd.GeoDataFrame({"dummy": dummy_vals, "geometry": geometry}, crs=raster.crs)
-    # add the deme sizes to this gdf
-    gdf["deme_size"] = demes_matrix.flatten()
-
-    # use gdf.plot to plot the demes matrix
-    plot = gdf.plot(column="deme_size", cmap=cmap, legend=legend)
+    # add the deme sizes to this gdf, making sure the masked values are omitted
+    gdf["deme_size"] = demes_matrix[demes_matrix > 1e-10].flatten()
 
     if basemap:
+        # use gdf.plot to plot the demes matrix
+        plot = gdf.plot(column="deme_size", cmap=cmap, legend=legend, alpha=0.7)
         plot = ctx.add_basemap(plot, crs=gdf.crs, source=ctx.providers.CartoDB.Positron)
+    else:
+        plot = gdf.plot(column="deme_size", cmap=cmap, legend=legend)
 
     return plot
 

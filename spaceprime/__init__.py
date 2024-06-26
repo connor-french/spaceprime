@@ -25,17 +25,21 @@ from spaceprime.demography import (
     spDemography,
 )
 
-# optional install of analysis tools
-try:
-    from spaceprime.analysis import filter_gt, calc_sumstats
-except ImportError:
-    filter_gt = None
-    calc_sumstats = None
+from spaceprime.simulation import (
+    sim_ancestry,
+    sim_mutations,
+)
 
-# optional install of plotting tools
 from spaceprime.plot import (
     get_outgoing_migration_rates,
     plot_model,
     plot_landscape,
     plot_timeseries,
 )
+
+# optional install of analysis tools
+try:
+    from spaceprime.analysis import filter_gt, calc_sumstats
+except ImportError:
+    filter_gt = None
+    calc_sumstats = None

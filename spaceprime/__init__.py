@@ -26,7 +26,8 @@ from spaceprime.demography import (
 )
 
 from spaceprime.simulation import (
-    simulate,
+    sim_ancestry,
+    sim_mutations,
 )
 
 from spaceprime.plot import (

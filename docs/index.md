@@ -274,6 +274,8 @@ image, but the actual plot is interactive.
 sp.plot_model(demo, r, 0)
 ```
 
+<img src="images/plot_model.png" data-fig-align="center" />
+
 ### 4. Simulate genetic data
 
 Before simulating this demography, we need to create a sample dictionary
@@ -306,57 +308,42 @@ This step may take a minute or so to run.
 ``` python
 sim = sp.sim_ancestry(samples=sample_dict, demography=demo, sequence_length=1e5, record_provenance=False, random_seed=42)
 
-sim
+print(sim)
 ```
 
-            <div>
-              <style>
-                .tskit-table thead tr th {text-align: left;padding: 0.5em 0.5em;}
-                .tskit-table tbody tr td {padding: 0.5em 0.5em;}
-                .tskit-table tbody tr td:first-of-type {text-align: left;}
-                .tskit-details-label {vertical-align: top; padding-right:5px;}
-                .tskit-table-set {display: inline-flex;flex-wrap: wrap;margin: -12px 0 0 -12px;width: calc(100% + 12px);}
-                .tskit-table-set-table {margin: 12px 0 0 12px;}
-                details {display: inline-block;}
-                summary {cursor: pointer; outline: 0; display: list-item;}
-              </style>
-              <div class="tskit-table-set">
-                <div class="tskit-table-set-table">
-                  &#10;
-| <img                                                                                 
- src="https://raw.githubusercontent.com/tskit-dev/administrative/main/tskit_logo.svg"  
- style="height: 32px;display: inline-block;padding: 3px 5px 3px 0;" /> <a              
- href="https://tskit.dev/tskit/docs/latest/python-api.html#the-treesequence-class"     
- target="_blank">Tree Sequence</a>                                                     |             |
-|--------------------------------------------------------------------------------------|-------------|
-| Trees                                                                                | 1           |
-| Sequence Length                                                                      | 100000.0    |
-| Time Units                                                                           | generations |
-| Sample Nodes                                                                         | 344         |
-| Total Size                                                                           | 205.8 KiB   |
-| Metadata                                                                             | No Metadata |
+    ╔═══════════════════════════╗
+    ║TreeSequence               ║
+    ╠═══════════════╤═══════════╣
+    ║Trees          │          1║
+    ╟───────────────┼───────────╢
+    ║Sequence Length│     100000║
+    ╟───────────────┼───────────╢
+    ║Time Units     │generations║
+    ╟───────────────┼───────────╢
+    ║Sample Nodes   │        344║
+    ╟───────────────┼───────────╢
+    ║Total Size     │  205.8 KiB║
+    ╚═══════════════╧═══════════╝
+    ╔═══════════╤════╤═════════╤════════════╗
+    ║Table      │Rows│Size     │Has Metadata║
+    ╠═══════════╪════╪═════════╪════════════╣
+    ║Edges      │ 686│ 21.4 KiB│          No║
+    ╟───────────┼────┼─────────┼────────────╢
+    ║Individuals│ 172│  4.7 KiB│          No║
+    ╟───────────┼────┼─────────┼────────────╢
+    ║Migrations │   0│  8 Bytes│          No║
+    ╟───────────┼────┼─────────┼────────────╢
+    ║Mutations  │   0│ 16 Bytes│          No║
+    ╟───────────┼────┼─────────┼────────────╢
+    ║Nodes      │ 687│ 18.8 KiB│          No║
+    ╟───────────┼────┼─────────┼────────────╢
+    ║Populations│3481│155.4 KiB│         Yes║
+    ╟───────────┼────┼─────────┼────────────╢
+    ║Provenances│   0│ 16 Bytes│          No║
+    ╟───────────┼────┼─────────┼────────────╢
+    ║Sites      │   0│ 16 Bytes│          No║
+    ╚═══════════╧════╧═════════╧════════════╝
 
-</div>
-
-<div class="tskit-table-set-table">
-
-| Table       | Rows | Size      | Has Metadata |
-|-------------|------|-----------|:------------:|
-| Edges       | 686  | 21.4 KiB  |              |
-| Individuals | 172  | 4.7 KiB   |              |
-| Migrations  | 0    | 8 Bytes   |              |
-| Mutations   | 0    | 16 Bytes  |              |
-| Nodes       | 687  | 18.8 KiB  |              |
-| Populations | 3481 | 155.4 KiB |      ✅      |
-| Provenances | 0    | 16 Bytes  |              |
-| Sites       | 0    | 16 Bytes  |              |
-
-</div>
-
-                </div>
-              </div>
-            </div>
-            &#10;
 We’ll take a peak at a single tree from the TreeSequence object to see
 what it looks like. The `draw_tree()` function is a convenience function
 that uses `msprime`’s `draw_text()` function to plot a single tree from
@@ -387,57 +374,42 @@ that the tree sequence has some mutations!
 ``` python
 sim = sp.sim_mutations(sim, rate=1e-10, random_seed=490)
 
-sim
+print(sim)
 ```
 
-            <div>
-              <style>
-                .tskit-table thead tr th {text-align: left;padding: 0.5em 0.5em;}
-                .tskit-table tbody tr td {padding: 0.5em 0.5em;}
-                .tskit-table tbody tr td:first-of-type {text-align: left;}
-                .tskit-details-label {vertical-align: top; padding-right:5px;}
-                .tskit-table-set {display: inline-flex;flex-wrap: wrap;margin: -12px 0 0 -12px;width: calc(100% + 12px);}
-                .tskit-table-set-table {margin: 12px 0 0 12px;}
-                details {display: inline-block;}
-                summary {cursor: pointer; outline: 0; display: list-item;}
-              </style>
-              <div class="tskit-table-set">
-                <div class="tskit-table-set-table">
-                  &#10;
-| <img                                                                                 
- src="https://raw.githubusercontent.com/tskit-dev/administrative/main/tskit_logo.svg"  
- style="height: 32px;display: inline-block;padding: 3px 5px 3px 0;" /> <a              
- href="https://tskit.dev/tskit/docs/latest/python-api.html#the-treesequence-class"     
- target="_blank">Tree Sequence</a>                                                     |             |
-|--------------------------------------------------------------------------------------|-------------|
-| Trees                                                                                | 1           |
-| Sequence Length                                                                      | 100000.0    |
-| Time Units                                                                           | generations |
-| Sample Nodes                                                                         | 344         |
-| Total Size                                                                           | 209.4 KiB   |
-| Metadata                                                                             | No Metadata |
+    ╔═══════════════════════════╗
+    ║TreeSequence               ║
+    ╠═══════════════╤═══════════╣
+    ║Trees          │          1║
+    ╟───────────────┼───────────╢
+    ║Sequence Length│     100000║
+    ╟───────────────┼───────────╢
+    ║Time Units     │generations║
+    ╟───────────────┼───────────╢
+    ║Sample Nodes   │        344║
+    ╟───────────────┼───────────╢
+    ║Total Size     │  209.4 KiB║
+    ╚═══════════════╧═══════════╝
+    ╔═══════════╤════╤═════════╤════════════╗
+    ║Table      │Rows│Size     │Has Metadata║
+    ╠═══════════╪════╪═════════╪════════════╣
+    ║Edges      │ 686│ 21.4 KiB│          No║
+    ╟───────────┼────┼─────────┼────────────╢
+    ║Individuals│ 172│  4.7 KiB│          No║
+    ╟───────────┼────┼─────────┼────────────╢
+    ║Migrations │   0│  8 Bytes│          No║
+    ╟───────────┼────┼─────────┼────────────╢
+    ║Mutations  │  48│  1.8 KiB│          No║
+    ╟───────────┼────┼─────────┼────────────╢
+    ║Nodes      │ 687│ 18.8 KiB│          No║
+    ╟───────────┼────┼─────────┼────────────╢
+    ║Populations│3481│155.4 KiB│         Yes║
+    ╟───────────┼────┼─────────┼────────────╢
+    ║Provenances│   1│763 Bytes│          No║
+    ╟───────────┼────┼─────────┼────────────╢
+    ║Sites      │  48│  1.2 KiB│          No║
+    ╚═══════════╧════╧═════════╧════════════╝
 
-</div>
-
-<div class="tskit-table-set-table">
-
-| Table       | Rows | Size      | Has Metadata |
-|-------------|------|-----------|:------------:|
-| Edges       | 686  | 21.4 KiB  |              |
-| Individuals | 172  | 4.7 KiB   |              |
-| Migrations  | 0    | 8 Bytes   |              |
-| Mutations   | 48   | 1.8 KiB   |              |
-| Nodes       | 687  | 18.8 KiB  |              |
-| Populations | 3481 | 155.4 KiB |      ✅      |
-| Provenances | 1    | 763 Bytes |              |
-| Sites       | 48   | 1.2 KiB   |              |
-
-</div>
-
-                </div>
-              </div>
-            </div>
-            &#10;
 The mutations will be spread across the TreeSequence, but there are a
 few on the first tree.
 

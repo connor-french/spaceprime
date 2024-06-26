@@ -223,6 +223,7 @@ sp.plot_landscape(demo, r, 0, basemap=True)
 sp.plot_model(demo, r, 0)
 ```
 
+![](images/plot_model.png){fig-align="center"}
 
 ### 4. Simulate genetic data
 
@@ -245,7 +246,7 @@ This step may take a minute or so to run.
 
 sim = sp.sim_ancestry(samples=sample_dict, demography=demo, sequence_length=1e5, record_provenance=False, random_seed=42)
 
-sim
+print(sim)
 ```
 
 
@@ -270,7 +271,7 @@ Overlaying mutations after simulating ancestry isn't necessary for calculating g
 
 sim = sp.sim_mutations(sim, rate=1e-10, random_seed=490)
 
-sim
+print(sim)
 ```
 
 The mutations will be spread across the TreeSequence, but there are a few on the first tree.

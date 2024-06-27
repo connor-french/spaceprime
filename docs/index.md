@@ -1,7 +1,11 @@
 # *spaceprime*
 
 
-[![image](https://img.shields.io/pypi/v/spaceprime.svg)](https://pypi.python.org/pypi/spaceprime)
+<figure>
+<a href="https://pypi.python.org/pypi/spaceprime"><img
+src="https://img.shields.io/pypi/v/spaceprime.svg" alt="image" /></a>
+<figcaption>image</figcaption>
+</figure>
 
 **A python package to facilitate spatially explicit coalescent modeling
 in *msprime***
@@ -211,9 +215,11 @@ The model that *spaceprime* uses is a two-dimensional stepping-stone
 model with a global migration rate of 0.001 between neighboring demes.
 The global rate by default is scaled, where demes exchange the same
 number of migrants with their neighbors, regardless of deme size. To
-change this behavior, set `scale=false`. Using a single value for the
-`timesteps` argument tells spaceprime that 1000 generations passes in
-between each raster time step in the model, which we are assuming here.
+change this behavior, set `scale=false`. We’re assuming that *P.
+distincta* has a generation time of one year. Using a single value for
+the `timesteps` argument tells spaceprime that 1000 generations passes
+in between each raster time step in the model.
+
 This step may take a few seconds (10-15 seconds on my machine) to run.
 
 ``` python
@@ -267,8 +273,8 @@ id="plot-landscape" />
 `plot_model()` plots the deme sizes on a
 [folium](https://python-visualization.github.io/folium/latest/index.html)
 interactive map, with precise deme sizes and outgoing migration rates
-for each deme present in a popup. *Note*- the below is rendered as an
-image, but the actual plot is interactive.
+for each deme present in a popup. *Note*- the map below is rendered as
+an image, but the actual plot is interactive.
 
 ``` python
 sp.plot_model(demo, r, 0)
@@ -372,7 +378,7 @@ pair per generation. For this example, we’ll use a mutation rate of
 that the tree sequence has some mutations!
 
 ``` python
-sim = sp.sim_mutations(sim, rate=1e-10, random_seed=490)
+sim = sp.sim_mutations(sim, rate=1e-9, random_seed=490)
 
 print(sim)
 ```
@@ -388,7 +394,7 @@ print(sim)
     ╟───────────────┼───────────╢
     ║Sample Nodes   │        344║
     ╟───────────────┼───────────╢
-    ║Total Size     │  209.4 KiB║
+    ║Total Size     │  233.8 KiB║
     ╚═══════════════╧═══════════╝
     ╔═══════════╤════╤═════════╤════════════╗
     ║Table      │Rows│Size     │Has Metadata║
@@ -399,7 +405,7 @@ print(sim)
     ╟───────────┼────┼─────────┼────────────╢
     ║Migrations │   0│  8 Bytes│          No║
     ╟───────────┼────┼─────────┼────────────╢
-    ║Mutations  │  48│  1.8 KiB│          No║
+    ║Mutations  │ 452│ 16.3 KiB│          No║
     ╟───────────┼────┼─────────┼────────────╢
     ║Nodes      │ 687│ 18.8 KiB│          No║
     ╟───────────┼────┼─────────┼────────────╢
@@ -407,7 +413,7 @@ print(sim)
     ╟───────────┼────┼─────────┼────────────╢
     ║Provenances│   1│763 Bytes│          No║
     ╟───────────┼────┼─────────┼────────────╢
-    ║Sites      │  48│  1.2 KiB│          No║
+    ║Sites      │ 449│ 11.0 KiB│          No║
     ╚═══════════╧════╧═════════╧════════════╝
 
 The mutations will be spread across the TreeSequence, but there are a
@@ -448,3 +454,12 @@ From here, you have a few options. You can:
 ## Report Issues
 
 <https://github.com/connor-french/spaceprime/issues>
+
+## Contributing
+
+We love contributions! Please see the [Contributing
+Guide](contributing.md) for more information.
+
+Please note that this project is released with a [Contributor Code of
+Conduct](https://github.com/connor-french/spaceprime/blob/main/CODE_OF_CONDUCT.md).
+By participating in this project you agree to abide by its terms.

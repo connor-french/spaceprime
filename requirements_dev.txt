@@ -28,5 +28,6 @@ mkdocs-callouts
 mkdocstrings 
 mkdocstrings-crystal
 mkdocstrings-python-legacy
+mkquartodocs
 pygments
 pymdown-extensions

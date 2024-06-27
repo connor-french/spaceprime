@@ -1,7 +1,7 @@
 ---
 title: "*spaceprime*"
 format: 
-  gfm:
+  commonmark:
     eval: false
     echo: true
 ---
@@ -176,7 +176,9 @@ Next, we'll convert the habitat suitability values into deme sizes, so each cell
 d = sp.raster_to_demes(r, transformation="linear", max_local_size=1000)
 ```
 
-Now that we have our deme sizes, we can set up the demographic model. The model that *spaceprime* uses is a two-dimensional stepping-stone model  with a global migration rate of 0.001 between neighboring demes. The global rate by default is scaled, where demes exchange the same number of migrants with their neighbors, regardless of deme size. To change this behavior, set `scale=false`. Using a single value for the `timesteps` argument tells spaceprime that 1000 generations passes in between each raster time step in the model, which we are assuming here. This step may take a few seconds (10-15 seconds on my machine) to run.
+Now that we have our deme sizes, we can set up the demographic model. The model that *spaceprime* uses is a two-dimensional stepping-stone model  with a global migration rate of 0.001 between neighboring demes. The global rate by default is scaled, where demes exchange the same number of migrants with their neighbors, regardless of deme size. To change this behavior, set `scale=false`. We're assuming that *P. distincta* has a generation time of one year. Using a single value for the `timesteps` argument tells spaceprime that 1000 generations passes in between each raster time step in the model.  
+
+This step may take a few seconds (10-15 seconds on my machine) to run.
 
 ```{python}
 #| label: demography
@@ -215,7 +217,7 @@ sp.plot_landscape(demo, r, 0, basemap=True)
 ```
 
 #### `plot_model()`
-`plot_model()` plots the deme sizes on a [folium](https://python-visualization.github.io/folium/latest/index.html) interactive  map, with precise deme sizes and outgoing migration rates for each deme present in a popup. *Note*- the below is rendered as an image, but the actual plot is interactive.
+`plot_model()` plots the deme sizes on a [folium](https://python-visualization.github.io/folium/latest/index.html) interactive  map, with precise deme sizes and outgoing migration rates for each deme present in a popup. *Note*- the map below is rendered as an image, but the actual plot is interactive.
 
 ```{python}
 #| label: plot-model
@@ -269,7 +271,7 @@ Overlaying mutations after simulating ancestry isn't necessary for calculating g
 #| eval: true
 
 
-sim = sp.sim_mutations(sim, rate=1e-10, random_seed=490)
+sim = sp.sim_mutations(sim, rate=1e-9, random_seed=490)
 
 print(sim)
 ```
@@ -304,3 +306,9 @@ From here, you have a few options. You can:
 ## Report Issues
 
 <https://github.com/connor-french/spaceprime/issues>
+
+## Contributing
+
+We love contributions! Please see the [Contributing Guide](contributing.md) for more information.  
+
+Please note that this project is released with a [Contributor Code of Conduct](https://github.com/connor-french/spaceprime/blob/main/CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.

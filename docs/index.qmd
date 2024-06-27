@@ -154,6 +154,7 @@ Now that we have our data, let's read in the packages and data we'll be using. M
 
 ```{python}
 #| label: import-data
+#| eval: false
 
 import spaceprime as sp
 import geopandas as gpd

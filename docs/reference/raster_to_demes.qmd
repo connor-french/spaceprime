@@ -1,0 +1,27 @@
+# raster_to_demes { #spaceprime.raster_to_demes }
+
+`raster_to_demes(raster, transformation='linear', max_local_size=1000, normalize=False, threshold=None, thresh_norm=False, inflection_point=0.5, slope=0.05)`
+
+Converts a raster to a 2D np.ndarray of deme sizes using either linear, threshold, or sigmoid transformation functions. For more detail about transformation functions, see [this brief overview](background/trans-fns.md).
+Raster data should be continuous and positive.
+This function was created with the idea of taking in habitat suitability rasters scaled from 0 to 1, where 0 is no suitability and 1 is the highest suitability.
+However, it is flexible enough to accommodate other continuous rasters that can be coaxed to a 0 to 1 scale with the operation `(data - np.min(data)) / (np.max(data) - np.min(data))` by setting the `normalize` flag to `True`.
+
+## Parameters
+
+| Name               | Type                                        | Description                                                                                                                                                                                                                                                                                  | Default    |
+|--------------------|---------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| `raster`           | Union\[np.ndarray, rasterio.DatasetReader\] | The input raster data. It can be a numpy array or a rasterio DatasetReader with one or more layers.                                                                                                                                                                                          | _required_ |
+| `transformation`   | str                                         | The transformation function to be used. Options are "linear", "threshold", and "sigmoid". Default is "linear".                                                                                                                                                                               | `'linear'` |
+| `max_local_size`   | int                                         | The maximum local deme size. Default is 1000.                                                                                                                                                                                                                                                | `1000`     |
+| `normalize`        | bool                                        | Whether to normalize the raster data. Use if your data is not scaled from 0-1. Default is False.                                                                                                                                                                                             | `False`    |
+| `threshold`        | float                                       | The threshold value for the "threshold" transformation method. Default is None.                                                                                                                                                                                                              | `None`     |
+| `thresh_norm`      | bool                                        | Whether to normalize the local deme size based on the average suitability above the threshold. This is useful when comparing thresholded simulations with linear or sigmoid simulations, to maintain similar landscape-wide population sizes across max_local_size values. Default is False. | `False`    |
+| `inflection_point` | float                                       | The inflection point for the "sigmoid" transformation method. Default is 0.5.                                                                                                                                                                                                                | `0.5`      |
+| `slope`            | float                                       | The slope value for the "sigmoid" transformation method. Default is 0.05.                                                                                                                                                                                                                    | `0.05`     |
+
+## Returns
+
+| Type       | Description               |
+|------------|---------------------------|
+| np.ndarray | An ndarray of deme sizes. |

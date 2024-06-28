@@ -1,0 +1,29 @@
+# filter_gt { #spaceprime.filter_gt }
+
+`filter_gt(gt, deme_dict_inds=None, deme_dict_anc=None, missing_data_perc=0, r2_thresh=0.1, filter_monomorphic=True, filter_singletons=True)`
+
+Filter genotype matrices output by ts.genotype_matrix() to filter out monomorphic sites, loci in linkage disequilibrium, and recreate missing data patterns common to empirical genotype data.
+Returns the genotype matrix and allele counts matrix for the filtered loci, and optionally allele counts matrices for demes and ancestral populations.
+
+## Parameters
+
+| Name                 | Type       | Description                                                                                        | Default    |
+|----------------------|------------|----------------------------------------------------------------------------------------------------|------------|
+| `gt`                 | np.ndarray | The genotype matrix.                                                                               | _required_ |
+| `deme_dict_inds`     | dict       | A dictionary containing the indices of individuals in each deme. Defaults to None.                 | `None`     |
+| `deme_dict_anc`      | dict       | A dictionary containing the indices of individuals in each ancestral population. Defaults to None. | `None`     |
+| `missing_data_perc`  | float      | The percentage of missing data allowed. Defaults to 0.                                             | `0`        |
+| `r2_thresh`          | float      | The threshold for linkage disequilibrium. Defaults to 0.1.                                         | `0.1`      |
+| `filter_monomorphic` | bool       | Whether to filter out monomorphic sites, keeping only segregating sites. Defaults to True.         | `True`     |
+| `filter_singletons`  | bool       | Whether to filter out singletons. Defaults to True.                                                | `True`     |
+
+## Returns
+
+| Type                                                                                                                                                      | Description                                                                                                                                                                                                                                                       |
+|-----------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Tuple\[allel.GenotypeArray, allel.AlleleCountsArray, Optional\[Dict\[str, allel.AlleleCountsArray\]\], Optional\[Dict\[str, allel.AlleleCountsArray\]\]\] | A tuple containing the filtered genotype matrix, the allele counts matrix, a dictionary of allele counts matrices for demes (if deme_dict_inds is provided), and a dictionary of allele counts matrices for ancestral populations (if deme_dict_anc is provided). |
+
+## Notes
+
+This function uses a random mask to simulate missing data in the genotype matrix.
+For reproducibility it's advised to set a `np.random.seed()` before calling this function.

@@ -1,0 +1,73 @@
+# spDemography { #spaceprime.spDemography }
+
+`spDemography(self, *args, **kwargs)`
+
+
+
+## Methods
+
+| Name | Description |
+| --- | --- |
+| [add_ancestral_populations](#spaceprime.spDemography.add_ancestral_populations) | Adds ancestral populations to the given demographic model, mapping demes in the spatial simulation to ancestral populations. |
+| [stepping_stone_2d](#spaceprime.spDemography.stepping_stone_2d) | Create a 2D stepping stone model, either for a single time step or for multiple time steps of deme size change. |
+
+### add_ancestral_populations { #spaceprime.spDemography.add_ancestral_populations }
+
+`spDemography.add_ancestral_populations(anc_sizes, merge_time, anc_id=None, anc_merge_times=None, anc_merge_sizes=None, migration_rate=None)`
+
+Adds ancestral populations to the given demographic model, mapping demes in the spatial simulation to ancestral populations.
+
+#### Parameters
+
+| Name              | Type                      | Description                                                                                                                       | Default    |
+|-------------------|---------------------------|-----------------------------------------------------------------------------------------------------------------------------------|------------|
+| `anc_sizes`       | List\[float\]             | A list of ancestral population sizes.                                                                                             | _required_ |
+| `merge_time`      | Union\[float, int\]       | The time at which all demes in the spatial simulation merge into one or more ancestral populations.                               | _required_ |
+| `anc_id`          | Optional\[np.ndarray\]    | An array of ancestral population IDs- the output of [split_landscape_by_pop][utilities.split_landscape_by_pop]. Defaults to None. | `None`     |
+| `anc_merge_times` | Optional\[List\[float\]\] | A list of merge times for ancestral populations. Defaults to None.                                                                | `None`     |
+| `anc_merge_sizes` | Optional\[List\[float\]\] | A list of sizes for merged ancestral populations. Defaults to None.                                                               | `None`     |
+| `migration_rate`  | Optional\[float\]         | The symmetric migration rate between ancestral populations. Defaults to None.                                                     | `None`     |
+
+#### Returns
+
+| Type               | Description                                                 |
+|--------------------|-------------------------------------------------------------|
+| msprime.Demography | The demographic model with the added ancestral populations. |
+
+#### Raises
+
+| Type       | Description                                                                                                    |
+|------------|----------------------------------------------------------------------------------------------------------------|
+| ValueError | If the model already contains ancestral populations.                                                           |
+| ValueError | If the number of demes in the demographic model does not match the number of demes in the admixture ID raster. |
+
+#### Notes
+
+The function adds ancestral populations to the given demographic model. If `anc_id` is not provided, a single ancestral population is added with the initial size specified in `anc_sizes[0]`. If `anc_id` is provided, a new ancestral population is added for each admixture population, with sizes specified in `anc_sizes`. The demes in the simulation are then merged into their respective ancestral populations based on the values in `anc_id`. If `anc_merge_times` is provided, the ancestral populations are merged at the specified times. If `migration_rate` is provided, symmetric migration is allowed between ancestral populations.
+
+### stepping_stone_2d { #spaceprime.spDemography.stepping_stone_2d }
+
+`spDemography.stepping_stone_2d(d, rate, scale=True, timesteps=None)`
+
+Create a 2D stepping stone model, either for a single time step or for multiple time steps of deme size change.
+
+#### Parameters
+
+| Name        | Type                      | Description                                                                                                                                                                                                                                                                                | Default    |
+|-------------|---------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| `d`         | numpy.ndarray             | The demography matrix representing the population sizes.                                                                                                                                                                                                                                   | _required_ |
+| `rate`      | float or numpy.ndarray    | The migration rate(s) between populations. If a float, it represents a constant migration rate for all populations. If a numpy.ndarray, it represents a migration matrix with shape (T, N, N), where N is the total number of populations and T is the number of time steps - 1, if T > 1. | _required_ |
+| `scale`     | bool                      | Whether to scale the migration rate matrix. Default is True.                                                                                                                                                                                                                               | `True`     |
+| `timesteps` | Union\[int, List\[int\]\] | The list of timesteps representing the amount of time passing between each demographic event, in generations. If a single integer is provided, the function assumes that the time steps are equal.                                                                                         | `None`     |
+
+#### Returns
+
+| Type               | Description                                                              |
+|--------------------|--------------------------------------------------------------------------|
+| msprime.Demography | The constructed 2d stepping stone model as an msprime.Demography object. |
+
+#### Notes
+
+The demography matrix `d` should have shape (n, m) or (k, n, m), where n is the number of rows and m is the number of columns for a 2D array and k is the number of layers in a 3D array.
+The migration rate matrix `rate` should have shape (N, N), where N is the total number of populations.
+If there are multiple time steps of population size change, the `add_landscape_change` function is called to modify the model accordingly.

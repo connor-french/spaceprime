@@ -20,15 +20,23 @@ def add_landscape_change(
     If there are multiple time steps of deme size change, such as transformed species distribution model projections to past time periods, this function adds the changes to the model.
     It updates the deme sizes and migration rates at each time step.
 
-    Parameters:
-    model (msprime.Demography): The model object to which the landscape change will be added.
-    d (np.ndarray): The 3D array representing different time steps of population size change.
-    timesteps (Union[int, List[int]]): The list of timesteps representing the amount of time passing between each demographic event, in generations. If a single integer is provided, the function assumes that the time steps are equal.
-    rate (Union[float, np.ndarray], optional): The migration rate. Defaults to 0.001.
-    scale (bool, optional): Whether to scale the migration rate based on population size. Defaults to True.
+    Parameters
+    ----------
+    model : msprime.Demography
+        The model object to which the landscape change will be added.
+    d : np.ndarray
+        The 3D array representing different time steps of population size change.
+    timesteps : Union[int, List[int]]
+        The list of timesteps representing the amount of time passing between each demographic event, in generations. If a single integer is provided, the function assumes that the time steps are equal.
+    rate : Union[float, np.ndarray], optional
+        The migration rate. Defaults to 0.001.
+    scale : bool, optional
+        Whether to scale the migration rate based on population size. Defaults to True.
 
-    Returns:
-    msprime.Demography: The updated model object.
+    Returns
+    -------
+    msprime.Demography
+        The updated model object.
     """
 
     # check if the number of timesteps matches the number of layers in d, if timesteps is a list
@@ -158,20 +166,28 @@ class spDemography(msprime.Demography):
         """
         Create a 2D stepping stone model, either for a single time step or for multiple time steps of deme size change.
 
-        Parameters:
-        d (numpy.ndarray): The demography matrix representing the population sizes.
-        rate (float or numpy.ndarray): The migration rate(s) between populations.
+        Parameters
+        ----------
+        d : numpy.ndarray
+            The demography matrix representing the population sizes.
+        rate : float or numpy.ndarray
+            The migration rate(s) between populations.
             If a float, it represents a constant migration rate for all populations.
             If a numpy.ndarray, it represents a migration matrix with shape (T, N, N),
             where N is the total number of populations and T is the number of time steps - 1, if T > 1.
-        scale (bool): Whether to scale the migration rate matrix. Default is True.
-        timesteps (Union[int, List[int]]): The list of timesteps representing the amount of time passing between each demographic event, in generations. If a single integer is provided, the function assumes that the time steps are equal.
+        scale : bool, optional
+            Whether to scale the migration rate matrix. Default is True.
+        timesteps : Union[int, List[int]], optional
+            The list of timesteps representing the amount of time passing between each demographic event, in generations.
+            If a single integer is provided, the function assumes that the time steps are equal.
 
+        Returns
+        -------
+        model : msprime.Demography
+            The constructed 2d stepping stone model as an msprime.Demography object.
 
-        Returns:
-        model: The constructed 2d stepping stone model as an msprime.Demography object.
-
-        Notes:
+        Notes
+        -----
         The demography matrix `d` should have shape (n, m) or (k, n, m), where n is the number of rows and m is the number of columns for a 2D array and k is the number of layers in a 3D array.
         The migration rate matrix `rate` should have shape (N, N), where N is the total number of populations.
         If there are multiple time steps of population size change, the `add_landscape_change` function is called to modify the model accordingly.
@@ -246,31 +262,36 @@ class spDemography(msprime.Demography):
         """
         Adds ancestral populations to the given demographic model, mapping demes in the spatial simulation to ancestral populations.
 
-        Parameters:
-        anc_sizes (List[float]): A list of ancestral population sizes.
-        merge_time (Union[float, int]): The time at which all demes in the spatial simulation merge into one or more ancestral populations.
-        anc_id (Optional[np.ndarray], optional): An array of ancestral population IDs- the output of [split_landscape_by_pop][utilities.split_landscape_by_pop]. Defaults to None.
-        anc_merge_times (Optional[List[float]], optional): A list of merge times for ancestral populations.
-        Defaults to None.
-        anc_merge_sizes (Optional[List[float]], optional): A list of sizes for merged ancestral populations.
-        Defaults to None.
-        migration_rate (Optional[float], optional): The symmetric migration rate between ancestral populations. Defaults to None.
+        Parameters
+        ----------
+        anc_sizes : List[float]
+            A list of ancestral population sizes.
+        merge_time : Union[float, int]
+            The time at which all demes in the spatial simulation merge into one or more ancestral populations.
+        anc_id : Optional[np.ndarray], optional
+            An array of ancestral population IDs- the output of [split_landscape_by_pop][utilities.split_landscape_by_pop]. Defaults to None.
+        anc_merge_times : Optional[List[float]], optional
+            A list of merge times for ancestral populations. Defaults to None.
+        anc_merge_sizes : Optional[List[float]], optional
+            A list of sizes for merged ancestral populations. Defaults to None.
+        migration_rate : Optional[float], optional
+            The symmetric migration rate between ancestral populations. Defaults to None.
 
-        Returns:
-        msprime.Demography: The demographic model with the added ancestral populations.
+        Returns
+        -------
+        msprime.Demography
+            The demographic model with the added ancestral populations.
 
-        Raises:
-        ValueError: If the model already contains ancestral populations.
-        ValueError: If the number of demes in the demographic model does not match the number of demes in the
-        admixture ID raster.
+        Raises
+        ------
+        ValueError
+            If the model already contains ancestral populations.
+        ValueError
+            If the number of demes in the demographic model does not match the number of demes in the admixture ID raster.
 
-        Note:
-        The function adds ancestral populations to the given demographic model. If `anc_id` is not provided, a
-        single ancestral population is added with the initial size specified in `anc_sizes[0]`. If `anc_id` is
-        provided, a new ancestral population is added for each admixture population, with sizes specified in
-        `anc_sizes`. The demes in the simulation are then merged into their respective ancestral populations
-        based on the values in `anc_id`. If `anc_merge_times` is provided, the ancestral populations are merged
-        at the specified times. If `migration_rate` is provided, symmetric migration is allowed between ancestral populations.
+        Notes
+        -----
+        The function adds ancestral populations to the given demographic model. If `anc_id` is not provided, a single ancestral population is added with the initial size specified in `anc_sizes[0]`. If `anc_id` is provided, a new ancestral population is added for each admixture population, with sizes specified in `anc_sizes`. The demes in the simulation are then merged into their respective ancestral populations based on the values in `anc_id`. If `anc_merge_times` is provided, the ancestral populations are merged at the specified times. If `migration_rate` is provided, symmetric migration is allowed between ancestral populations.
         """
 
         if any("ANC" in pop.name for pop in self.populations):

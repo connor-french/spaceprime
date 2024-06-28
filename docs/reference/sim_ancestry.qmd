@@ -1,0 +1,31 @@
+# sim_ancestry { #spaceprime.sim_ancestry }
+
+`sim_ancestry(*args, **kwargs)`
+
+A thin wrapper around msprime.sim_ancestry.
+
+## Parameters
+
+| Name       | Type   | Description                    | Default   |
+|------------|--------|--------------------------------|-----------|
+| `*args`    | tuple  | Variable length argument list. | `()`      |
+| `**kwargs` | dict   | Arbitrary keyword arguments.   | `{}`      |
+
+## Returns
+
+| Type                                            | Description                                                                                                                                                                                                |
+|-------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Union\[TreeSequence, Iterator\[TreeSequence\]\] | The TreeSequence object representing the results of the simulation if no replication is performed, or an iterator over the independent replicates simulated if the num_replicates parameter has been used. |
+
+## Notes
+
+This function takes the same arguments as msprime.sim_ancestry and calls it directly,
+allowing users to use simulation functionality within the spaceprime namespace.
+
+See the msprime.sim_ancestry documentation for more information: See the msprime documentation for more information: https://tskit.dev/msprime/docs/stable/api.html#msprime.sim_ancestry
+
+## Returns
+
+| Type                                            | Description                                                                                                                                                                                                |
+|-------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Union\[TreeSequence, Iterator\[TreeSequence\]\] | The TreeSequence object representing the results of the simulation if no replication is performed, or an iterator over the independent replicates simulated if the num_replicates parameter has been used. |

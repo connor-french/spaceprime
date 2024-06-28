@@ -1,3 +1,0 @@
-# utilities module
-
-::: spaceprime.utilities

@@ -1,0 +1,25 @@
+# sim_mutations { #spaceprime.sim_mutations }
+
+`sim_mutations(*args, **kwargs)`
+
+A thin wrapper around msprime.sim_mutations.
+
+## Parameters
+
+| Name       | Type                           | Description   | Default   |
+|------------|--------------------------------|---------------|-----------|
+| `*args`    | Variable length argument list. |               | `()`      |
+| `**kwargs` | Arbitrary keyword arguments.   |               | `{}`      |
+
+## Returns
+
+| Type                                                             | Description   |
+|------------------------------------------------------------------|---------------|
+| The result of msprime.sim_mutations with the provided arguments. |               |
+
+## Notes
+
+This function takes the same arguments as msprime.sim_ancestry and calls it directly,
+allowing users to use simulation functionality within the spaceprime namespace.
+
+See the msprime.sim_mutations documentation for more information: https://tskit.dev/msprime/docs/stable/api.html#msprime.sim_mutations

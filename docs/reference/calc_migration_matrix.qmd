@@ -1,0 +1,19 @@
+# calc_migration_matrix { #spaceprime.calc_migration_matrix }
+
+`calc_migration_matrix(demes, rate, scale=True)`
+
+Calculates a migration matrix based on deme sizes and a global migration rate. The migration rate can be scaled based on population size or set as a constant.
+
+## Parameters
+
+| Name    | Type       | Description                                                                    | Default    |
+|---------|------------|--------------------------------------------------------------------------------|------------|
+| `demes` | np.ndarray | The 2D numpy array representing the deme sizes.                                | _required_ |
+| `rate`  | float      | The migration rate.                                                            | _required_ |
+| `scale` | bool       | Whether to scale the migration rate based on population size. Default is True. | `True`     |
+
+## Returns
+
+| Type       | Description                               |
+|------------|-------------------------------------------|
+| np.ndarray | The migration matrix as a 2D numpy array. |

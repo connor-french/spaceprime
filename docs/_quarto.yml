@@ -1,0 +1,90 @@
+project:
+  type: website
+  output-dir: _site
+
+metadata-files: 
+  - _sidebar.yml
+
+website:
+  title: "spaceprime"
+  description: "A python package to facilitate spatially explicit coalescent modeling in *msprime*"
+  page-navigation: true
+  #favicon: "favicon.ico"
+  navbar:
+    background: light
+    pinned: true
+    #logo: logo.png
+    left:
+      - text: "Guide"
+        file: overview.qmd
+      - text: "Reference"
+        file: reference/index.qmd
+      - text: Vignettes
+        menu:
+          - text: "Transformation functions"
+            file: transformation-functions.qmd
+          - text: "spaceprime for R users"
+            file: spaceprime-for-r-users.qmd
+      - text: CLI
+        file: cli.qmd
+    right:
+      - icon: github
+        href: https://github.com/connor-french/spaceprime
+        aria-label: spaceprime GitHub
+
+quartodoc:
+  title: Reference
+  package: spaceprime
+  style: pkgdown
+  # write sidebar data to this file
+  sidebar: _sidebar.yml
+  sections:
+    - title: Utilities
+      desc: "Functions for processing data."
+      contents:
+        - anc_to_deme_dict
+        - calc_migration_matrix
+        - coords_to_deme_dict
+        - coords_to_sample_dict
+        - create_raster
+        - mtp_thresh_from_coords
+        - raster_to_demes
+        - split_landscape_by_pop
+    - title: Demography
+      desc: "Methods to create and manipulate demographic models."
+      contents:
+        - spDemography
+        - spDemography.add_ancestral_populations
+        - spDemography.stepping_stone_2d
+    - title: Plotting
+      desc: "Functions for visualizing data."
+      contents:
+        - plot_landscape
+        - plot_model
+        - plot_timeseries
+    - title: Simulation
+      desc: "Thin wrappers around msprime simulation functions."
+      contents:
+        - sim_ancestry
+        - sim_mutations
+    - title: Analysis
+      desc: "Functions for analyzing data."
+      contents:
+        - calc_sumstats
+        - filter_gt
+    
+
+# interlinks filter
+# usage: [](`~package.function`) or [](`~package.class.method`)
+# This filter will automatically link to other functions and classes in the package
+filters:
+  - interlinks
+
+interlinks:
+  fast: true
+  sources: 
+    msprime:
+      url: https://msprime.readthedocs.io/en/stable/
+    spaceprime:
+      url: https://connor-french.github.io/spaceprime/
+

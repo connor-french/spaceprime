@@ -1,0 +1,27 @@
+# plot_landscape { #spaceprime.plot_landscape }
+
+`plot_landscape(demo, raster, timestep, cmap='viridis', legend=True, basemap=False)`
+
+Plots a static map of a transformed landscape at the timestep of your choice.
+
+## Parameters
+
+| Name       | Type                    | Description                                                                   | Default     |
+|------------|-------------------------|-------------------------------------------------------------------------------|-------------|
+| `demo`     | spaceprime.spDemography | The demographic model to plot.                                                | _required_  |
+| `raster`   | rasterio.DatasetReader  | The raster dataset used to create the demes matrix(es).                       | _required_  |
+| `timestep` | int                     | The timestep to plot.                                                         | _required_  |
+| `cmap`     | str                     | The colormap to use. Defaults to "viridis".                                   | `'viridis'` |
+| `legend`   | bool                    | Whether to show the colorbar legend. Defaults to True.                        | `True`      |
+| `basemap`  | bool                    | Whether to add a basemap. Requires an internet connection. Defaults to False. | `False`     |
+
+## Returns
+
+| Type                 | Description                          |
+|----------------------|--------------------------------------|
+| matplotlib.axes.Axes | A plot of the transformed landscape. |
+
+## Note
+
+Setting `basemap=True` requires an internet connection to download the basemap tiles. It may take some time to load the tiles depending on your internet speed.
+Since this function returns a `matplotlib` axes object, you can further modify the plot with the `matplotlib` library.

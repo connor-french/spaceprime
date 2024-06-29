@@ -29,13 +29,19 @@ def get_outgoing_migration_rates(
     """
     Calculates the outgoing migration rates from each deme based on the migration matrix.
 
-    Parameters:
-      demes (np.ndarray): An array representing the demes.
-      mig_mat (np.ndarray): A migration matrix representing the migration rates between demes.
-      na_value (float, optional): The value to use for missing migration rates. Defaults to 1e-9.
+    Parameters
+    ----------
+    demes : np.ndarray
+        An array representing the demes.
+    mig_mat : np.ndarray
+        A migration matrix representing the migration rates between demes.
+    na_value : float, optional
+        The value to use for missing migration rates. Defaults to 1e-9.
 
-    Returns:
-      pd.DataFrame: A DataFrame containing the outgoing migration rates from each deme.
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame containing the outgoing migration rates from each deme.
     """
     # Get the shape of the demes array
     rows, cols = demes.shape
@@ -82,25 +88,35 @@ def plot_model(
     """
     Plots the demes and migration rates for a given timestep as an interactive map.
 
-    Parameters:
-      demo (spaceprime.spDemography): The demographic model to plot.
-      raster (rasterio.DatasetReader): The raster dataset used to create the demes matrix(es).
-      timestep (int): The index of the desired timestep to plot.
-      cmap (str, optional): The colormap to use for the deme sizes. Defaults to 'viridis'.
-      legend (bool, optional): Whether to show the color legend. Defaults to True.
-      tiles (str, optional): The basemap tiles to use. Defaults to "CartoDB positron".
+    Parameters
+    ----------
+    demo : spaceprime.spDemography
+        The demographic model to plot.
+    raster : rasterio.DatasetReader
+        The raster dataset used to create the demes matrix(es).
+    timestep : int
+        The index of the desired timestep to plot.
+    cmap : str, optional
+        The colormap to use for the deme sizes. Defaults to 'viridis'.
+    legend : bool, optional
+        Whether to show the color legend. Defaults to True.
+    tiles : str, optional
+        The basemap tiles to use. Defaults to "CartoDB positron".
 
-    Returns:
-      folium.folium.Map: An interactive plot of the demes and migration rates.
+    Returns
+    -------
+    folium.folium.Map
+        An interactive plot of the demes and migration rates.
 
-    Example:
-      raster = rasterio.open("path/to/raster.tif")
-      # Plot the model at timestep 1
-      plot_model(demo, raster, 1)
+    Example
+    -------
+    raster = rasterio.open("path/to/raster.tif")
+    # Plot the model at timestep 1
+    plot_model(demo, raster, 1)
 
-    Notes:
-        Since this function returns a `folium` map object, you can further modify the map or save it to an HTML file with the `folium` library.
-
+    Notes
+    -----
+    Since this function returns a `folium` map object, you can further modify the map or save it to an HTML file with the `folium` library.
     """
 
     # check that the demography object contains demes and migration_array attributes
@@ -168,21 +184,30 @@ def plot_landscape(
     """
     Plots a static map of a transformed landscape at the timestep of your choice.
 
-    Parameters:
-        demo (spaceprime.spDemography): The demographic model to plot.
-        raster (rasterio.DatasetReader): The raster dataset used to create the demes matrix(es).
-        timestep (int): The timestep to plot.
-        cmap (str, optional): The colormap to use. Defaults to "viridis".
-        legend (bool, optional): Whether to show the colorbar legend. Defaults to True.
-        basemap (bool, optional): Whether to add a basemap. Requires an internet connection. Defaults to False.
+    Parameters
+    ----------
+    demo : spaceprime.spDemography
+        The demographic model to plot.
+    raster : rasterio.DatasetReader
+        The raster dataset used to create the demes matrix(es).
+    timestep : int
+        The timestep to plot.
+    cmap : str, optional
+        The colormap to use. Defaults to "viridis".
+    legend : bool, optional
+        Whether to show the colorbar legend. Defaults to True.
+    basemap : bool, optional
+        Whether to add a basemap. Requires an internet connection. Defaults to False.
 
-    Returns:
-        matplotlib.axes.Axes: A plot of the transformed landscape.
+    Returns
+    -------
+    matplotlib.axes.Axes
+        A plot of the transformed landscape.
 
-    Note:
-        Setting `basemap=True` requires an internet connection to download the basemap tiles. It may take some time to load the tiles depending on your internet speed.
-        Since this function returns a `matplotlib` axes object, you can further modify the plot with the `matplotlib` library.
-
+    Note
+    ----
+    Setting `basemap=True` requires an internet connection to download the basemap tiles. It may take some time to load the tiles depending on your internet speed.
+    Since this function returns a `matplotlib` axes object, you can further modify the plot with the `matplotlib` library.
     """
 
     validate_demographic_model(demo)
@@ -220,10 +245,19 @@ def plot_timeseries(demo: spaceprime.spDemography, times: List[float], units: st
     """
     Plots the total number of individuals across the landscape across time.
 
-    Parameters:
-        demo (spaceprime.spDemography): The demographic model to plot.
-        times (List[float]): A list of times that each landscape timestep corresponds with. This can be in whatever unit you choose.
-        units (str, optional): The units of time the timesteps are specified in. Defaults to a blank string.
+    Parameters
+    ----------
+    demo : spaceprime.spDemography
+        The demographic model to plot.
+    times : List[float]
+        A list of times that each landscape timestep corresponds with. This can be in whatever unit you choose.
+    units : str, optional
+        The units of time the timesteps are specified in. Defaults to a blank string.
+
+    Returns
+    -------
+    tuple
+        A tuple containing the figure and axes objects of the plot.
     """
 
     validate_demographic_model(demo)

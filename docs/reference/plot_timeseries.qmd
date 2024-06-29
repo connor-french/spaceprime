@@ -1,0 +1,19 @@
+# plot_timeseries { #spaceprime.plot_timeseries }
+
+`plot_timeseries(demo, times, units='')`
+
+Plots the total number of individuals across the landscape across time.
+
+## Parameters
+
+| Name    | Type                    | Description                                                                                             | Default    |
+|---------|-------------------------|---------------------------------------------------------------------------------------------------------|------------|
+| `demo`  | spaceprime.spDemography | The demographic model to plot.                                                                          | _required_ |
+| `times` | List\[float\]           | A list of times that each landscape timestep corresponds with. This can be in whatever unit you choose. | _required_ |
+| `units` | str                     | The units of time the timesteps are specified in. Defaults to a blank string.                           | `''`       |
+
+## Returns
+
+| Type   | Description                                                 |
+|--------|-------------------------------------------------------------|
+| tuple  | A tuple containing the figure and axes objects of the plot. |

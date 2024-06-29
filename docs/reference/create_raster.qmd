@@ -1,0 +1,21 @@
+# create_raster { #spaceprime.create_raster }
+
+`create_raster(data, reference_raster, out_folder, out_prefix)`
+
+Creates a raster dataset from a numpy array and reference raster and writes it to a new GeoTiff file.
+The new raster dataset will have the same dimensions, crs, and transform as the reference raster.
+
+## Parameters
+
+| Name               | Type                   | Description                                                            | Default    |
+|--------------------|------------------------|------------------------------------------------------------------------|------------|
+| `data`             | np.ndarray             | The numpy array containing the data you want for the raster.           | _required_ |
+| `reference_raster` | rasterio.DatasetReader | The reference rasterio DatasetReader object.                           | _required_ |
+| `out_folder`       | str                    | The output folder location where the new raster dataset will be saved. | _required_ |
+| `out_prefix`       | str                    | The prefix for the output file name.                                   | _required_ |
+
+## Returns
+
+| Type   | Description                                                            |
+|--------|------------------------------------------------------------------------|
+| None   | The function writes the new raster dataset to the output file location |

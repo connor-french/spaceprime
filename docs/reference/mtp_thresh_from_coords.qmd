@@ -1,0 +1,26 @@
+# mtp_thresh_from_coords { #spaceprime.mtp_thresh_from_coords }
+
+`mtp_thresh_from_coords(raster, coordinates)`
+
+This function takes the coordinates of empirical sampling localities, finds which raster cells they belong to, extracts the values of the first layer for those localities, and finds the minimum value.
+This value is the maximum threshold value to determine a presence vs absence in a threshold transformation.
+If the threshold is set any higher, empirical sampling localities will not be sampled in the simulations.
+
+## Parameters
+
+| Name          | Type                                                     | Description                                                                                                                               | Default    |
+|---------------|----------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| `raster`      | rasterio.DatasetReader                                   | The rasterio DatasetReader object representing the raster data containing the suitability values.                                         | _required_ |
+| `coordinates` | Union\[List\[Tuple\[float, float\]\], gpd.GeoDataFrame\] | The longitude, latitude coordinates of the empirical sampling localities as a list of coordinate pair tuples or a geopandas GeoDataFrame. | _required_ |
+
+## Returns
+
+| Type   | Description                                                                                   |
+|--------|-----------------------------------------------------------------------------------------------|
+| float  | The maximum threshold value to determine a presence vs absence in a threshold transformation. |
+
+## Raises
+
+| Type      | Description                                                                          |
+|-----------|--------------------------------------------------------------------------------------|
+| TypeError | If the coordinates input is not a list, geopandas GeoDataFrame, or pandas DataFrame. |

@@ -58,7 +58,6 @@ plugins:
           allow_errors: false
           ignore: ["conf.py"]
           execute_ignore: ["*ignore.ipynb"]
-    # - mkquartodocs
     - callouts
           
 markdown_extensions:

@@ -1,0 +1,34 @@
+website:
+  sidebar:
+  - contents:
+    - reference/index.qmd
+    - contents:
+      - reference/anc_to_deme_dict.qmd
+      - reference/calc_migration_matrix.qmd
+      - reference/coords_to_deme_dict.qmd
+      - reference/coords_to_sample_dict.qmd
+      - reference/create_raster.qmd
+      - reference/mtp_thresh_from_coords.qmd
+      - reference/raster_to_demes.qmd
+      - reference/split_landscape_by_pop.qmd
+      section: Utilities
+    - contents:
+      - reference/spDemography.qmd
+      - reference/spDemography.add_ancestral_populations.qmd
+      - reference/spDemography.stepping_stone_2d.qmd
+      section: Demography
+    - contents:
+      - reference/plot_landscape.qmd
+      - reference/plot_model.qmd
+      - reference/plot_timeseries.qmd
+      section: Plotting
+    - contents:
+      - reference/sim_ancestry.qmd
+      - reference/sim_mutations.qmd
+      section: Simulation
+    - contents:
+      - reference/calc_sumstats.qmd
+      - reference/filter_gt.qmd
+      section: Analysis
+    id: reference
+  - id: dummy-sidebar

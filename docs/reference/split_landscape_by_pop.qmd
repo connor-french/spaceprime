@@ -1,0 +1,27 @@
+# split_landscape_by_pop { #spaceprime.split_landscape_by_pop }
+
+`split_landscape_by_pop(raster, coordinates, anc_pop_id, band_index=1, mask_rast=False)`
+
+Uses nearest-neighbor interpolation to classify a landscape raster based on the ancestral population assigned to sampled individuals.
+This function takes in a raster and a list of coordinates and ancestral population IDs assigned to each individual in the empirical data set.
+It then interpolates the population IDs across the landscape and returns the new raster as a masked array.
+
+## Parameters
+
+| Name          | Type                                                     | Description                                                                                                                                  | Default    |
+|---------------|----------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| `raster`      | rasterio.DatasetReader                                   | The rasterio DatasetReader object representing the landscape raster that you want to divide.                                                 | _required_ |
+| `coordinates` | Union\[List\[Tuple\[float, float\]\], gpd.GeoDataFrame\] | A list of (x, y) coordinates or a geopandas GeoDataFrame representing the coordinates assigned to each individual in the empirical data set. | _required_ |
+| `anc_pop_id`  | List\[Union\[int, np.integer\]\]                         | A list of ancestral population IDs assigned to each empirical individual[^1].                                                                | _required_ |
+| `band_index`  | int                                                      | The index of the raster to read in. Default is 1. Note- rasterio begins indexing at 1 for raster bands.                                      | `1`        |
+| `mask_rast`   | bool                                                     | Whether to mask the interpolation by the landscape. Default is False.                                                                        | `False`    |
+
+## Returns
+
+| Type              | Description                                             |
+|-------------------|---------------------------------------------------------|
+| np.ma.MaskedArray | The new population assignment raster as a masked array. |
+
+## Notes
+
+[^1]: These IDs are assigned to each empirical individual typically based on genetic clustering methods like STRUCTURE or PCA. The IDs are used to assign individuals to ancestral populations in the landscape.

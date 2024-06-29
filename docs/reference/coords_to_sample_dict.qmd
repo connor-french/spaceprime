@@ -1,0 +1,25 @@
+# coords_to_sample_dict { #spaceprime.coords_to_sample_dict }
+
+`coords_to_sample_dict(raster, coordinates, individual_ids=None, vcf_path=None)`
+
+Convert sample coordinates to sample dictionaries for simulation and analysis. Can optionally include empirical data, which is accepted as a path to a VCF file.
+
+This function takes a raster, a list of coordinates, and optional individual IDs and VCF path.
+It masks the raster with the given coordinates, retrieves the cell IDs for each individual's locality,
+and returns two dictionaries: a sample dictionary containing the number of individuals to sample from the simulation, and a sample dictionary containing the range of individual indices for each cell ID.
+The first dictionary is used to sample individuals from the simulation, and the second dictionary is used to calculate genetic summary statistics from the sampled individuals.
+
+## Parameters
+
+| Name             | Type                                                     | Description                                                                       | Default    |
+|------------------|----------------------------------------------------------|-----------------------------------------------------------------------------------|------------|
+| `raster`         | Union\[np.ndarray, rasterio.DatasetReader\]              | The raster data as a numpy array or rasterio DatasetReader object.                | _required_ |
+| `coordinates`    | Union\[List\[Tuple\[float, float\]\], gpd.GeoDataFrame\] | A list of (x, y) coordinates or a geopandas GeoDataFrame.                         | _required_ |
+| `individual_ids` | Optional\[List\[str\]\]                                  | A list of individual IDs corresponding to those in the VCF file, by default None. | `None`     |
+| `vcf_path`       | Optional\[str\]                                          | The path to the VCF file, by default None.                                        | `None`     |
+
+## Returns
+
+| Type                                                                                    | Description                                                                                                                                                                                                                                                                                                                            |
+|-----------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Tuple\[Dict\[int, int\], Dict\[int, np.ndarray\], Optional\[Dict\[int, np.ndarray\]\]\] | A tuple containing two or three dictionaries. The first dictionary contains the number of individuals to sample from the simulation for each cell ID. The second dictionary contains the indices of individuals for each cell ID. The third, optional dictionary contains the indices of individuals in the VCF file for each cell ID. |

@@ -31,7 +31,6 @@ from spaceprime.simulation import (
 )
 
 from spaceprime.plot import (
-    get_outgoing_migration_rates,
     plot_model,
     plot_landscape,
     plot_timeseries,

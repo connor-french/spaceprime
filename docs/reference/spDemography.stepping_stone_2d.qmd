@@ -1,0 +1,26 @@
+# spDemography.stepping_stone_2d { #spaceprime.spDemography.stepping_stone_2d }
+
+`spDemography.stepping_stone_2d(d, rate, scale=True, timesteps=None)`
+
+Create a 2D stepping stone model, either for a single time step or for multiple time steps of deme size change.
+
+## Parameters
+
+| Name        | Type                      | Description                                                                                                                                                                                                                                                                                | Default    |
+|-------------|---------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| `d`         | numpy.ndarray             | The demography matrix representing the population sizes.                                                                                                                                                                                                                                   | _required_ |
+| `rate`      | float or numpy.ndarray    | The migration rate(s) between populations. If a float, it represents a constant migration rate for all populations. If a numpy.ndarray, it represents a migration matrix with shape (T, N, N), where N is the total number of populations and T is the number of time steps - 1, if T > 1. | _required_ |
+| `scale`     | bool                      | Whether to scale the migration rate matrix. Default is True.                                                                                                                                                                                                                               | `True`     |
+| `timesteps` | Union\[int, List\[int\]\] | The list of timesteps representing the amount of time passing between each demographic event, in generations. If a single integer is provided, the function assumes that the time steps are equal.                                                                                         | `None`     |
+
+## Returns
+
+| Type               | Description                                                              |
+|--------------------|--------------------------------------------------------------------------|
+| msprime.Demography | The constructed 2d stepping stone model as an msprime.Demography object. |
+
+## Notes
+
+The demography matrix `d` should have shape (n, m) or (k, n, m), where n is the number of rows and m is the number of columns for a 2D array and k is the number of layers in a 3D array.
+The migration rate matrix `rate` should have shape (N, N), where N is the total number of populations.
+If there are multiple time steps of population size change, the `add_landscape_change` function is called to modify the model accordingly.

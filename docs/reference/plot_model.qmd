@@ -1,0 +1,32 @@
+# plot_model { #spaceprime.plot_model }
+
+`plot_model(demo, raster, timestep, cmap='viridis', legend=True, tiles='CartoDB positron')`
+
+Plots the demes and migration rates for a given timestep as an interactive map.
+
+## Parameters
+
+| Name       | Type                    | Description                                                    | Default              |
+|------------|-------------------------|----------------------------------------------------------------|----------------------|
+| `demo`     | spaceprime.spDemography | The demographic model to plot.                                 | _required_           |
+| `raster`   | rasterio.DatasetReader  | The raster dataset used to create the demes matrix(es).        | _required_           |
+| `timestep` | int                     | The index of the desired timestep to plot.                     | _required_           |
+| `cmap`     | str                     | The colormap to use for the deme sizes. Defaults to 'viridis'. | `'viridis'`          |
+| `legend`   | bool                    | Whether to show the color legend. Defaults to True.            | `True`               |
+| `tiles`    | str                     | The basemap tiles to use. Defaults to "CartoDB positron".      | `'CartoDB positron'` |
+
+## Returns
+
+| Type              | Description                                           |
+|-------------------|-------------------------------------------------------|
+| folium.folium.Map | An interactive plot of the demes and migration rates. |
+
+## Example
+
+raster = rasterio.open("path/to/raster.tif")
+# Plot the model at timestep 1
+plot_model(demo, raster, 1)
+
+## Notes
+
+Since this function returns a `folium` map object, you can further modify the map or save it to an HTML file with the `folium` library.

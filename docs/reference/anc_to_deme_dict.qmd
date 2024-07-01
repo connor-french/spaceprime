@@ -1,0 +1,18 @@
+# anc_to_deme_dict { #spaceprime.anc_to_deme_dict }
+
+`anc_to_deme_dict(anc_pops, deme_dict)`
+
+Converts the ancestral population assignments of demes into a dictionary mapping ancestral population IDs to deme indices.
+
+## Parameters
+
+| Name        | Type             | Description                                                                                  | Default    |
+|-------------|------------------|----------------------------------------------------------------------------------------------|------------|
+| `anc_pops`  | np.ndarray       | An array containing the ancestral population assignments of all demes across the landscape.  | _required_ |
+| `deme_dict` | Dict\[int, int\] | A dictionary mapping deme indices to the number of individuals being sampled from each deme. | _required_ |
+
+## Returns
+
+| Type                     | Description                                                                              |
+|--------------------------|------------------------------------------------------------------------------------------|
+| Dict\[int, List\[int\]\] | A dictionary mapping each ancestral population ID to the range of assigned deme indices. |

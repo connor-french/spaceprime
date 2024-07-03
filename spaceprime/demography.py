@@ -151,7 +151,6 @@ def add_landscape_change(
     return model, mig_array
 
 
-## not sure if I should add a subclass or not. There are only two new functions, so might not be worth it.
 class spDemography(msprime.Demography):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

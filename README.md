@@ -16,7 +16,7 @@
 
 This page provides an overview of the package and its main features. For more detailed information, please refer to the [documentation](https://connor-french.github.io/spaceprime).  
 
-**Note for R users**: *spaceprime* is coded in Python, yet many interested users may come from an R background. I have a [*spaceprime* for R users]() vignette (COMING SOON) that provides a brief introduction to the Python concepts necessary to use *spaceprime* in a practical walk-through of an example analysis. Additionally, it is possible to use Python code in R using the *reticulate* package. For more information on how to use Python code in R, see the [reticulate documentation](https://rstudio.github.io/reticulate/).
+**Note for R users**: *spaceprime* is coded in Python, yet many interested users may come from an R background. I have a [*spaceprime* for R users](spaceprime-for-r-users.qmd) vignette that provides a brief introduction to the Python concepts necessary to use *spaceprime* in a practical walk-through of an example analysis. Additionally, it is possible to use Python code in R using the *reticulate* package. For more information on how to use Python code in R, see the [reticulate documentation](https://rstudio.github.io/reticulate/).
 
 ## Main features
 *spaceprime* includes a number of features:

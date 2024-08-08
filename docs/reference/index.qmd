@@ -12,7 +12,7 @@ Functions for processing data.
 | [coords_to_sample_dict](coords_to_sample_dict.qmd#spaceprime.coords_to_sample_dict) | Convert sample coordinates to sample dictionaries for simulation and analysis. Can optionally include empirical data, which is accepted as a path to a VCF file. |
 | [create_raster](create_raster.qmd#spaceprime.create_raster) | Creates a raster dataset from a numpy array and reference raster and writes it to a new GeoTiff file. |
 | [mtp_thresh_from_coords](mtp_thresh_from_coords.qmd#spaceprime.mtp_thresh_from_coords) | This function takes the coordinates of empirical sampling localities, finds which raster cells they belong to, extracts the values of the first layer for those localities, and finds the minimum value. |
-| [raster_to_demes](raster_to_demes.qmd#spaceprime.raster_to_demes) | Converts a raster to a 2D np.ndarray of deme sizes using either linear, threshold, or sigmoid transformation functions. For more detail about transformation functions, see [this brief overview](background/trans-fns.md). |
+| [raster_to_demes](raster_to_demes.qmd#spaceprime.raster_to_demes) | Converts a raster to a 2D np.ndarray of deme sizes using either linear, threshold, or sigmoid transformation functions. For more detail about transformation functions, see [this brief overview](transformation-functions.qmd). |
 | [split_landscape_by_pop](split_landscape_by_pop.qmd#spaceprime.split_landscape_by_pop) | Uses nearest-neighbor interpolation to classify a landscape raster based on the ancestral population assigned to sampled individuals. |
 
 ## Demography

@@ -2,7 +2,7 @@
 
 `raster_to_demes(raster, transformation='linear', max_local_size=1000, normalize=False, threshold=None, thresh_norm=False, inflection_point=0.5, slope=0.05)`
 
-Converts a raster to a 2D np.ndarray of deme sizes using either linear, threshold, or sigmoid transformation functions. For more detail about transformation functions, see [this brief overview](background/trans-fns.md).
+Converts a raster to a 2D np.ndarray of deme sizes using either linear, threshold, or sigmoid transformation functions. For more detail about transformation functions, see [this brief overview](transformation-functions.qmd).
 Raster data should be continuous and positive.
 This function was created with the idea of taking in habitat suitability rasters scaled from 0 to 1, where 0 is no suitability and 1 is the highest suitability.
 However, it is flexible enough to accommodate other continuous rasters that can be coaxed to a 0 to 1 scale with the operation `(data - np.min(data)) / (np.max(data) - np.min(data))` by setting the `normalize` flag to `True`.

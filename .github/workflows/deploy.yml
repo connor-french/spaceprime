@@ -14,7 +14,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.config.py }}
+          python-version: 3.11
       - name: Install GDAL
         run: |
           python -m pip install --upgrade pip
@@ -35,8 +35,7 @@ jobs:
         uses: quarto-dev/quarto-actions/setup@v2
       - name: build docs
         run: |
-          cd docs
-          quartodoc build
+          quarto render docs/
       - name: save docs
         uses: actions/upload-artifact@v4
         with:
@@ -46,8 +45,8 @@ jobs:
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: _site
+          publish_dir: docs/_site
           publish_branch: gh-pages
-          destination_dir: ${{ github.ref_name }}
+          
 
 

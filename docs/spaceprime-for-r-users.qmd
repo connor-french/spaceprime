@@ -69,7 +69,7 @@ In Python, you can also import specific modules or functions from a package, rat
 from spaceprime import demography
 ```
 
-!::: {.callout-tip}
+::: {.callout-tip}
 ## Modules
 In Python, a module is a file that contains code you can use to perform specific tasks. This code can include functions, variables, and classes. Python packages typically contain multiple modules, each of which performs a specific set of tasks. Unlike in R, Python allows you to import specific modules or functions from a package, rather than having to load the entire package.
 :::

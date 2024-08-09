@@ -29,17 +29,21 @@ jobs:
           pip install pytest
           pip install --user -r requirements.txt
           pip install -r requirements_tests.txt
+          python -m pip install quartodoc
           pip install .
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
       - name: build docs
         run: |
-          make docs
+          quartodoc build
+      - name: Verify docs/_site directory
+        run: |
+          ls -R docs/_site
       - name: save docs
         uses: actions/upload-artifact@v4
         with:
           name: docs-html
-          path: _site
+          path: docs/_site
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
         with:

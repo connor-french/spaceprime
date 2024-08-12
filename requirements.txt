@@ -10,3 +10,9 @@ contextily
 matplotlib
 folium
 mapclassify
+
+# analysis
+esda >= 2.5.1
+libpysal >= 4.10
+scikit-learn
+pandas

@@ -8,3 +8,5 @@ geopandas
 scikit-allel
 contextily
 matplotlib
+folium
+mapclassify

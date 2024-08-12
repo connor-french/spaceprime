@@ -28,7 +28,7 @@ jobs:
         run: |
           pip install pytest
           pip install --user -r requirements.txt
-          pip install -r requirements_tests.txt
+          pip install -r requirements_dev.txt
           python -m pip install quartodoc
           pip install .
       - name: Set up Quarto

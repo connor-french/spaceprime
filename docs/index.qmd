@@ -37,26 +37,21 @@ format:
 
 ## Installation
 
+
 ### Stable release
 
-*spaceprime* can be installed using `pip` or `conda`. Due to the package's reliance on *msprime*, the `pip` installation is only available on unix-based systems (MacOS, Linux). Windows users should install *spaceprime* using `conda`.  
+The recommended method for installing *spaceprime* is through `conda` (or `mamba`, a faster drop-in replacement for `conda`). Due to the package's reliance on *msprime*, the `pip` installation is only available on unix-based systems (MacOS, Linux).  
 
-To install *spaceprime* using `pip`, run the following command in your terminal:  
+[gdal](https://gdal.org/) is a required dependency for *spaceprime*, and needs to be installed before installing *spaceprime*:
 
 ```{bash}
-pip install spaceprime
+conda install -c conda-forge gdal
 ```
 
 To install *spaceprime* using `conda`, run the following command in your terminal:  
 
 ```{bash}
 conda install -c conda-forge spaceprime
-```
-
-The `mamba` package manager can also be used to install *spaceprime* using `conda`. `mamba` tends to be much faster than conda. To install *spaceprime* using `mamba`, install `mamba`, then run the following command in your terminal:  
-
-```{bash}
-mamba install -c conda-forge spaceprime
 ```
 
 ### From source

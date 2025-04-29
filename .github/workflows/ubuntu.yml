@@ -28,6 +28,8 @@ jobs:
               uses: actions/setup-python@v5
               with:
                   python-version: ${{ matrix.config.py }}
+            - name: Install GSL
+               run: sudo apt-get update && sudo apt-get install -y libgsl-dev
             - name: Install GDAL
               run: |
                   python -m pip install --upgrade pip

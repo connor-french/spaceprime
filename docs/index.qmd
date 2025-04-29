@@ -36,7 +36,7 @@ format:
 - Extensibility: *spaceprime* is designed to be interoperable with *msprime*, where users can setup a model with *spaceprime*, then customize it using the full range of *msprime* functionality.  
 
 ## Installation
-
+`spaceprime` is currently available only for MacOS and Linux.
 
 ### Stable release
 

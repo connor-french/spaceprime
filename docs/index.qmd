@@ -79,7 +79,7 @@ from spaceprime import analysis
 ```
 
 ::: {.callout-important}
-Make sure to install the relevant analysis dependencies with `pip install spaceprime[analysis]` or `conda install -c conda-forge spaceprime[analysis]`.  
+Make sure to install the relevant analysis dependencies with `conda install -c conda-forge spaceprime[analysis]`.  
 :::
 
 ## Quickstart

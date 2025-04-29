@@ -40,18 +40,12 @@ format:
 
 ### Stable release
 
-The recommended method for installing *spaceprime* is through `conda` (or `mamba`, a faster drop-in replacement for `conda`). Due to the package's reliance on *msprime*, the `pip` installation is only available on unix-based systems (MacOS, Linux).  
+The recommended method for installing *spaceprime* is through `conda` (or `mamba`, a faster drop-in replacement for `conda`).  
 
-[gdal](https://gdal.org/) is a required dependency for *spaceprime*, and needs to be installed before installing *spaceprime*:
-
-```{bash}
-conda install -c conda-forge gdal
-```
-
-To install *spaceprime* using `conda`, run the following command in your terminal:  
+[gdal](https://gdal.org/) is a required dependency for *spaceprime*, and needs to be installed alongside it:
 
 ```{bash}
-conda install -c conda-forge spaceprime
+conda install -c conda-forge gdal spaceprime
 ```
 
 ### From source
@@ -65,12 +59,6 @@ pip install git+https://github.com/connor-french/spaceprime
 ### Extras
 
 To install the `analysis` module, which is imported separately from the main package to reduce the number of dependencies:  
-
-```{bash}
-pip install spaceprime[analysis]
-```
-
-or
 
 ```{bash}
 conda install -c conda-forge spaceprime[analysis]

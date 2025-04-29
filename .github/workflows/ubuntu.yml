@@ -45,7 +45,7 @@ jobs:
                   pip install .
             - name: PKG-TEST
               run: |
-                  python -m unittest discover tests/
+                  pytest --maxfail=5 tests/
             - name: Upload coverage reports to Codecov
               uses: codecov/codecov-action@v4.0.1
               with:

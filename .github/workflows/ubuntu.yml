@@ -17,10 +17,10 @@ jobs:
             fail-fast: false
             matrix:
                 config:
-                    - { os: ubuntu-latest, py: "3.8" }
-                    - { os: ubuntu-latest, py: "3.9" }
                     - { os: ubuntu-latest, py: "3.10" }
                     - { os: ubuntu-latest, py: "3.11" }
+                    - { os: ubuntu-latest, py: "3.12" }
+                    - { os: ubuntu-latest, py: "3.13" }
         steps:
             - name: Checkout Code
               uses: actions/checkout@v4
@@ -28,6 +28,8 @@ jobs:
               uses: actions/setup-python@v5
               with:
                   python-version: ${{ matrix.config.py }}
+            - name: Install GSL
+               run: sudo apt-get update && sudo apt-get install -y libgsl-dev
             - name: Install GDAL
               run: |
                   python -m pip install --upgrade pip
@@ -45,7 +47,7 @@ jobs:
                   pip install .
             - name: PKG-TEST
               run: |
-                  python -m unittest discover tests/
+                  pytest --maxfail=5 tests/
             - name: Upload coverage reports to Codecov
               uses: codecov/codecov-action@v4.0.1
               with:

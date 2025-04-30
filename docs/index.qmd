@@ -36,27 +36,16 @@ format:
 - Extensibility: *spaceprime* is designed to be interoperable with *msprime*, where users can setup a model with *spaceprime*, then customize it using the full range of *msprime* functionality.  
 
 ## Installation
+`spaceprime` is currently available only for MacOS and Linux.
 
 ### Stable release
 
-*spaceprime* can be installed using `pip` or `conda`. Due to the package's reliance on *msprime*, the `pip` installation is only available on unix-based systems (MacOS, Linux). Windows users should install *spaceprime* using `conda`.  
+The recommended method for installing *spaceprime* is through `conda` (or `mamba`, a faster drop-in replacement for `conda`).  
 
-To install *spaceprime* using `pip`, run the following command in your terminal:  
-
-```{bash}
-pip install spaceprime
-```
-
-To install *spaceprime* using `conda`, run the following command in your terminal:  
+[gdal](https://gdal.org/) is a required dependency for *spaceprime*, and needs to be installed alongside it:
 
 ```{bash}
-conda install -c conda-forge spaceprime
-```
-
-The `mamba` package manager can also be used to install *spaceprime* using `conda`. `mamba` tends to be much faster than conda. To install *spaceprime* using `mamba`, install `mamba`, then run the following command in your terminal:  
-
-```{bash}
-mamba install -c conda-forge spaceprime
+conda install -c conda-forge gdal spaceprime
 ```
 
 ### From source
@@ -70,12 +59,6 @@ pip install git+https://github.com/connor-french/spaceprime
 ### Extras
 
 To install the `analysis` module, which is imported separately from the main package to reduce the number of dependencies:  
-
-```{bash}
-pip install spaceprime[analysis]
-```
-
-or
 
 ```{bash}
 conda install -c conda-forge spaceprime[analysis]
@@ -96,7 +79,7 @@ from spaceprime import analysis
 ```
 
 ::: {.callout-important}
-Make sure to install the relevant analysis dependencies with `pip install spaceprime[analysis]` or `conda install -c conda-forge spaceprime[analysis]`.  
+Make sure to install the relevant analysis dependencies with `conda install -c conda-forge spaceprime[analysis]`.  
 :::
 
 ## Quickstart

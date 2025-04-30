@@ -1,61 +1,5 @@
 [
   {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "spaceprime",
-    "section": "",
-    "text": "A python package to facilitate spatially explicit coalescent modeling in msprime"
-  },
-  {
-    "objectID": "index.html#overview",
-    "href": "index.html#overview",
-    "title": "spaceprime",
-    "section": "Overview",
-    "text": "Overview\nspaceprime is a Python package that facilitates the creation and analysis of spatially gridded coalescent models in the msprime library. The package is designed to make it easier for practitioners to convert spatial maps of habitat suitability into extensible two-dimensional stepping-stone models of gene flow, where each pixel of the map represents a deme and demes are able to migrate with their neighbors. Demes and migration rates are able to change over time according to habitat suitability model projections to different time periods. These demographic parameters are then used to simulate genetic data under a coalescent model with msprime as the simulator, which can be used to infer the demographic history of the population. The package is designed to be user-friendly and intuitive, allowing users to easily simulate and analyze spatially explicit genetic data.\n\n\n\n\n\n\nNote for R users\n\n\n\nspaceprime is implemented in Python, yet many interested users may come from an R background. I have a spaceprime for R users vignette that provides a brief introduction to the Python concepts necessary to use spaceprime through a practical walk-through of an example analysis. If you still want to use R, it is possible to use Python code in R using the reticulate package. For more information on how to use Python code in R, see the reticulate documentation."
-  },
-  {
-    "objectID": "index.html#main-features",
-    "href": "index.html#main-features",
-    "title": "spaceprime",
-    "section": "Main features",
-    "text": "Main features\nspaceprime includes a number of features:\n\nConvert habitat suitability values into demographic parameters, including deme sizes, migration rates, and their change through time using very little code. Code complexity does not increase with model complexity, allowing users to focus on the biological questions they are interested in.\n\nSimulate spatially explicit genetic data under a coalescent model with msprime. The modeling approach is fully coalescent with no forward-time component, allowing for computationally efficient simulations of large spatially explicit models.\n\nVisualize demographic models to facilitate model interpretation and model checking.\nCompute genetic summary statistics for simulated and empirical data to facilitate comparison with empirical data.\n\nExtensibility: spaceprime is designed to be interoperable with msprime, where users can setup a model with spaceprime, then customize it using the full range of msprime functionality."
-  },
-  {
-    "objectID": "index.html#installation",
-    "href": "index.html#installation",
-    "title": "spaceprime",
-    "section": "Installation",
-    "text": "Installation\n\nStable release\nspaceprime can be installed using pip or conda. Due to the package’s reliance on msprime, the pip installation is only available on unix-based systems (MacOS, Linux). Windows users should install spaceprime using conda.\nTo install spaceprime using pip, run the following command in your terminal:\npip install spaceprime\nTo install spaceprime using conda, run the following command in your terminal:\nconda install -c conda-forge spaceprime\nThe mamba package manager can also be used to install spaceprime using conda. mamba tends to be much faster than conda. To install spaceprime using mamba, install mamba, then run the following command in your terminal:\nmamba install -c conda-forge spaceprime\n\n\nFrom source\nTo install spaceprime from source, run this command in your terminal:\npip install git+https://github.com/connor-french/spaceprime\n\n\nExtras\nTo install the analysis module, which is imported separately from the main package to reduce the number of dependencies:\npip install spaceprime[analysis]\nor\nconda install -c conda-forge spaceprime[analysis]"
-  },
-  {
-    "objectID": "index.html#usage",
-    "href": "index.html#usage",
-    "title": "spaceprime",
-    "section": "Usage",
-    "text": "Usage\nTo use spaceprime in a project:\n\nimport spaceprime\n\nTo use the analysis module, which is imported separately from the main package to reduce the number of dependencies:\n\nfrom spaceprime import analysis\n\n\n\n\n\n\n\nImportant\n\n\n\nMake sure to install the relevant analysis dependencies with pip install spaceprime[analysis] or conda install -c conda-forge spaceprime[analysis]."
-  },
-  {
-    "objectID": "index.html#quickstart",
-    "href": "index.html#quickstart",
-    "title": "spaceprime",
-    "section": "Quickstart",
-    "text": "Quickstart\n\n\n\n\n\n\nTip\n\n\n\nThis quickstart guide assumes you have a basic understanding of Python. If you are an R user, please refer to the spaceprime for R users vignette for an overview of spaceprime with the necessary Python concepts explained.\n\n\n\n1. Download data\nThe data we’re using in this example are a GeoTiff raster file of habitat suitability values and a GeoJSON file containing geographic localities and metadata for this cute frog, Phyllomedusa distincta:\n\n\n\n\n\nFollow the link to download the projections.tif file. You do not need to download the localities.geojson file, as it is read in from the web in the code below.\nThe raster file contains 23 layers, where each layer is a projection of the habitat suitability model (aka species distribution model or ecological niche model) to a time slice in the past, ranging from the present day to 22,000 years ago in 1,000 year intervals. The habitat suitability values range from zero to one, where zero represents no suitability for the species and one represents perfect suitability. In the following plots, yellow represents higher suitability and purple represents lower suitability. Here are a few time slices of the model:\n\n\n\n\n\n\n\n\n\nThe GeoJSON file contains geographic sampling localities of P. distincta in the Brazilian Atlantic Forest, along with metadata about each locality. Each row is a single individual/observation. spaceprime counts the number of observations with coordinates that overlap with a raster cell/deme and samples the calculated number for simulations and summary statistics. Here are the localities plotted on top of the present-day habitat suitability model:\n\n\n\n\n\n\n\n\n\n\n\n2. Read in packages and data\nNow that we have our data, let’s read in the packages and data we’ll be using. The GeoPandas and Rasterio packages are dependencies of spaceprime, so you shouldn’t need to install them separately. They are needed for reading in locality data and habitat suitability rasters, respectively.\n\nimport spaceprime as sp\nimport geopandas as gpd\nimport rasterio\n\nMake sure to replace the projections.tif file path with the path to the file on your system. The GeoJSON file is read in from the web, so you don’t need to download it.\n\nr = rasterio.open(\"projections.tif\")\nlocs = gpd.read_file(\"https://raw.githubusercontent.com/connor-french/spaceprime/main/spaceprime/data/localities.geojson\")\n\n\n\n3. Set up the demographic model\nNext, we’ll convert the habitat suitability values into deme sizes, so each cell in the raster will represent a deme in our model. We’ll use a linear transformation to convert the suitability values to deme sizes, where the suitability value is multiplied by a constant to get the deme size. The constant is the maximum local deme size, which we set to 1000. For more on transformations, see the suitability to deme size transformation functions vignette.\n\nd = sp.raster_to_demes(r, transformation=\"linear\", max_local_size=1000)\n\nNow that we have our deme sizes, we can set up the demographic model. The model that spaceprime uses is a two-dimensional stepping-stone model with a global migration rate of 0.001 between neighboring demes. The global rate by default is scaled, where demes exchange the same number of migrants with their neighbors, regardless of deme size. To change this behavior, set scale=false. We’re assuming that P. distincta has a generation time of one year. Using a single value for the timesteps argument tells spaceprime that 1000 generations passes in between each raster time step in the model.\nThis step may take a few seconds (10-15 seconds on my machine) to run.\n\n# initialize the model\ndemo = sp.spDemography()\n\n# populate the spDemography object with the deme sizes and migration rates\ndemo.stepping_stone_2d(d, rate=0.001, timesteps=1000)\n\nAfter initializing the spatial component of the simulation, it’s desirable to add one or more ancestral populations to the model. This is done by providing a list of ancestral population sizes and the time (in generations) at which the spatially distributed demes migrate into the ancestral population(s). The following code adds a single ancestral population of 100,000 individuals that demes merge into 23,000 generations in the past:\n\n# add ancestral population\ndemo.add_ancestral_populations([100000], 23000)\n\n\n\n4. Inspect your model\nNow that we have our demographic model set up, we can inspect it to make sure it looks as expected. spaceprime has a series of plot_() functions that make this easier.\n\nplot_landscape()\nplot_landscape() plots the deme sizes in space, which allows you to quickly inspect whether the transformation you applied to your habitat suitability map make sense. Here, we provide the demographic model object, the raster object, the index of the time slice to plot (0 for the present day in this case), and basemap=True to add an OpenStreetMap basemap, providing geographic context to the plot. If you don’t have an internet connection, set basemap=False (the default) to plot without the basemap.\n\nsp.plot_landscape(demo, r, 0, basemap=True)\n\n\n\n\n\n\n\n\n\n\nplot_model()\nplot_model() plots the deme sizes on a folium interactive map, with precise deme sizes and outgoing migration rates for each deme present in a popup.\n\nsp.plot_model(demo, r, 0)\n\nMake this Notebook Trusted to load map: File -&gt; Trust Notebook\n\n\n\n\n\n5. Simulate genetic data\nBefore simulating this demography, we need to create a sample dictionary that translates the empirical sampling localities to the model’s deme indices and maps those to the number of samples to take from each deme. By default, this function sets the number of individuals to sample from each deme to the number of empirical localities in that deme. The coords_to_sample_dict() function also returns two other dictionaries that are not used in this example, so we’ll ignore them.\n\nsample_dict, _, _ = sp.coords_to_sample_dict(r, locs)\n\nNow we get to simulate! The first task is to simulate the ancestry of the samples using the coalescent. All of the hard work is done through msprime’s sim_ancestry() function, for which spaceprime provides a convenience wrapper. This function returns a tskit TreeSequence, which “represents a sequence of correlated evolutionary trees along a genome” and is an incredibly powerful and compact data representation for population genomic analyses. The minimum number of arguments required for this function are the sample dictionary and the demographic model. If you need to overlay mutations, you need to supply the sequence length. Notice the lack of mutations in the table. We’ll set record_provenance to False to decrease the memory overhead of storing a bunch of metadata about the simulation.\nThis step may take a minute or so to run.\n\nsim = sp.sim_ancestry(samples=sample_dict, demography=demo, sequence_length=1e5, record_provenance=False, random_seed=42)\n\nprint(sim)\n\n╔═══════════════════════════╗\n║TreeSequence               ║\n╠═══════════════╤═══════════╣\n║Trees          │          1║\n╟───────────────┼───────────╢\n║Sequence Length│     100000║\n╟───────────────┼───────────╢\n║Time Units     │generations║\n╟───────────────┼───────────╢\n║Sample Nodes   │        344║\n╟───────────────┼───────────╢\n║Total Size     │  205.8 KiB║\n╚═══════════════╧═══════════╝\n╔═══════════╤════╤═════════╤════════════╗\n║Table      │Rows│Size     │Has Metadata║\n╠═══════════╪════╪═════════╪════════════╣\n║Edges      │ 686│ 21.4 KiB│          No║\n╟───────────┼────┼─────────┼────────────╢\n║Individuals│ 172│  4.7 KiB│          No║\n╟───────────┼────┼─────────┼────────────╢\n║Migrations │   0│  8 Bytes│          No║\n╟───────────┼────┼─────────┼────────────╢\n║Mutations  │   0│ 16 Bytes│          No║\n╟───────────┼────┼─────────┼────────────╢\n║Nodes      │ 687│ 18.8 KiB│          No║\n╟───────────┼────┼─────────┼────────────╢\n║Populations│3481│155.4 KiB│         Yes║\n╟───────────┼────┼─────────┼────────────╢\n║Provenances│   0│ 16 Bytes│          No║\n╟───────────┼────┼─────────┼────────────╢\n║Sites      │   0│ 16 Bytes│          No║\n╚═══════════╧════╧═════════╧════════════╝\n\n\n\nWe’ll take a peak at a single tree from the TreeSequence object to see what it looks like. The draw_svg() method plots trees from the TreeSequence object. Here, I selected a single tree and removed the node labels because there are tons of nodes that crowd the plot and we’re only interested in the tree structure.\n\nfirst_tree = sim.first()\nnode_labels = {node.id: \"\" for node in sim.nodes()}\nfirst_tree.draw_svg(y_axis=True, size=(600, 400), node_labels=node_labels)\n\n\n\n\n\n\n\n\nOverlaying mutations after simulating ancestry isn’t necessary for calculating genetic summary statistics on a TreeSequence, but it is necessary if you would like to compare your simulations with empirical data that are represented as a table of genotypes rather than a TreeSequence. The sim_mutations() function overlays mutations on the TreeSequence object returned by sim_ancestry() and requires the mutation rate. The mutation rate is the number of mutations per base pair per generation. For this example, we’ll use a mutation rate of 1e-10 so we don’t overcrowd the tree sequence visualization. You can see from the table that the tree sequence has some mutations!\n\nsim = sp.sim_mutations(sim, rate=1e-10, random_seed=490)\n\nprint(sim)\n\n╔═══════════════════════════╗\n║TreeSequence               ║\n╠═══════════════╤═══════════╣\n║Trees          │          1║\n╟───────────────┼───────────╢\n║Sequence Length│     100000║\n╟───────────────┼───────────╢\n║Time Units     │generations║\n╟───────────────┼───────────╢\n║Sample Nodes   │        344║\n╟───────────────┼───────────╢\n║Total Size     │  209.4 KiB║\n╚═══════════════╧═══════════╝\n╔═══════════╤════╤═════════╤════════════╗\n║Table      │Rows│Size     │Has Metadata║\n╠═══════════╪════╪═════════╪════════════╣\n║Edges      │ 686│ 21.4 KiB│          No║\n╟───────────┼────┼─────────┼────────────╢\n║Individuals│ 172│  4.7 KiB│          No║\n╟───────────┼────┼─────────┼────────────╢\n║Migrations │   0│  8 Bytes│          No║\n╟───────────┼────┼─────────┼────────────╢\n║Mutations  │  48│  1.8 KiB│          No║\n╟───────────┼────┼─────────┼────────────╢\n║Nodes      │ 687│ 18.8 KiB│          No║\n╟───────────┼────┼─────────┼────────────╢\n║Populations│3481│155.4 KiB│         Yes║\n╟───────────┼────┼─────────┼────────────╢\n║Provenances│   1│716 Bytes│          No║\n╟───────────┼────┼─────────┼────────────╢\n║Sites      │  48│  1.2 KiB│          No║\n╚═══════════╧════╧═════════╧════════════╝\n\n\n\nAnd now for the tree. The red X’s represent mutations on the tree, with their ID numbers next to them.\n\nfirst_tree_mut = sim.first()\n\nnode_labels = {node.id: \"\" for node in sim.nodes()}\nfirst_tree_mut.draw_svg(y_axis=True, size=(600, 400), node_labels=node_labels)\n\n\n\n\n\n\n\n\nFrom here, you have a few options. You can:\n\nUse the analysis module to calculate genetic summary statistics on the TreeSequence object. For more on the analysis module, see the analysis module documentation.\n\nSave the TreeSequence to use later or analyze on a platform like tskit with sim.dump(file/path/to/write/to.trees).\n\nConvert the TreeSequence with mutations to a genotype matrix for use in a program like scikit-allel with sim.genotype_matrix(). For more information on this function, see the tskit documentation.\n\nExport the TreeSequence with mutations to a VCF file using sim.write_vcf. For more information on how to use this function, see the tskit documentation.\n\n\n\n\n\n\n\nTODO\n\n\n\nadd a link to the analysis module documentation when it’s ready."
-  },
-  {
-    "objectID": "index.html#report-issues",
-    "href": "index.html#report-issues",
-    "title": "spaceprime",
-    "section": "Report Issues",
-    "text": "Report Issues\nhttps://github.com/connor-french/spaceprime/issues"
-  },
-  {
-    "objectID": "index.html#contributing",
-    "href": "index.html#contributing",
-    "title": "spaceprime",
-    "section": "Contributing",
-    "text": "Contributing\nWe love contributions! Please see the Contributing Guide for more information.\nPlease note that this project is released with a Contributor Code of Conduct. By participating in this project you agree to abide by its terms."
-  },
-  {
     "objectID": "spaceprime-for-r-users.html",
     "href": "spaceprime-for-r-users.html",
     "title": "spaceprime for R users",
@@ -88,7 +32,7 @@
     "href": "spaceprime-for-r-users.html#download-data",
     "title": "spaceprime for R users",
     "section": "Download data",
-    "text": "Download data\nThe data we’re using in this example are a GeoTiff raster file of habitat suitability values and a GeoJSON file containing geographic localities and metadata for this cute frog, Phyllomedusa distincta:\n\n\n\n\n\nFollow the link to download the projections.tif file. You do not need to download the localities.geojson file, as it is read in from the web in the code below.\nThe raster file contains 23 layers, where each layer is a projection of the habitat suitability model (aka species distribution model or ecological niche model) to a time slice in the past, ranging from the present day to 22,000 years ago in 1,000 year intervals. The habitat suitability values range from zero to one, where zero represents no suitability for the species and one represents perfect suitability. In the following plots, yellow represents higher suitability and purple represents lower suitability. Here are a few time slices of the model:\n\n\n\n\n\n\n\n\n\nThe GeoJSON file contains geographic sampling localities of P. distincta in the Brazilian Atlantic Forest, along with metadata about each locality. Each row is a single individual/observation. spaceprime counts the number of observations with coordinates that overlap with a raster cell/deme and samples the calculated number for simulations and summary statistics. Here are the localities plotted on top of the present-day habitat suitability model:\n\n\n\n\n\n\n\n\n\n\nRead in data\nMake sure to replace the projections.tif file path with the path to the file on your system. The GeoJSON file is read in from the web, so you don’t need to download it. Notice that each function is called with the package name or alias followed by a period, then the function name!\n\nr = rasterio.open(\"projections.tif\")\nlocs = gpd.read_file(\"https://raw.githubusercontent.com/connor-french/spaceprime/main/spaceprime/data/localities.geojson\")\n\nTo check out your raster object, you can print the meta attribute to the console. This will give you a summary of the raster, including the number of bands, the width and height of the raster, the coordinate reference system (CRS), and the bounds of the raster.\n\nprint(r.meta)\n\n{'driver': 'GTiff', 'dtype': 'float32', 'nodata': nan, 'width': 58, 'height': 60, 'count': 23, 'crs': CRS.from_epsg(4326), 'transform': Affine(0.16666666600000002, 0.0, -54.16680605885,\n       0.0, -0.166666666, -21.666805828849988)}\n\n\nTo check out your GeoDataFrame object, use the head() method, which will print the first few rows to your console.\n\nlocs.head()\n\n\n\n\n\n\n\n\nspecies\nlongitude\nlatitude\nindividual_id\nanc_pop_id\ngeometry\n\n\n\n\n0\ndistincta\n-48.633300\n-25.883300\n1145545021\n1.0\nPOINT (-48.6333 -25.8833)\n\n\n1\ndistincta\n-48.716829\n-27.169879\n3044567206\n2.0\nPOINT (-48.71683 -27.16988)\n\n\n2\ndistincta\n-47.983204\n-24.116604\n2596355434\n1.0\nPOINT (-47.9832 -24.1166)\n\n\n3\ndistincta\n-47.014321\n-24.369859\n3772589489\n1.0\nPOINT (-47.01432 -24.36986)\n\n\n4\ndistincta\n-49.581356\n-28.559573\n2448001684\n2.0\nPOINT (-49.58136 -28.55957)\n\n\n\n\n\n\n\nIf you would like to perform further data exploration on your GeoDataFrame object, I highly recommend the plotnine package, which is a Python implementation of the ggplot2 package in R. It uses the grammar of graphics to make nice plots. It’s the most painless way to switch from R plotting to Python plotting."
+    "text": "Download data\nThe data we’re using in this example are a GeoTiff raster file of habitat suitability values and a GeoJSON file containing geographic localities and metadata for this cute frog, Phyllomedusa distincta:\n\n\n\n\n\nFollow the link to download the projections.tif file. You do not need to download the localities.geojson file, as it is read in from the web in the code below.\nThe raster file contains 23 layers, where each layer is a projection of the habitat suitability model (aka species distribution model or ecological niche model) to a time slice in the past, ranging from the present day to 22,000 years ago in 1,000 year intervals. The habitat suitability values range from zero to one, where zero represents no suitability for the species and one represents perfect suitability. In the following plots, yellow represents higher suitability and purple represents lower suitability. Here are a few time slices of the model:\n\n\n\n\n\n\n\n\n\nThe GeoJSON file contains geographic sampling localities of P. distincta in the Brazilian Atlantic Forest, along with metadata about each locality. Each row is a single individual/observation. spaceprime counts the number of observations with coordinates that overlap with a raster cell/deme and samples the calculated number for simulations and summary statistics. Here are the localities plotted on top of the present-day habitat suitability model:\n\n\n\n\n\n\n\n\n\n\nRead in data\nMake sure to replace the projections.tif file path with the path to the file on your system. The GeoJSON file is read in from the web, so you don’t need to download it. Notice that each function is called with the package name or alias followed by a period, then the function name!\n\nr = rasterio.open(\"projections.tif\")\nlocs = gpd.read_file(\"https://raw.githubusercontent.com/connor-french/spaceprime/main/spaceprime/data/localities.geojson\")\n\nTo check out your raster object, you can print the meta attribute to the console. This will give you a summary of the raster, including the number of bands, the width and height of the raster, the coordinate reference system (CRS), and the bounds of the raster.\n\nprint(r.meta)\n\n{'driver': 'GTiff', 'dtype': 'float32', 'nodata': nan, 'width': 58, 'height': 60, 'count': 23, 'crs': CRS.from_wkt('GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST],AUTHORITY[\"EPSG\",\"4326\"]]'), 'transform': Affine(0.16666666600000002, 0.0, -54.16680605885,\n       0.0, -0.166666666, -21.666805828849988)}\n\n\nTo check out your GeoDataFrame object, use the head() method, which will print the first few rows to your console.\n\nlocs.head()\n\n\n\n\n\n\n\n\nspecies\nlongitude\nlatitude\nindividual_id\nanc_pop_id\ngeometry\n\n\n\n\n0\ndistincta\n-48.633300\n-25.883300\n1145545021\n1.0\nPOINT (-48.6333 -25.8833)\n\n\n1\ndistincta\n-48.716829\n-27.169879\n3044567206\n2.0\nPOINT (-48.71683 -27.16988)\n\n\n2\ndistincta\n-47.983204\n-24.116604\n2596355434\n1.0\nPOINT (-47.9832 -24.1166)\n\n\n3\ndistincta\n-47.014321\n-24.369859\n3772589489\n1.0\nPOINT (-47.01432 -24.36986)\n\n\n4\ndistincta\n-49.581356\n-28.559573\n2448001684\n2.0\nPOINT (-49.58136 -28.55957)\n\n\n\n\n\n\n\nIf you would like to perform further data exploration on your GeoDataFrame object, I highly recommend the plotnine package, which is a Python implementation of the ggplot2 package in R. It uses the grammar of graphics to make nice plots. It’s the most painless way to switch from R plotting to Python plotting."
   },
   {
     "objectID": "spaceprime-for-r-users.html#set-up-the-demographic-model",
@@ -102,187 +46,63 @@
     "href": "spaceprime-for-r-users.html#simulate-genetic-data",
     "title": "spaceprime for R users",
     "section": "Simulate genetic data",
-    "text": "Simulate genetic data\nBefore simulating this demography, we need to create a sample dictionary that translates the empirical sampling localities to the model’s deme indices and maps those to the number of samples to take from each deme. By default, coords_to_sample_dict() sets the number of individuals to sample from each deme to the number of empirical localities in that deme. The function also returns two other dictionaries that are not used in this example, so we’ll ignore them. In Python, it’s common practice for a function to return multiple objects as a list. If you want the objects separated, you use the formatting below. Using an underscore _ leads to the object being ignored.\n\n\n\n\n\n\nDictionaries\n\n\n\nDictionaries are a data structure in Python that map keys to values. They are similar to lists, but instead of using an index to access elements, you use a key. Dictionaries are useful for storing data that has a key-value relationship, like a phone book, where the key is the name of the person and the value is their phone number. In this case, the key is the deme index and the value is the number of samples to take from that deme.\n\n\n\nsample_dict, _, _ = sp.coords_to_sample_dict(r, locs)\n\nNow we get to simulate! The first task is to simulate the ancestry of the samples using the coalescent. All of the hard work is done through msprime’s sim_ancestry() function, for which spaceprime provides a convenience wrapper. This function returns a tskit TreeSequence, which “represents a sequence of correlated evolutionary trees along a genome” and is an incredibly powerful and compact data representation for population genomic analyses. The minimum number of arguments required for this function are the sample dictionary and the demographic model. If you need to overlay mutations, you need to supply the sequence length. Notice the lack of mutations in the table. We’ll set record_provenance to False to decrease the memory overhead of storing a bunch of metadata about the simulation.\nThis step may take a minute or so to run.\n\nsim = sp.sim_ancestry(samples=sample_dict, demography=demo, sequence_length=1e5, record_provenance=False, random_seed=42)\n\nprint(sim)\n\n╔═══════════════════════════╗\n║TreeSequence               ║\n╠═══════════════╤═══════════╣\n║Trees          │          1║\n╟───────────────┼───────────╢\n║Sequence Length│     100000║\n╟───────────────┼───────────╢\n║Time Units     │generations║\n╟───────────────┼───────────╢\n║Sample Nodes   │        344║\n╟───────────────┼───────────╢\n║Total Size     │  205.8 KiB║\n╚═══════════════╧═══════════╝\n╔═══════════╤════╤═════════╤════════════╗\n║Table      │Rows│Size     │Has Metadata║\n╠═══════════╪════╪═════════╪════════════╣\n║Edges      │ 686│ 21.4 KiB│          No║\n╟───────────┼────┼─────────┼────────────╢\n║Individuals│ 172│  4.7 KiB│          No║\n╟───────────┼────┼─────────┼────────────╢\n║Migrations │   0│  8 Bytes│          No║\n╟───────────┼────┼─────────┼────────────╢\n║Mutations  │   0│ 16 Bytes│          No║\n╟───────────┼────┼─────────┼────────────╢\n║Nodes      │ 687│ 18.8 KiB│          No║\n╟───────────┼────┼─────────┼────────────╢\n║Populations│3481│155.4 KiB│         Yes║\n╟───────────┼────┼─────────┼────────────╢\n║Provenances│   0│ 16 Bytes│          No║\n╟───────────┼────┼─────────┼────────────╢\n║Sites      │   0│ 16 Bytes│          No║\n╚═══════════╧════╧═════════╧════════════╝\n\n\n\nWe’ll take a peak at a single tree from the TreeSequence object to see what it looks like. The draw_svg() method plots trees from the TreeSequence object. Here, I selected a single tree and removed the node labels because there are tons of nodes that crowd the plot and we’re only interested in the tree structure.\n\nfirst_tree = sim.first()\nnode_labels = {node.id: \"\" for node in sim.nodes()}\nfirst_tree.draw_svg(y_axis=True, size=(600, 400), node_labels=node_labels)\n\n\n\n\n\n\n\n\nOverlaying mutations after simulating ancestry isn’t necessary for calculating genetic summary statistics on a TreeSequence, but it is necessary if you would like to compare your simulations with empirical data that are represented as a table of genotypes rather than a TreeSequence. The sim_mutations() function overlays mutations on the TreeSequence object returned by sim_ancestry() and requires the mutation rate. The mutation rate is the number of mutations per base pair per generation. For this example, we’ll use a mutation rate of 1e-10 so we don’t overcrowd the tree sequence visualization. You can see from the table that the tree sequence has some mutations!\n\nsim = sp.sim_mutations(sim, rate=1e-10, random_seed=490)\n\nprint(sim)\n\n╔═══════════════════════════╗\n║TreeSequence               ║\n╠═══════════════╤═══════════╣\n║Trees          │          1║\n╟───────────────┼───────────╢\n║Sequence Length│     100000║\n╟───────────────┼───────────╢\n║Time Units     │generations║\n╟───────────────┼───────────╢\n║Sample Nodes   │        344║\n╟───────────────┼───────────╢\n║Total Size     │  209.4 KiB║\n╚═══════════════╧═══════════╝\n╔═══════════╤════╤═════════╤════════════╗\n║Table      │Rows│Size     │Has Metadata║\n╠═══════════╪════╪═════════╪════════════╣\n║Edges      │ 686│ 21.4 KiB│          No║\n╟───────────┼────┼─────────┼────────────╢\n║Individuals│ 172│  4.7 KiB│          No║\n╟───────────┼────┼─────────┼────────────╢\n║Migrations │   0│  8 Bytes│          No║\n╟───────────┼────┼─────────┼────────────╢\n║Mutations  │  48│  1.8 KiB│          No║\n╟───────────┼────┼─────────┼────────────╢\n║Nodes      │ 687│ 18.8 KiB│          No║\n╟───────────┼────┼─────────┼────────────╢\n║Populations│3481│155.4 KiB│         Yes║\n╟───────────┼────┼─────────┼────────────╢\n║Provenances│   1│716 Bytes│          No║\n╟───────────┼────┼─────────┼────────────╢\n║Sites      │  48│  1.2 KiB│          No║\n╚═══════════╧════╧═════════╧════════════╝\n\n\n\nYou might have noticed that we return new objects for sim_ancestry and sim_mutations. This is because we have returned to a functional programming paradigm, where functions return new objects rather than modifying objects in place. We do this because the TreeSequence objects are a different type of object than the demographic model object, and we want to keep them separate.\nAnd now for the tree. The red X’s represent mutations on the tree, with their ID numbers next to them.\n\nfirst_tree_mut = sim.first()\n\nnode_labels = {node.id: \"\" for node in sim.nodes()}\nfirst_tree_mut.draw_svg(y_axis=True, size=(600, 400), node_labels=node_labels)\n\n\n\n\n\n\n\n\nFrom here, you have a few options. You can:\n\nUse the analysis module to calculate genetic summary statistics on the TreeSequence object. For more on the analysis module, see the analysis module documentation.\n\nSave the TreeSequence to use later or analyze on a platform like tskit with sim.dump(file/path/to/write/to.trees).\n\nConvert the TreeSequence with mutations to a genotype matrix for use in a program like scikit-allel with sim.genotype_matrix(). For more information on this function, see the tskit documentation.\n\nExport the TreeSequence with mutations to a VCF file using sim.write_vcf. For more information on how to use this function, see the tskit documentation.\n\n\n\n\n\n\n\nTODO\n\n\n\nadd a link to the analysis module documentation when it’s ready."
+    "text": "Simulate genetic data\nBefore simulating this demography, we need to create a sample dictionary that translates the empirical sampling localities to the model’s deme indices and maps those to the number of samples to take from each deme. By default, coords_to_sample_dict() sets the number of individuals to sample from each deme to the number of empirical localities in that deme. The function also returns two other dictionaries that are not used in this example, so we’ll ignore them. In Python, it’s common practice for a function to return multiple objects as a list. If you want the objects separated, you use the formatting below. Using an underscore _ leads to the object being ignored.\n\n\n\n\n\n\nDictionaries\n\n\n\nDictionaries are a data structure in Python that map keys to values. They are similar to lists, but instead of using an index to access elements, you use a key. Dictionaries are useful for storing data that has a key-value relationship, like a phone book, where the key is the name of the person and the value is their phone number. In this case, the key is the deme index and the value is the number of samples to take from that deme.\n\n\n\nsample_dict, _, _ = sp.coords_to_sample_dict(r, locs)\n\nNow we get to simulate! The first task is to simulate the ancestry of the samples using the coalescent. All of the hard work is done through msprime’s sim_ancestry() function, for which spaceprime provides a convenience wrapper. This function returns a tskit TreeSequence, which “represents a sequence of correlated evolutionary trees along a genome” and is an incredibly powerful and compact data representation for population genomic analyses. The minimum number of arguments required for this function are the sample dictionary and the demographic model. If you need to overlay mutations, you need to supply the sequence length. Notice the lack of mutations in the table. We’ll set record_provenance to False to decrease the memory overhead of storing a bunch of metadata about the simulation.\nThis step may take a minute or so to run.\n\nsim = sp.sim_ancestry(samples=sample_dict, demography=demo, sequence_length=1e5, record_provenance=False, random_seed=42)\n\nprint(sim)\n\n╔═══════════════════════════╗\n║TreeSequence               ║\n╠═══════════════╤═══════════╣\n║Trees          │          1║\n╟───────────────┼───────────╢\n║Sequence Length│     100000║\n╟───────────────┼───────────╢\n║Time Units     │generations║\n╟───────────────┼───────────╢\n║Sample Nodes   │        344║\n╟───────────────┼───────────╢\n║Total Size     │  205.8 KiB║\n╚═══════════════╧═══════════╝\n╔═══════════╤═════╤═════════╤════════════╗\n║Table      │Rows │Size     │Has Metadata║\n╠═══════════╪═════╪═════════╪════════════╣\n║Edges      │  686│ 21.4 KiB│          No║\n╟───────────┼─────┼─────────┼────────────╢\n║Individuals│  172│  4.7 KiB│          No║\n╟───────────┼─────┼─────────┼────────────╢\n║Migrations │    0│  8 Bytes│          No║\n╟───────────┼─────┼─────────┼────────────╢\n║Mutations  │    0│ 16 Bytes│          No║\n╟───────────┼─────┼─────────┼────────────╢\n║Nodes      │  687│ 18.8 KiB│          No║\n╟───────────┼─────┼─────────┼────────────╢\n║Populations│3,481│155.4 KiB│         Yes║\n╟───────────┼─────┼─────────┼────────────╢\n║Provenances│    0│ 16 Bytes│          No║\n╟───────────┼─────┼─────────┼────────────╢\n║Sites      │    0│ 16 Bytes│          No║\n╚═══════════╧═════╧═════════╧════════════╝\n\n\n\nWe’ll take a peak at a single tree from the TreeSequence object to see what it looks like. The draw_svg() method plots trees from the TreeSequence object. Here, I selected a single tree and removed the node labels because there are tons of nodes that crowd the plot and we’re only interested in the tree structure.\n\nfirst_tree = sim.first()\nnode_labels = {node.id: \"\" for node in sim.nodes()}\nfirst_tree.draw_svg(y_axis=True, size=(600, 400), node_labels=node_labels)\n\n\n\n\n\n\n\n\nOverlaying mutations after simulating ancestry isn’t necessary for calculating genetic summary statistics on a TreeSequence, but it is necessary if you would like to compare your simulations with empirical data that are represented as a table of genotypes rather than a TreeSequence. The sim_mutations() function overlays mutations on the TreeSequence object returned by sim_ancestry() and requires the mutation rate. The mutation rate is the number of mutations per base pair per generation. For this example, we’ll use a mutation rate of 1e-10 so we don’t overcrowd the tree sequence visualization. You can see from the table that the tree sequence has some mutations!\n\nsim = sp.sim_mutations(sim, rate=1e-10, random_seed=490)\n\nprint(sim)\n\n╔═══════════════════════════╗\n║TreeSequence               ║\n╠═══════════════╤═══════════╣\n║Trees          │          1║\n╟───────────────┼───────────╢\n║Sequence Length│     100000║\n╟───────────────┼───────────╢\n║Time Units     │generations║\n╟───────────────┼───────────╢\n║Sample Nodes   │        344║\n╟───────────────┼───────────╢\n║Total Size     │  209.4 KiB║\n╚═══════════════╧═══════════╝\n╔═══════════╤═════╤═════════╤════════════╗\n║Table      │Rows │Size     │Has Metadata║\n╠═══════════╪═════╪═════════╪════════════╣\n║Edges      │  686│ 21.4 KiB│          No║\n╟───────────┼─────┼─────────┼────────────╢\n║Individuals│  172│  4.7 KiB│          No║\n╟───────────┼─────┼─────────┼────────────╢\n║Migrations │    0│  8 Bytes│          No║\n╟───────────┼─────┼─────────┼────────────╢\n║Mutations  │   48│  1.8 KiB│          No║\n╟───────────┼─────┼─────────┼────────────╢\n║Nodes      │  687│ 18.8 KiB│          No║\n╟───────────┼─────┼─────────┼────────────╢\n║Populations│3,481│155.4 KiB│         Yes║\n╟───────────┼─────┼─────────┼────────────╢\n║Provenances│    1│719 Bytes│          No║\n╟───────────┼─────┼─────────┼────────────╢\n║Sites      │   48│  1.2 KiB│          No║\n╚═══════════╧═════╧═════════╧════════════╝\n\n\n\nYou might have noticed that we return new objects for sim_ancestry and sim_mutations. This is because we have returned to a functional programming paradigm, where functions return new objects rather than modifying objects in place. We do this because the TreeSequence objects are a different type of object than the demographic model object, and we want to keep them separate.\nAnd now for the tree. The red X’s represent mutations on the tree, with their ID numbers next to them.\n\nfirst_tree_mut = sim.first()\n\nnode_labels = {node.id: \"\" for node in sim.nodes()}\nfirst_tree_mut.draw_svg(y_axis=True, size=(600, 400), node_labels=node_labels)\n\n\n\n\n\n\n\n\nFrom here, you have a few options. You can:\n\nUse the analysis module to calculate genetic summary statistics on the TreeSequence object. For more on the analysis module, see the analysis module documentation.\n\nSave the TreeSequence to use later or analyze on a platform like tskit with sim.dump(file/path/to/write/to.trees).\n\nConvert the TreeSequence with mutations to a genotype matrix for use in a program like scikit-allel with sim.genotype_matrix(). For more information on this function, see the tskit documentation.\n\nExport the TreeSequence with mutations to a VCF file using sim.write_vcf. For more information on how to use this function, see the tskit documentation.\n\n\n\n\n\n\n\nTODO\n\n\n\nadd a link to the analysis module documentation when it’s ready."
   },
   {
-    "objectID": "reference/mtp_thresh_from_coords.html",
-    "href": "reference/mtp_thresh_from_coords.html",
-    "title": "mtp_thresh_from_coords",
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "spaceprime",
     "section": "",
-    "text": "mtp_thresh_from_coords(raster, coordinates)\nThis function takes the coordinates of empirical sampling localities, finds which raster cells they belong to, extracts the values of the first layer for those localities, and finds the minimum value. This value is the maximum threshold value to determine a presence vs absence in a threshold transformation. If the threshold is set any higher, empirical sampling localities will not be sampled in the simulations.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nraster\nrasterio.DatasetReader\nThe rasterio DatasetReader object representing the raster data containing the suitability values.\nrequired\n\n\ncoordinates\nUnion[List[Tuple[float, float]], gpd.GeoDataFrame]\nThe longitude, latitude coordinates of the empirical sampling localities as a list of coordinate pair tuples or a geopandas GeoDataFrame.\nrequired\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nfloat\nThe maximum threshold value to determine a presence vs absence in a threshold transformation.\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nTypeError\nIf the coordinates input is not a list, geopandas GeoDataFrame, or pandas DataFrame.",
-    "crumbs": [
-      "Reference",
-      "Utilities",
-      "mtp_thresh_from_coords"
-    ]
+    "text": "A python package to facilitate spatially explicit coalescent modeling in msprime"
   },
   {
-    "objectID": "reference/mtp_thresh_from_coords.html#parameters",
-    "href": "reference/mtp_thresh_from_coords.html#parameters",
-    "title": "mtp_thresh_from_coords",
-    "section": "",
-    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nraster\nrasterio.DatasetReader\nThe rasterio DatasetReader object representing the raster data containing the suitability values.\nrequired\n\n\ncoordinates\nUnion[List[Tuple[float, float]], gpd.GeoDataFrame]\nThe longitude, latitude coordinates of the empirical sampling localities as a list of coordinate pair tuples or a geopandas GeoDataFrame.\nrequired",
-    "crumbs": [
-      "Reference",
-      "Utilities",
-      "mtp_thresh_from_coords"
-    ]
+    "objectID": "index.html#overview",
+    "href": "index.html#overview",
+    "title": "spaceprime",
+    "section": "Overview",
+    "text": "Overview\nspaceprime is a Python package that facilitates the creation and analysis of spatially gridded coalescent models in the msprime library. The package is designed to make it easier for practitioners to convert spatial maps of habitat suitability into extensible two-dimensional stepping-stone models of gene flow, where each pixel of the map represents a deme and demes are able to migrate with their neighbors. Demes and migration rates are able to change over time according to habitat suitability model projections to different time periods. These demographic parameters are then used to simulate genetic data under a coalescent model with msprime as the simulator, which can be used to infer the demographic history of the population. The package is designed to be user-friendly and intuitive, allowing users to easily simulate and analyze spatially explicit genetic data.\n\n\n\n\n\n\nNote for R users\n\n\n\nspaceprime is implemented in Python, yet many interested users may come from an R background. I have a spaceprime for R users vignette that provides a brief introduction to the Python concepts necessary to use spaceprime through a practical walk-through of an example analysis. If you still want to use R, it is possible to use Python code in R using the reticulate package. For more information on how to use Python code in R, see the reticulate documentation."
   },
   {
-    "objectID": "reference/mtp_thresh_from_coords.html#returns",
-    "href": "reference/mtp_thresh_from_coords.html#returns",
-    "title": "mtp_thresh_from_coords",
-    "section": "",
-    "text": "Type\nDescription\n\n\n\n\nfloat\nThe maximum threshold value to determine a presence vs absence in a threshold transformation.",
-    "crumbs": [
-      "Reference",
-      "Utilities",
-      "mtp_thresh_from_coords"
-    ]
+    "objectID": "index.html#main-features",
+    "href": "index.html#main-features",
+    "title": "spaceprime",
+    "section": "Main features",
+    "text": "Main features\nspaceprime includes a number of features:\n\nConvert habitat suitability values into demographic parameters, including deme sizes, migration rates, and their change through time using very little code. Code complexity does not increase with model complexity, allowing users to focus on the biological questions they are interested in.\n\nSimulate spatially explicit genetic data under a coalescent model with msprime. The modeling approach is fully coalescent with no forward-time component, allowing for computationally efficient simulations of large spatially explicit models.\n\nVisualize demographic models to facilitate model interpretation and model checking.\nCompute genetic summary statistics for simulated and empirical data to facilitate comparison with empirical data.\n\nExtensibility: spaceprime is designed to be interoperable with msprime, where users can setup a model with spaceprime, then customize it using the full range of msprime functionality."
   },
   {
-    "objectID": "reference/mtp_thresh_from_coords.html#raises",
-    "href": "reference/mtp_thresh_from_coords.html#raises",
-    "title": "mtp_thresh_from_coords",
-    "section": "",
-    "text": "Type\nDescription\n\n\n\n\nTypeError\nIf the coordinates input is not a list, geopandas GeoDataFrame, or pandas DataFrame.",
-    "crumbs": [
-      "Reference",
-      "Utilities",
-      "mtp_thresh_from_coords"
-    ]
+    "objectID": "index.html#installation",
+    "href": "index.html#installation",
+    "title": "spaceprime",
+    "section": "Installation",
+    "text": "Installation\nspaceprime is currently available only for MacOS and Linux.\n\nStable release\nThe recommended method for installing spaceprime is through conda (or mamba, a faster drop-in replacement for conda).\ngdal is a required dependency for spaceprime, and needs to be installed alongside it:\nconda install -c conda-forge gdal spaceprime\n\n\nFrom source\nTo install spaceprime from source, run this command in your terminal:\npip install git+https://github.com/connor-french/spaceprime\n\n\nExtras\nTo install the analysis module, which is imported separately from the main package to reduce the number of dependencies:\nconda install -c conda-forge spaceprime[analysis]"
   },
   {
-    "objectID": "reference/index.html",
-    "href": "reference/index.html",
-    "title": "Reference",
-    "section": "",
-    "text": "Functions for processing data.\n\n\n\nanc_to_deme_dict\nConverts the ancestral population assignments of demes into a dictionary mapping ancestral population IDs to deme indices.\n\n\ncalc_migration_matrix\nCalculates a migration matrix based on deme sizes and a global migration rate. The migration rate can be scaled based on population size or set as a constant.\n\n\ncoords_to_deme_dict\nFinds the cells a given set of coordinates belong to in a raster and returns a dictionary mapping the cell indices to the centroid coordinates of those cells.\n\n\ncoords_to_sample_dict\nConvert sample coordinates to sample dictionaries for simulation and analysis. Can optionally include empirical data, which is accepted as a path to a VCF file.\n\n\ncreate_raster\nCreates a raster dataset from a numpy array and reference raster and writes it to a new GeoTiff file.\n\n\nmtp_thresh_from_coords\nThis function takes the coordinates of empirical sampling localities, finds which raster cells they belong to, extracts the values of the first layer for those localities, and finds the minimum value.\n\n\nraster_to_demes\nConverts a raster to a 2D np.ndarray of deme sizes using either linear, threshold, or sigmoid transformation functions. For more detail about transformation functions, see this brief overview.\n\n\nsplit_landscape_by_pop\nUses nearest-neighbor interpolation to classify a landscape raster based on the ancestral population assigned to sampled individuals.\n\n\n\n\n\n\nMethods to create and manipulate demographic models.\n\n\n\nspDemography\n\n\n\nspDemography.add_ancestral_populations\nAdds ancestral populations to the given demographic model, mapping demes in the spatial simulation to ancestral populations.\n\n\nspDemography.stepping_stone_2d\nCreate a 2D stepping stone model, either for a single time step or for multiple time steps of deme size change.\n\n\n\n\n\n\nFunctions for visualizing data.\n\n\n\nplot_landscape\nPlots a static map of a transformed landscape at the timestep of your choice.\n\n\nplot_model\nPlots the demes and migration rates for a given timestep as an interactive map.\n\n\nplot_timeseries\nPlots the total number of individuals across the landscape across time.\n\n\n\n\n\n\nThin wrappers around msprime simulation functions.\n\n\n\nsim_ancestry\nA thin wrapper around msprime.sim_ancestry.\n\n\nsim_mutations\nA thin wrapper around msprime.sim_mutations.\n\n\n\n\n\n\nFunctions for analyzing data.\n\n\n\ncalc_sumstats\nCalculates a suite of genetic summary statistics on allele counts matrices generated by filter_gt or otherwise generated through scikit-allel.\n\n\nfilter_gt\nFilter genotype matrices output by ts.genotype_matrix() to filter out monomorphic sites, loci in linkage disequilibrium, and recreate missing data patterns common to empirical genotype data.",
-    "crumbs": [
-      "Reference"
-    ]
+    "objectID": "index.html#usage",
+    "href": "index.html#usage",
+    "title": "spaceprime",
+    "section": "Usage",
+    "text": "Usage\nTo use spaceprime in a project:\n\nimport spaceprime\n\nTo use the analysis module, which is imported separately from the main package to reduce the number of dependencies:\n\nfrom spaceprime import analysis\n\n\n\n\n\n\n\nImportant\n\n\n\nMake sure to install the relevant analysis dependencies with conda install -c conda-forge spaceprime[analysis]."
   },
   {
-    "objectID": "reference/index.html#utilities",
-    "href": "reference/index.html#utilities",
-    "title": "Reference",
-    "section": "",
-    "text": "Functions for processing data.\n\n\n\nanc_to_deme_dict\nConverts the ancestral population assignments of demes into a dictionary mapping ancestral population IDs to deme indices.\n\n\ncalc_migration_matrix\nCalculates a migration matrix based on deme sizes and a global migration rate. The migration rate can be scaled based on population size or set as a constant.\n\n\ncoords_to_deme_dict\nFinds the cells a given set of coordinates belong to in a raster and returns a dictionary mapping the cell indices to the centroid coordinates of those cells.\n\n\ncoords_to_sample_dict\nConvert sample coordinates to sample dictionaries for simulation and analysis. Can optionally include empirical data, which is accepted as a path to a VCF file.\n\n\ncreate_raster\nCreates a raster dataset from a numpy array and reference raster and writes it to a new GeoTiff file.\n\n\nmtp_thresh_from_coords\nThis function takes the coordinates of empirical sampling localities, finds which raster cells they belong to, extracts the values of the first layer for those localities, and finds the minimum value.\n\n\nraster_to_demes\nConverts a raster to a 2D np.ndarray of deme sizes using either linear, threshold, or sigmoid transformation functions. For more detail about transformation functions, see this brief overview.\n\n\nsplit_landscape_by_pop\nUses nearest-neighbor interpolation to classify a landscape raster based on the ancestral population assigned to sampled individuals.",
-    "crumbs": [
-      "Reference"
-    ]
+    "objectID": "index.html#quickstart",
+    "href": "index.html#quickstart",
+    "title": "spaceprime",
+    "section": "Quickstart",
+    "text": "Quickstart\n\n\n\n\n\n\nTip\n\n\n\nThis quickstart guide assumes you have a basic understanding of Python. If you are an R user, please refer to the spaceprime for R users vignette for an overview of spaceprime with the necessary Python concepts explained.\n\n\n\n1. Download data\nThe data we’re using in this example are a GeoTiff raster file of habitat suitability values and a GeoJSON file containing geographic localities and metadata for this cute frog, Phyllomedusa distincta:\n\n\n\n\n\nFollow the link to download the projections.tif file. You do not need to download the localities.geojson file, as it is read in from the web in the code below.\nThe raster file contains 23 layers, where each layer is a projection of the habitat suitability model (aka species distribution model or ecological niche model) to a time slice in the past, ranging from the present day to 22,000 years ago in 1,000 year intervals. The habitat suitability values range from zero to one, where zero represents no suitability for the species and one represents perfect suitability. In the following plots, yellow represents higher suitability and purple represents lower suitability. Here are a few time slices of the model:\n\n\n\n\n\n\n\n\n\nThe GeoJSON file contains geographic sampling localities of P. distincta in the Brazilian Atlantic Forest, along with metadata about each locality. Each row is a single individual/observation. spaceprime counts the number of observations with coordinates that overlap with a raster cell/deme and samples the calculated number for simulations and summary statistics. Here are the localities plotted on top of the present-day habitat suitability model:\n\n\n\n\n\n\n\n\n\n\n\n2. Read in packages and data\nNow that we have our data, let’s read in the packages and data we’ll be using. The GeoPandas and Rasterio packages are dependencies of spaceprime, so you shouldn’t need to install them separately. They are needed for reading in locality data and habitat suitability rasters, respectively.\n\nimport spaceprime as sp\nimport geopandas as gpd\nimport rasterio\n\nMake sure to replace the projections.tif file path with the path to the file on your system. The GeoJSON file is read in from the web, so you don’t need to download it.\n\nr = rasterio.open(\"projections.tif\")\nlocs = gpd.read_file(\"https://raw.githubusercontent.com/connor-french/spaceprime/main/spaceprime/data/localities.geojson\")\n\n\n\n3. Set up the demographic model\nNext, we’ll convert the habitat suitability values into deme sizes, so each cell in the raster will represent a deme in our model. We’ll use a linear transformation to convert the suitability values to deme sizes, where the suitability value is multiplied by a constant to get the deme size. The constant is the maximum local deme size, which we set to 1000. For more on transformations, see the suitability to deme size transformation functions vignette.\n\nd = sp.raster_to_demes(r, transformation=\"linear\", max_local_size=1000)\n\nNow that we have our deme sizes, we can set up the demographic model. The model that spaceprime uses is a two-dimensional stepping-stone model with a global migration rate of 0.001 between neighboring demes. The global rate by default is scaled, where demes exchange the same number of migrants with their neighbors, regardless of deme size. To change this behavior, set scale=false. We’re assuming that P. distincta has a generation time of one year. Using a single value for the timesteps argument tells spaceprime that 1000 generations passes in between each raster time step in the model.\nThis step may take a few seconds (10-15 seconds on my machine) to run.\n\n# initialize the model\ndemo = sp.spDemography()\n\n# populate the spDemography object with the deme sizes and migration rates\ndemo.stepping_stone_2d(d, rate=0.001, timesteps=1000)\n\nAfter initializing the spatial component of the simulation, it’s desirable to add one or more ancestral populations to the model. This is done by providing a list of ancestral population sizes and the time (in generations) at which the spatially distributed demes migrate into the ancestral population(s). The following code adds a single ancestral population of 100,000 individuals that demes merge into 23,000 generations in the past:\n\n# add ancestral population\ndemo.add_ancestral_populations([100000], 23000)\n\n\n\n4. Inspect your model\nNow that we have our demographic model set up, we can inspect it to make sure it looks as expected. spaceprime has a series of plot_() functions that make this easier.\n\nplot_landscape()\nplot_landscape() plots the deme sizes in space, which allows you to quickly inspect whether the transformation you applied to your habitat suitability map make sense. Here, we provide the demographic model object, the raster object, the index of the time slice to plot (0 for the present day in this case), and basemap=True to add an OpenStreetMap basemap, providing geographic context to the plot. If you don’t have an internet connection, set basemap=False (the default) to plot without the basemap.\n\nsp.plot_landscape(demo, r, 0, basemap=True)\n\n\n\n\n\n\n\n\n\n\nplot_model()\nplot_model() plots the deme sizes on a folium interactive map, with precise deme sizes and outgoing migration rates for each deme present in a popup.\n\nsp.plot_model(demo, r, 0)\n\nMake this Notebook Trusted to load map: File -&gt; Trust Notebook\n\n\n\n\n\n5. Simulate genetic data\nBefore simulating this demography, we need to create a sample dictionary that translates the empirical sampling localities to the model’s deme indices and maps those to the number of samples to take from each deme. By default, this function sets the number of individuals to sample from each deme to the number of empirical localities in that deme. The coords_to_sample_dict() function also returns two other dictionaries that are not used in this example, so we’ll ignore them.\n\nsample_dict, _, _ = sp.coords_to_sample_dict(r, locs)\n\nNow we get to simulate! The first task is to simulate the ancestry of the samples using the coalescent. All of the hard work is done through msprime’s sim_ancestry() function, for which spaceprime provides a convenience wrapper. This function returns a tskit TreeSequence, which “represents a sequence of correlated evolutionary trees along a genome” and is an incredibly powerful and compact data representation for population genomic analyses. The minimum number of arguments required for this function are the sample dictionary and the demographic model. If you need to overlay mutations, you need to supply the sequence length. Notice the lack of mutations in the table. We’ll set record_provenance to False to decrease the memory overhead of storing a bunch of metadata about the simulation.\nThis step may take a minute or so to run.\n\nsim = sp.sim_ancestry(samples=sample_dict, demography=demo, sequence_length=1e5, record_provenance=False, random_seed=42)\n\nprint(sim)\n\n╔═══════════════════════════╗\n║TreeSequence               ║\n╠═══════════════╤═══════════╣\n║Trees          │          1║\n╟───────────────┼───────────╢\n║Sequence Length│     100000║\n╟───────────────┼───────────╢\n║Time Units     │generations║\n╟───────────────┼───────────╢\n║Sample Nodes   │        344║\n╟───────────────┼───────────╢\n║Total Size     │  205.8 KiB║\n╚═══════════════╧═══════════╝\n╔═══════════╤═════╤═════════╤════════════╗\n║Table      │Rows │Size     │Has Metadata║\n╠═══════════╪═════╪═════════╪════════════╣\n║Edges      │  686│ 21.4 KiB│          No║\n╟───────────┼─────┼─────────┼────────────╢\n║Individuals│  172│  4.7 KiB│          No║\n╟───────────┼─────┼─────────┼────────────╢\n║Migrations │    0│  8 Bytes│          No║\n╟───────────┼─────┼─────────┼────────────╢\n║Mutations  │    0│ 16 Bytes│          No║\n╟───────────┼─────┼─────────┼────────────╢\n║Nodes      │  687│ 18.8 KiB│          No║\n╟───────────┼─────┼─────────┼────────────╢\n║Populations│3,481│155.4 KiB│         Yes║\n╟───────────┼─────┼─────────┼────────────╢\n║Provenances│    0│ 16 Bytes│          No║\n╟───────────┼─────┼─────────┼────────────╢\n║Sites      │    0│ 16 Bytes│          No║\n╚═══════════╧═════╧═════════╧════════════╝\n\n\n\nWe’ll take a peak at a single tree from the TreeSequence object to see what it looks like. The draw_svg() method plots trees from the TreeSequence object. Here, I selected a single tree and removed the node labels because there are tons of nodes that crowd the plot and we’re only interested in the tree structure.\n\nfirst_tree = sim.first()\nnode_labels = {node.id: \"\" for node in sim.nodes()}\nfirst_tree.draw_svg(y_axis=True, size=(600, 400), node_labels=node_labels)\n\n\n\n\n\n\n\n\nOverlaying mutations after simulating ancestry isn’t necessary for calculating genetic summary statistics on a TreeSequence, but it is necessary if you would like to compare your simulations with empirical data that are represented as a table of genotypes rather than a TreeSequence. The sim_mutations() function overlays mutations on the TreeSequence object returned by sim_ancestry() and requires the mutation rate. The mutation rate is the number of mutations per base pair per generation. For this example, we’ll use a mutation rate of 1e-10 so we don’t overcrowd the tree sequence visualization. You can see from the table that the tree sequence has some mutations!\n\nsim = sp.sim_mutations(sim, rate=1e-10, random_seed=490)\n\nprint(sim)\n\n╔═══════════════════════════╗\n║TreeSequence               ║\n╠═══════════════╤═══════════╣\n║Trees          │          1║\n╟───────────────┼───────────╢\n║Sequence Length│     100000║\n╟───────────────┼───────────╢\n║Time Units     │generations║\n╟───────────────┼───────────╢\n║Sample Nodes   │        344║\n╟───────────────┼───────────╢\n║Total Size     │  209.4 KiB║\n╚═══════════════╧═══════════╝\n╔═══════════╤═════╤═════════╤════════════╗\n║Table      │Rows │Size     │Has Metadata║\n╠═══════════╪═════╪═════════╪════════════╣\n║Edges      │  686│ 21.4 KiB│          No║\n╟───────────┼─────┼─────────┼────────────╢\n║Individuals│  172│  4.7 KiB│          No║\n╟───────────┼─────┼─────────┼────────────╢\n║Migrations │    0│  8 Bytes│          No║\n╟───────────┼─────┼─────────┼────────────╢\n║Mutations  │   48│  1.8 KiB│          No║\n╟───────────┼─────┼─────────┼────────────╢\n║Nodes      │  687│ 18.8 KiB│          No║\n╟───────────┼─────┼─────────┼────────────╢\n║Populations│3,481│155.4 KiB│         Yes║\n╟───────────┼─────┼─────────┼────────────╢\n║Provenances│    1│719 Bytes│          No║\n╟───────────┼─────┼─────────┼────────────╢\n║Sites      │   48│  1.2 KiB│          No║\n╚═══════════╧═════╧═════════╧════════════╝\n\n\n\nAnd now for the tree. The red X’s represent mutations on the tree, with their ID numbers next to them.\n\nfirst_tree_mut = sim.first()\n\nnode_labels = {node.id: \"\" for node in sim.nodes()}\nfirst_tree_mut.draw_svg(y_axis=True, size=(600, 400), node_labels=node_labels)\n\n\n\n\n\n\n\n\nFrom here, you have a few options. You can:\n\nUse the analysis module to calculate genetic summary statistics on the TreeSequence object. For more on the analysis module, see the analysis module documentation.\n\nSave the TreeSequence to use later or analyze on a platform like tskit with sim.dump(file/path/to/write/to.trees).\n\nConvert the TreeSequence with mutations to a genotype matrix for use in a program like scikit-allel with sim.genotype_matrix(). For more information on this function, see the tskit documentation.\n\nExport the TreeSequence with mutations to a VCF file using sim.write_vcf. For more information on how to use this function, see the tskit documentation.\n\n\n\n\n\n\n\nTODO\n\n\n\nadd a link to the analysis module documentation when it’s ready."
   },
   {
-    "objectID": "reference/index.html#demography",
-    "href": "reference/index.html#demography",
-    "title": "Reference",
-    "section": "",
-    "text": "Methods to create and manipulate demographic models.\n\n\n\nspDemography\n\n\n\nspDemography.add_ancestral_populations\nAdds ancestral populations to the given demographic model, mapping demes in the spatial simulation to ancestral populations.\n\n\nspDemography.stepping_stone_2d\nCreate a 2D stepping stone model, either for a single time step or for multiple time steps of deme size change.",
-    "crumbs": [
-      "Reference"
-    ]
+    "objectID": "index.html#report-issues",
+    "href": "index.html#report-issues",
+    "title": "spaceprime",
+    "section": "Report Issues",
+    "text": "Report Issues\nhttps://github.com/connor-french/spaceprime/issues"
   },
   {
-    "objectID": "reference/index.html#plotting",
-    "href": "reference/index.html#plotting",
-    "title": "Reference",
-    "section": "",
-    "text": "Functions for visualizing data.\n\n\n\nplot_landscape\nPlots a static map of a transformed landscape at the timestep of your choice.\n\n\nplot_model\nPlots the demes and migration rates for a given timestep as an interactive map.\n\n\nplot_timeseries\nPlots the total number of individuals across the landscape across time.",
-    "crumbs": [
-      "Reference"
-    ]
-  },
-  {
-    "objectID": "reference/index.html#simulation",
-    "href": "reference/index.html#simulation",
-    "title": "Reference",
-    "section": "",
-    "text": "Thin wrappers around msprime simulation functions.\n\n\n\nsim_ancestry\nA thin wrapper around msprime.sim_ancestry.\n\n\nsim_mutations\nA thin wrapper around msprime.sim_mutations.",
-    "crumbs": [
-      "Reference"
-    ]
-  },
-  {
-    "objectID": "reference/index.html#analysis",
-    "href": "reference/index.html#analysis",
-    "title": "Reference",
-    "section": "",
-    "text": "Functions for analyzing data.\n\n\n\ncalc_sumstats\nCalculates a suite of genetic summary statistics on allele counts matrices generated by filter_gt or otherwise generated through scikit-allel.\n\n\nfilter_gt\nFilter genotype matrices output by ts.genotype_matrix() to filter out monomorphic sites, loci in linkage disequilibrium, and recreate missing data patterns common to empirical genotype data.",
-    "crumbs": [
-      "Reference"
-    ]
-  },
-  {
-    "objectID": "reference/anc_to_deme_dict.html",
-    "href": "reference/anc_to_deme_dict.html",
-    "title": "anc_to_deme_dict",
-    "section": "",
-    "text": "anc_to_deme_dict(anc_pops, deme_dict)\nConverts the ancestral population assignments of demes into a dictionary mapping ancestral population IDs to deme indices.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nanc_pops\nnp.ndarray\nAn array containing the ancestral population assignments of all demes across the landscape.\nrequired\n\n\ndeme_dict\nDict[int, int]\nA dictionary mapping deme indices to the number of individuals being sampled from each deme.\nrequired\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nDict[int, List[int]]\nA dictionary mapping each ancestral population ID to the range of assigned deme indices.",
-    "crumbs": [
-      "Reference",
-      "Utilities",
-      "anc_to_deme_dict"
-    ]
-  },
-  {
-    "objectID": "reference/anc_to_deme_dict.html#parameters",
-    "href": "reference/anc_to_deme_dict.html#parameters",
-    "title": "anc_to_deme_dict",
-    "section": "",
-    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nanc_pops\nnp.ndarray\nAn array containing the ancestral population assignments of all demes across the landscape.\nrequired\n\n\ndeme_dict\nDict[int, int]\nA dictionary mapping deme indices to the number of individuals being sampled from each deme.\nrequired",
-    "crumbs": [
-      "Reference",
-      "Utilities",
-      "anc_to_deme_dict"
-    ]
-  },
-  {
-    "objectID": "reference/anc_to_deme_dict.html#returns",
-    "href": "reference/anc_to_deme_dict.html#returns",
-    "title": "anc_to_deme_dict",
-    "section": "",
-    "text": "Type\nDescription\n\n\n\n\nDict[int, List[int]]\nA dictionary mapping each ancestral population ID to the range of assigned deme indices.",
-    "crumbs": [
-      "Reference",
-      "Utilities",
-      "anc_to_deme_dict"
-    ]
-  },
-  {
-    "objectID": "reference/raster_to_demes.html",
-    "href": "reference/raster_to_demes.html",
-    "title": "raster_to_demes",
-    "section": "",
-    "text": "raster_to_demes(raster, transformation='linear', max_local_size=1000, normalize=False, threshold=None, thresh_norm=False, inflection_point=0.5, slope=0.05)\nConverts a raster to a 2D np.ndarray of deme sizes using either linear, threshold, or sigmoid transformation functions. For more detail about transformation functions, see this brief overview. Raster data should be continuous and positive. This function was created with the idea of taking in habitat suitability rasters scaled from 0 to 1, where 0 is no suitability and 1 is the highest suitability. However, it is flexible enough to accommodate other continuous rasters that can be coaxed to a 0 to 1 scale with the operation (data - np.min(data)) / (np.max(data) - np.min(data)) by setting the normalize flag to True.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nraster\nUnion[np.ndarray, rasterio.DatasetReader]\nThe input raster data. It can be a numpy array or a rasterio DatasetReader with one or more layers.\nrequired\n\n\ntransformation\nstr\nThe transformation function to be used. Options are “linear”, “threshold”, and “sigmoid”. Default is “linear”.\n'linear'\n\n\nmax_local_size\nint\nThe maximum local deme size. Default is 1000.\n1000\n\n\nnormalize\nbool\nWhether to normalize the raster data. Use if your data is not scaled from 0-1. Default is False.\nFalse\n\n\nthreshold\nfloat\nThe threshold value for the “threshold” transformation method. Default is None.\nNone\n\n\nthresh_norm\nbool\nWhether to normalize the local deme size based on the average suitability above the threshold. This is useful when comparing thresholded simulations with linear or sigmoid simulations, to maintain similar landscape-wide population sizes across max_local_size values. Default is False.\nFalse\n\n\ninflection_point\nfloat\nThe inflection point for the “sigmoid” transformation method. Default is 0.5.\n0.5\n\n\nslope\nfloat\nThe slope value for the “sigmoid” transformation method. Default is 0.05.\n0.05\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nnp.ndarray\nAn ndarray of deme sizes.",
-    "crumbs": [
-      "Reference",
-      "Utilities",
-      "raster_to_demes"
-    ]
-  },
-  {
-    "objectID": "reference/raster_to_demes.html#parameters",
-    "href": "reference/raster_to_demes.html#parameters",
-    "title": "raster_to_demes",
-    "section": "",
-    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nraster\nUnion[np.ndarray, rasterio.DatasetReader]\nThe input raster data. It can be a numpy array or a rasterio DatasetReader with one or more layers.\nrequired\n\n\ntransformation\nstr\nThe transformation function to be used. Options are “linear”, “threshold”, and “sigmoid”. Default is “linear”.\n'linear'\n\n\nmax_local_size\nint\nThe maximum local deme size. Default is 1000.\n1000\n\n\nnormalize\nbool\nWhether to normalize the raster data. Use if your data is not scaled from 0-1. Default is False.\nFalse\n\n\nthreshold\nfloat\nThe threshold value for the “threshold” transformation method. Default is None.\nNone\n\n\nthresh_norm\nbool\nWhether to normalize the local deme size based on the average suitability above the threshold. This is useful when comparing thresholded simulations with linear or sigmoid simulations, to maintain similar landscape-wide population sizes across max_local_size values. Default is False.\nFalse\n\n\ninflection_point\nfloat\nThe inflection point for the “sigmoid” transformation method. Default is 0.5.\n0.5\n\n\nslope\nfloat\nThe slope value for the “sigmoid” transformation method. Default is 0.05.\n0.05",
-    "crumbs": [
-      "Reference",
-      "Utilities",
-      "raster_to_demes"
-    ]
-  },
-  {
-    "objectID": "reference/raster_to_demes.html#returns",
-    "href": "reference/raster_to_demes.html#returns",
-    "title": "raster_to_demes",
-    "section": "",
-    "text": "Type\nDescription\n\n\n\n\nnp.ndarray\nAn ndarray of deme sizes.",
-    "crumbs": [
-      "Reference",
-      "Utilities",
-      "raster_to_demes"
-    ]
+    "objectID": "index.html#contributing",
+    "href": "index.html#contributing",
+    "title": "spaceprime",
+    "section": "Contributing",
+    "text": "Contributing\nWe love contributions! Please see the Contributing Guide for more information.\nPlease note that this project is released with a Contributor Code of Conduct. By participating in this project you agree to abide by its terms."
   },
   {
     "objectID": "reference/sim_ancestry.html",
@@ -342,162 +162,6 @@
       "Reference",
       "Simulation",
       "sim_ancestry"
-    ]
-  },
-  {
-    "objectID": "reference/split_landscape_by_pop.html",
-    "href": "reference/split_landscape_by_pop.html",
-    "title": "split_landscape_by_pop",
-    "section": "",
-    "text": "split_landscape_by_pop(raster, coordinates, anc_pop_id, band_index=1, mask_rast=False)\nUses nearest-neighbor interpolation to classify a landscape raster based on the ancestral population assigned to sampled individuals. This function takes in a raster and a list of coordinates and ancestral population IDs assigned to each individual in the empirical data set. It then interpolates the population IDs across the landscape and returns the new raster as a masked array.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nraster\nrasterio.DatasetReader\nThe rasterio DatasetReader object representing the landscape raster that you want to divide.\nrequired\n\n\ncoordinates\nUnion[List[Tuple[float, float]], gpd.GeoDataFrame]\nA list of (x, y) coordinates or a geopandas GeoDataFrame representing the coordinates assigned to each individual in the empirical data set.\nrequired\n\n\nanc_pop_id\nList[Union[int, np.integer]]\nA list of ancestral population IDs assigned to each empirical individual1.\nrequired\n\n\nband_index\nint\nThe index of the raster to read in. Default is 1. Note- rasterio begins indexing at 1 for raster bands.\n1\n\n\nmask_rast\nbool\nWhether to mask the interpolation by the landscape. Default is False.\nFalse\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nnp.ma.MaskedArray\nThe new population assignment raster as a masked array.",
-    "crumbs": [
-      "Reference",
-      "Utilities",
-      "split_landscape_by_pop"
-    ]
-  },
-  {
-    "objectID": "reference/split_landscape_by_pop.html#parameters",
-    "href": "reference/split_landscape_by_pop.html#parameters",
-    "title": "split_landscape_by_pop",
-    "section": "",
-    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nraster\nrasterio.DatasetReader\nThe rasterio DatasetReader object representing the landscape raster that you want to divide.\nrequired\n\n\ncoordinates\nUnion[List[Tuple[float, float]], gpd.GeoDataFrame]\nA list of (x, y) coordinates or a geopandas GeoDataFrame representing the coordinates assigned to each individual in the empirical data set.\nrequired\n\n\nanc_pop_id\nList[Union[int, np.integer]]\nA list of ancestral population IDs assigned to each empirical individual1.\nrequired\n\n\nband_index\nint\nThe index of the raster to read in. Default is 1. Note- rasterio begins indexing at 1 for raster bands.\n1\n\n\nmask_rast\nbool\nWhether to mask the interpolation by the landscape. Default is False.\nFalse",
-    "crumbs": [
-      "Reference",
-      "Utilities",
-      "split_landscape_by_pop"
-    ]
-  },
-  {
-    "objectID": "reference/split_landscape_by_pop.html#returns",
-    "href": "reference/split_landscape_by_pop.html#returns",
-    "title": "split_landscape_by_pop",
-    "section": "",
-    "text": "Type\nDescription\n\n\n\n\nnp.ma.MaskedArray\nThe new population assignment raster as a masked array.",
-    "crumbs": [
-      "Reference",
-      "Utilities",
-      "split_landscape_by_pop"
-    ]
-  },
-  {
-    "objectID": "reference/split_landscape_by_pop.html#footnotes",
-    "href": "reference/split_landscape_by_pop.html#footnotes",
-    "title": "split_landscape_by_pop",
-    "section": "Footnotes",
-    "text": "Footnotes\n\n\nThese IDs are assigned to each empirical individual typically based on genetic clustering methods like STRUCTURE or PCA. The IDs are used to assign individuals to ancestral populations in the landscape.↩︎",
-    "crumbs": [
-      "Reference",
-      "Utilities",
-      "split_landscape_by_pop"
-    ]
-  },
-  {
-    "objectID": "reference/spDemography.html",
-    "href": "reference/spDemography.html",
-    "title": "spDemography",
-    "section": "",
-    "text": "spDemography(self, *args, **kwargs)\n\n\n\n\n\nName\nDescription\n\n\n\n\nadd_ancestral_populations\nAdds ancestral populations to the given demographic model, mapping demes in the spatial simulation to ancestral populations.\n\n\nstepping_stone_2d\nCreate a 2D stepping stone model, either for a single time step or for multiple time steps of deme size change.\n\n\n\n\n\nspDemography.add_ancestral_populations(anc_sizes, merge_time, anc_id=None, anc_merge_times=None, anc_merge_sizes=None, migration_rate=None)\nAdds ancestral populations to the given demographic model, mapping demes in the spatial simulation to ancestral populations.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nanc_sizes\nList[float]\nA list of ancestral population sizes.\nrequired\n\n\nmerge_time\nUnion[float, int]\nThe time at which all demes in the spatial simulation merge into one or more ancestral populations.\nrequired\n\n\nanc_id\nOptional[np.ndarray]\nAn array of ancestral population IDs- the output of [split_landscape_by_pop][utilities.split_landscape_by_pop]. Defaults to None.\nNone\n\n\nanc_merge_times\nOptional[List[float]]\nA list of merge times for ancestral populations. Defaults to None.\nNone\n\n\nanc_merge_sizes\nOptional[List[float]]\nA list of sizes for merged ancestral populations. Defaults to None.\nNone\n\n\nmigration_rate\nOptional[float]\nThe symmetric migration rate between ancestral populations. Defaults to None.\nNone\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nmsprime.Demography\nThe demographic model with the added ancestral populations.\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nValueError\nIf the model already contains ancestral populations.\n\n\nValueError\nIf the number of demes in the demographic model does not match the number of demes in the admixture ID raster.\n\n\n\n\n\n\nThe function adds ancestral populations to the given demographic model. If anc_id is not provided, a single ancestral population is added with the initial size specified in anc_sizes[0]. If anc_id is provided, a new ancestral population is added for each admixture population, with sizes specified in anc_sizes. The demes in the simulation are then merged into their respective ancestral populations based on the values in anc_id. If anc_merge_times is provided, the ancestral populations are merged at the specified times. If migration_rate is provided, symmetric migration is allowed between ancestral populations.\n\n\n\n\nspDemography.stepping_stone_2d(d, rate, scale=True, timesteps=None)\nCreate a 2D stepping stone model, either for a single time step or for multiple time steps of deme size change.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nd\nnumpy.ndarray\nThe demography matrix representing the population sizes.\nrequired\n\n\nrate\nfloat or numpy.ndarray\nThe migration rate(s) between populations. If a float, it represents a constant migration rate for all populations. If a numpy.ndarray, it represents a migration matrix with shape (T, N, N), where N is the total number of populations and T is the number of time steps - 1, if T &gt; 1.\nrequired\n\n\nscale\nbool\nWhether to scale the migration rate matrix. Default is True.\nTrue\n\n\ntimesteps\nUnion[int, List[int]]\nThe list of timesteps representing the amount of time passing between each demographic event, in generations. If a single integer is provided, the function assumes that the time steps are equal.\nNone\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nmsprime.Demography\nThe constructed 2d stepping stone model as an msprime.Demography object.\n\n\n\n\n\n\nThe demography matrix d should have shape (n, m) or (k, n, m), where n is the number of rows and m is the number of columns for a 2D array and k is the number of layers in a 3D array. The migration rate matrix rate should have shape (N, N), where N is the total number of populations. If there are multiple time steps of population size change, the add_landscape_change function is called to modify the model accordingly.",
-    "crumbs": [
-      "Reference",
-      "Demography",
-      "spDemography"
-    ]
-  },
-  {
-    "objectID": "reference/spDemography.html#methods",
-    "href": "reference/spDemography.html#methods",
-    "title": "spDemography",
-    "section": "",
-    "text": "Name\nDescription\n\n\n\n\nadd_ancestral_populations\nAdds ancestral populations to the given demographic model, mapping demes in the spatial simulation to ancestral populations.\n\n\nstepping_stone_2d\nCreate a 2D stepping stone model, either for a single time step or for multiple time steps of deme size change.\n\n\n\n\n\nspDemography.add_ancestral_populations(anc_sizes, merge_time, anc_id=None, anc_merge_times=None, anc_merge_sizes=None, migration_rate=None)\nAdds ancestral populations to the given demographic model, mapping demes in the spatial simulation to ancestral populations.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nanc_sizes\nList[float]\nA list of ancestral population sizes.\nrequired\n\n\nmerge_time\nUnion[float, int]\nThe time at which all demes in the spatial simulation merge into one or more ancestral populations.\nrequired\n\n\nanc_id\nOptional[np.ndarray]\nAn array of ancestral population IDs- the output of [split_landscape_by_pop][utilities.split_landscape_by_pop]. Defaults to None.\nNone\n\n\nanc_merge_times\nOptional[List[float]]\nA list of merge times for ancestral populations. Defaults to None.\nNone\n\n\nanc_merge_sizes\nOptional[List[float]]\nA list of sizes for merged ancestral populations. Defaults to None.\nNone\n\n\nmigration_rate\nOptional[float]\nThe symmetric migration rate between ancestral populations. Defaults to None.\nNone\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nmsprime.Demography\nThe demographic model with the added ancestral populations.\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nValueError\nIf the model already contains ancestral populations.\n\n\nValueError\nIf the number of demes in the demographic model does not match the number of demes in the admixture ID raster.\n\n\n\n\n\n\nThe function adds ancestral populations to the given demographic model. If anc_id is not provided, a single ancestral population is added with the initial size specified in anc_sizes[0]. If anc_id is provided, a new ancestral population is added for each admixture population, with sizes specified in anc_sizes. The demes in the simulation are then merged into their respective ancestral populations based on the values in anc_id. If anc_merge_times is provided, the ancestral populations are merged at the specified times. If migration_rate is provided, symmetric migration is allowed between ancestral populations.\n\n\n\n\nspDemography.stepping_stone_2d(d, rate, scale=True, timesteps=None)\nCreate a 2D stepping stone model, either for a single time step or for multiple time steps of deme size change.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nd\nnumpy.ndarray\nThe demography matrix representing the population sizes.\nrequired\n\n\nrate\nfloat or numpy.ndarray\nThe migration rate(s) between populations. If a float, it represents a constant migration rate for all populations. If a numpy.ndarray, it represents a migration matrix with shape (T, N, N), where N is the total number of populations and T is the number of time steps - 1, if T &gt; 1.\nrequired\n\n\nscale\nbool\nWhether to scale the migration rate matrix. Default is True.\nTrue\n\n\ntimesteps\nUnion[int, List[int]]\nThe list of timesteps representing the amount of time passing between each demographic event, in generations. If a single integer is provided, the function assumes that the time steps are equal.\nNone\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nmsprime.Demography\nThe constructed 2d stepping stone model as an msprime.Demography object.\n\n\n\n\n\n\nThe demography matrix d should have shape (n, m) or (k, n, m), where n is the number of rows and m is the number of columns for a 2D array and k is the number of layers in a 3D array. The migration rate matrix rate should have shape (N, N), where N is the total number of populations. If there are multiple time steps of population size change, the add_landscape_change function is called to modify the model accordingly.",
-    "crumbs": [
-      "Reference",
-      "Demography",
-      "spDemography"
-    ]
-  },
-  {
-    "objectID": "reference/calc_sumstats.html",
-    "href": "reference/calc_sumstats.html",
-    "title": "calc_sumstats",
-    "section": "",
-    "text": "calc_sumstats(ac, coords_dict, anc_demes_dict=None, ac_demes=None, ac_anc=None, between_anc_pop_sumstats=False, return_df=False, precision=6)\nCalculates a suite of genetic summary statistics on allele counts matrices generated by filter_gt or otherwise generated through scikit-allel. The required input is an allele counts matrix for all individuals/demes, and a dictionary mapping deme IDs to their coordinates, generated by coords_to_deme_dict. Optional inputs are dictionaries mapping ancestral population IDs to their constituent demes (anc_demes_dict), an dictionary of allele counts matrices for each deme (ac_demes), and dictionary of allele counts matrices for each ancestral population (ac_anc).\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nac\nnp.ndarray\nAn allele counts matrix for all individuals/demes.\nrequired\n\n\ncoords_dict\ndict\nA dictionary mapping deme IDs to their coordinates, generated by [coords_to_deme_dict][utilities.coords_to_deme_dict].\nrequired\n\n\nanc_demes_dict\ndict\nA dictionary mapping ancestral population IDs to their constituent demes. Defaults to None.\nNone\n\n\nac_demes\ndict\nA dictionary mapping deme IDs to their allele counts matrices. Necessary if you want to calculate Fst or Dxy between demes. Defaults to None.\nNone\n\n\nac_anc\ndict\nA dictionary mapping ancestral population IDs to their allel counts matrices. If provided, summary statistics are calculated within ancestral populations and not among them. Defaults to None.\nNone\n\n\nbetween_anc_pop_sumstats\nbool\nWhether to calculate Fst or Dxy between ancestral populations. Defaults to False.\nFalse\n\n\nreturn_df\nbool\nWhether to return the summary statistics as a pandas DataFrame. Defaults to False.\nFalse\n\n\nprecision\nint\nThe number of decimal places to round the summary statistics to. Defaults to 6.\n6\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\ndict\nA dictionary of summary statistics.\n\n\n\n\n\n\nThis function calculates the following summary statistics, either species-wide or per ancestral population, if provided: - Site Frequency Spectrum Hill numbers (q1 and q2), corrected for the number of sites - Pi (nucleotide diversity) - Tajima’s D - Pairwise Dxy - If between_anc_pop_sumstats is True, also calculates pairwise Dxy and Hudson’s FST between ancestral populations - Pairwise Hudson’s FST - If between_anc_pop_sumstats is True, also calculates pairwise Dxy and Hudson’s FST between ancestral populations - Isolation-by-distance slope and R2 - Moran’s I",
-    "crumbs": [
-      "Reference",
-      "Analysis",
-      "calc_sumstats"
-    ]
-  },
-  {
-    "objectID": "reference/calc_sumstats.html#parameters",
-    "href": "reference/calc_sumstats.html#parameters",
-    "title": "calc_sumstats",
-    "section": "",
-    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nac\nnp.ndarray\nAn allele counts matrix for all individuals/demes.\nrequired\n\n\ncoords_dict\ndict\nA dictionary mapping deme IDs to their coordinates, generated by [coords_to_deme_dict][utilities.coords_to_deme_dict].\nrequired\n\n\nanc_demes_dict\ndict\nA dictionary mapping ancestral population IDs to their constituent demes. Defaults to None.\nNone\n\n\nac_demes\ndict\nA dictionary mapping deme IDs to their allele counts matrices. Necessary if you want to calculate Fst or Dxy between demes. Defaults to None.\nNone\n\n\nac_anc\ndict\nA dictionary mapping ancestral population IDs to their allel counts matrices. If provided, summary statistics are calculated within ancestral populations and not among them. Defaults to None.\nNone\n\n\nbetween_anc_pop_sumstats\nbool\nWhether to calculate Fst or Dxy between ancestral populations. Defaults to False.\nFalse\n\n\nreturn_df\nbool\nWhether to return the summary statistics as a pandas DataFrame. Defaults to False.\nFalse\n\n\nprecision\nint\nThe number of decimal places to round the summary statistics to. Defaults to 6.\n6",
-    "crumbs": [
-      "Reference",
-      "Analysis",
-      "calc_sumstats"
-    ]
-  },
-  {
-    "objectID": "reference/calc_sumstats.html#returns",
-    "href": "reference/calc_sumstats.html#returns",
-    "title": "calc_sumstats",
-    "section": "",
-    "text": "Type\nDescription\n\n\n\n\ndict\nA dictionary of summary statistics.",
-    "crumbs": [
-      "Reference",
-      "Analysis",
-      "calc_sumstats"
-    ]
-  },
-  {
-    "objectID": "reference/calc_sumstats.html#notes",
-    "href": "reference/calc_sumstats.html#notes",
-    "title": "calc_sumstats",
-    "section": "",
-    "text": "This function calculates the following summary statistics, either species-wide or per ancestral population, if provided: - Site Frequency Spectrum Hill numbers (q1 and q2), corrected for the number of sites - Pi (nucleotide diversity) - Tajima’s D - Pairwise Dxy - If between_anc_pop_sumstats is True, also calculates pairwise Dxy and Hudson’s FST between ancestral populations - Pairwise Hudson’s FST - If between_anc_pop_sumstats is True, also calculates pairwise Dxy and Hudson’s FST between ancestral populations - Isolation-by-distance slope and R2 - Moran’s I",
-    "crumbs": [
-      "Reference",
-      "Analysis",
-      "calc_sumstats"
-    ]
-  },
-  {
-    "objectID": "reference/coords_to_deme_dict.html",
-    "href": "reference/coords_to_deme_dict.html",
-    "title": "coords_to_deme_dict",
-    "section": "",
-    "text": "coords_to_deme_dict(raster, coordinates)\nFinds the cells a given set of coordinates belong to in a raster and returns a dictionary mapping the cell indices to the centroid coordinates of those cells. Because the cells correspond with demes in the 2D stepping stone models, the cell indices are considered deme indices. The coordinates typically correspond to empirical data that the simulations need to be sampled from.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nraster\nrasterio.DatasetReader\nThe raster data as a rasterio DatasetReader object.\nrequired\n\n\ncoordinates\nUnion[List[Tuple[float, float]], gpd.GeoDataFrame]\nA list of (x, y) coordinates or a geopandas GeoDataFrame.\nrequired\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nDict[int, List[float]]\nA dictionary mapping deme indices to their corresponding coordinates.",
-    "crumbs": [
-      "Reference",
-      "Utilities",
-      "coords_to_deme_dict"
-    ]
-  },
-  {
-    "objectID": "reference/coords_to_deme_dict.html#parameters",
-    "href": "reference/coords_to_deme_dict.html#parameters",
-    "title": "coords_to_deme_dict",
-    "section": "",
-    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nraster\nrasterio.DatasetReader\nThe raster data as a rasterio DatasetReader object.\nrequired\n\n\ncoordinates\nUnion[List[Tuple[float, float]], gpd.GeoDataFrame]\nA list of (x, y) coordinates or a geopandas GeoDataFrame.\nrequired",
-    "crumbs": [
-      "Reference",
-      "Utilities",
-      "coords_to_deme_dict"
-    ]
-  },
-  {
-    "objectID": "reference/coords_to_deme_dict.html#returns",
-    "href": "reference/coords_to_deme_dict.html#returns",
-    "title": "coords_to_deme_dict",
-    "section": "",
-    "text": "Type\nDescription\n\n\n\n\nDict[int, List[float]]\nA dictionary mapping deme indices to their corresponding coordinates.",
-    "crumbs": [
-      "Reference",
-      "Utilities",
-      "coords_to_deme_dict"
     ]
   },
   {
@@ -561,122 +225,39 @@
     ]
   },
   {
-    "objectID": "contributing.html",
-    "href": "contributing.html",
-    "title": "Contributing",
+    "objectID": "reference/coords_to_sample_dict.html",
+    "href": "reference/coords_to_sample_dict.html",
+    "title": "coords_to_sample_dict",
     "section": "",
-    "text": "Contributions are welcome, and they are greatly appreciated! Every little bit helps, and credit will always be given.\nYou can contribute in many ways:\n\n\n\n\nReport bugs at https://github.com/connor-french/spaceprime/issues.\nIf you are reporting a bug, please include:\n\nYour operating system name and version.\nAny details about your local setup that might be helpful in troubleshooting.\nDetailed steps to reproduce the bug.\n\n\n\n\nLook through the GitHub issues for bugs. Anything tagged with bug and help wanted is open to whoever wants to implement it.\n\n\n\nLook through the GitHub issues for features. Anything tagged with enhancement and help wanted is open to whoever wants to implement it.\n\n\n\nspaceprime could always use more documentation, whether as part of the official spaceprime docs, in docstrings, or even on the web in blog posts, articles, and such.\n\n\n\nThe best way to send feedback is to file an issue at https://github.com/connor-french/spaceprime/issues.\nIf you are proposing a feature:\n\nExplain in detail how it would work.\nKeep the scope as narrow as possible, to make it easier to implement.\nRemember that this is a volunteer-driven project, and that contributions are welcome :)\n\n\n\n\n\nReady to contribute? Here’s how to set up spaceprime for local development.\n\nFork the spaceprime repo on GitHub.\nClone your fork locally:\n$ git clone git@github.com:your_name_here/spaceprime.git\nInstall your local copy into a virtualenv. Assuming you have virtualenvwrapper installed, this is how you set up your fork for local development:\n$ mkvirtualenv spaceprime\n$ cd spaceprime/\n$ python setup.py develop\nCreate a branch for local development:\n$ git checkout -b name-of-your-bugfix-or-feature\nNow you can make your changes locally.\nWhen you’re done making changes, check that your changes pass flake8 and the tests, including testing other Python versions with tox:\n$ flake8 spaceprime tests\n$ python setup.py test or pytest\n$ tox\nTo get flake8 and tox, just pip install them into your virtualenv.\nCommit your changes and push your branch to GitHub:\n$ git add .\n$ git commit -m \"Your detailed description of your changes.\"\n$ git push origin name-of-your-bugfix-or-feature\nSubmit a pull request through the GitHub website.\n\n\n\n\nBefore you submit a pull request, check that it meets these guidelines:\n\nThe pull request should include tests.\nIf the pull request adds functionality, the docs should be updated. Put your new functionality into a function with a docstring, and add the feature to the list in README.rst.\nThe pull request should work for Python 3.8 and later, and for PyPy. Check https://github.com/connor-french/spaceprime/pull_requests and make sure that the tests pass for all supported Python versions."
-  },
-  {
-    "objectID": "contributing.html#types-of-contributions",
-    "href": "contributing.html#types-of-contributions",
-    "title": "Contributing",
-    "section": "",
-    "text": "Report bugs at https://github.com/connor-french/spaceprime/issues.\nIf you are reporting a bug, please include:\n\nYour operating system name and version.\nAny details about your local setup that might be helpful in troubleshooting.\nDetailed steps to reproduce the bug.\n\n\n\n\nLook through the GitHub issues for bugs. Anything tagged with bug and help wanted is open to whoever wants to implement it.\n\n\n\nLook through the GitHub issues for features. Anything tagged with enhancement and help wanted is open to whoever wants to implement it.\n\n\n\nspaceprime could always use more documentation, whether as part of the official spaceprime docs, in docstrings, or even on the web in blog posts, articles, and such.\n\n\n\nThe best way to send feedback is to file an issue at https://github.com/connor-french/spaceprime/issues.\nIf you are proposing a feature:\n\nExplain in detail how it would work.\nKeep the scope as narrow as possible, to make it easier to implement.\nRemember that this is a volunteer-driven project, and that contributions are welcome :)"
-  },
-  {
-    "objectID": "contributing.html#get-started",
-    "href": "contributing.html#get-started",
-    "title": "Contributing",
-    "section": "",
-    "text": "Ready to contribute? Here’s how to set up spaceprime for local development.\n\nFork the spaceprime repo on GitHub.\nClone your fork locally:\n$ git clone git@github.com:your_name_here/spaceprime.git\nInstall your local copy into a virtualenv. Assuming you have virtualenvwrapper installed, this is how you set up your fork for local development:\n$ mkvirtualenv spaceprime\n$ cd spaceprime/\n$ python setup.py develop\nCreate a branch for local development:\n$ git checkout -b name-of-your-bugfix-or-feature\nNow you can make your changes locally.\nWhen you’re done making changes, check that your changes pass flake8 and the tests, including testing other Python versions with tox:\n$ flake8 spaceprime tests\n$ python setup.py test or pytest\n$ tox\nTo get flake8 and tox, just pip install them into your virtualenv.\nCommit your changes and push your branch to GitHub:\n$ git add .\n$ git commit -m \"Your detailed description of your changes.\"\n$ git push origin name-of-your-bugfix-or-feature\nSubmit a pull request through the GitHub website."
-  },
-  {
-    "objectID": "contributing.html#pull-request-guidelines",
-    "href": "contributing.html#pull-request-guidelines",
-    "title": "Contributing",
-    "section": "",
-    "text": "Before you submit a pull request, check that it meets these guidelines:\n\nThe pull request should include tests.\nIf the pull request adds functionality, the docs should be updated. Put your new functionality into a function with a docstring, and add the feature to the list in README.rst.\nThe pull request should work for Python 3.8 and later, and for PyPy. Check https://github.com/connor-french/spaceprime/pull_requests and make sure that the tests pass for all supported Python versions."
-  },
-  {
-    "objectID": "changelog.html",
-    "href": "changelog.html",
-    "title": "spaceprime",
-    "section": "",
-    "text": "Changelog\nAll notable changes to this project will be documented in this file. Dates are displayed in UTC.\nGenerated by auto-changelog.\n\nv0.0.3\n\n22 April 2024\n\n\nadd analysis module black fix 28ce742\nfinish first round of utilities functions- black fix 1b48527\nadd demography module and associated package updates- black fixes b4e292e\nblack fix c9d8981\nfinish up utilities 3a2daea\nupdate documentation- black fix 8f759de\nreformat function based on black 35b1d09\nfix some typing around integers- black fix 7fbec2d\nadd linting pre-commit hook 40adedf\nmore docs config 83d26aa\nclean up some files 3a8f372\ndebug demography functions black fix c575312\nfix mkdocs spacing ba3973f\nremove common module c447ef5\nclean up docs 182cfbc\nadd transformation docs 9c0dd29\nfix 4ad0fd9\nBump version: 0.0.2 → 0.0.3 70491b3\nblack fix f2384e1\nfix tests and forgot to add requirements 7ba1ef3\nfiguring out docs 753a6fe\nfix index and move stuff around 73fb2ac\nfix typo fea66dd\nadd pytest to ubuntu.yml 9520751\n\n\n\nv0.0.2\n\n4 April 2024\n\n\nadd package stuff 8de8843\nBump version: 0.0.1 → 0.0.2 43a7eb4\n\n\n\nv0.0.1\n\n4 April 2024\n\n\nfirst commit e322482"
-  },
-  {
-    "objectID": "reference/calc_migration_matrix.html",
-    "href": "reference/calc_migration_matrix.html",
-    "title": "calc_migration_matrix",
-    "section": "",
-    "text": "calc_migration_matrix(demes, rate, scale=True)\nCalculates a migration matrix based on deme sizes and a global migration rate. The migration rate can be scaled based on population size or set as a constant.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ndemes\nnp.ndarray\nThe 2D numpy array representing the deme sizes.\nrequired\n\n\nrate\nfloat\nThe migration rate.\nrequired\n\n\nscale\nbool\nWhether to scale the migration rate based on population size. Default is True.\nTrue\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nnp.ndarray\nThe migration matrix as a 2D numpy array.",
+    "text": "coords_to_sample_dict(raster, coordinates, individual_ids=None, vcf_path=None)\nConvert sample coordinates to sample dictionaries for simulation and analysis. Can optionally include empirical data, which is accepted as a path to a VCF file.\nThis function takes a raster, a list of coordinates, and optional individual IDs and VCF path. It masks the raster with the given coordinates, retrieves the cell IDs for each individual’s locality, and returns two dictionaries: a sample dictionary containing the number of individuals to sample from the simulation, and a sample dictionary containing the range of individual indices for each cell ID. The first dictionary is used to sample individuals from the simulation, and the second dictionary is used to calculate genetic summary statistics from the sampled individuals.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nraster\nUnion[np.ndarray, rasterio.DatasetReader]\nThe raster data as a numpy array or rasterio DatasetReader object.\nrequired\n\n\ncoordinates\nUnion[List[Tuple[float, float]], gpd.GeoDataFrame]\nA list of (x, y) coordinates or a geopandas GeoDataFrame.\nrequired\n\n\nindividual_ids\nOptional[List[str]]\nA list of individual IDs corresponding to those in the VCF file, by default None.\nNone\n\n\nvcf_path\nOptional[str]\nThe path to the VCF file, by default None.\nNone\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nTuple[Dict[int, int], Dict[int, np.ndarray], Optional[Dict[int, np.ndarray]]]\nA tuple containing two or three dictionaries. The first dictionary contains the number of individuals to sample from the simulation for each cell ID. The second dictionary contains the indices of individuals for each cell ID. The third, optional dictionary contains the indices of individuals in the VCF file for each cell ID.",
     "crumbs": [
       "Reference",
       "Utilities",
-      "calc_migration_matrix"
+      "coords_to_sample_dict"
     ]
   },
   {
-    "objectID": "reference/calc_migration_matrix.html#parameters",
-    "href": "reference/calc_migration_matrix.html#parameters",
-    "title": "calc_migration_matrix",
+    "objectID": "reference/coords_to_sample_dict.html#parameters",
+    "href": "reference/coords_to_sample_dict.html#parameters",
+    "title": "coords_to_sample_dict",
     "section": "",
-    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ndemes\nnp.ndarray\nThe 2D numpy array representing the deme sizes.\nrequired\n\n\nrate\nfloat\nThe migration rate.\nrequired\n\n\nscale\nbool\nWhether to scale the migration rate based on population size. Default is True.\nTrue",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nraster\nUnion[np.ndarray, rasterio.DatasetReader]\nThe raster data as a numpy array or rasterio DatasetReader object.\nrequired\n\n\ncoordinates\nUnion[List[Tuple[float, float]], gpd.GeoDataFrame]\nA list of (x, y) coordinates or a geopandas GeoDataFrame.\nrequired\n\n\nindividual_ids\nOptional[List[str]]\nA list of individual IDs corresponding to those in the VCF file, by default None.\nNone\n\n\nvcf_path\nOptional[str]\nThe path to the VCF file, by default None.\nNone",
     "crumbs": [
       "Reference",
       "Utilities",
-      "calc_migration_matrix"
+      "coords_to_sample_dict"
     ]
   },
   {
-    "objectID": "reference/calc_migration_matrix.html#returns",
-    "href": "reference/calc_migration_matrix.html#returns",
-    "title": "calc_migration_matrix",
+    "objectID": "reference/coords_to_sample_dict.html#returns",
+    "href": "reference/coords_to_sample_dict.html#returns",
+    "title": "coords_to_sample_dict",
     "section": "",
-    "text": "Type\nDescription\n\n\n\n\nnp.ndarray\nThe migration matrix as a 2D numpy array.",
+    "text": "Type\nDescription\n\n\n\n\nTuple[Dict[int, int], Dict[int, np.ndarray], Optional[Dict[int, np.ndarray]]]\nA tuple containing two or three dictionaries. The first dictionary contains the number of individuals to sample from the simulation for each cell ID. The second dictionary contains the indices of individuals for each cell ID. The third, optional dictionary contains the indices of individuals in the VCF file for each cell ID.",
     "crumbs": [
       "Reference",
       "Utilities",
-      "calc_migration_matrix"
-    ]
-  },
-  {
-    "objectID": "reference/sim_mutations.html",
-    "href": "reference/sim_mutations.html",
-    "title": "sim_mutations",
-    "section": "",
-    "text": "sim_mutations(*args, **kwargs)\nA thin wrapper around msprime.sim_mutations.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\n*args\nVariable length argument list.\n\n()\n\n\n**kwargs\nArbitrary keyword arguments.\n\n{}\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nThe result of msprime.sim_mutations with the provided arguments.\n\n\n\n\n\n\n\nThis function takes the same arguments as msprime.sim_ancestry and calls it directly, allowing users to use simulation functionality within the spaceprime namespace.\nSee the msprime.sim_mutations documentation for more information: https://tskit.dev/msprime/docs/stable/api.html#msprime.sim_mutations",
-    "crumbs": [
-      "Reference",
-      "Simulation",
-      "sim_mutations"
-    ]
-  },
-  {
-    "objectID": "reference/sim_mutations.html#parameters",
-    "href": "reference/sim_mutations.html#parameters",
-    "title": "sim_mutations",
-    "section": "",
-    "text": "Name\nType\nDescription\nDefault\n\n\n\n\n*args\nVariable length argument list.\n\n()\n\n\n**kwargs\nArbitrary keyword arguments.\n\n{}",
-    "crumbs": [
-      "Reference",
-      "Simulation",
-      "sim_mutations"
-    ]
-  },
-  {
-    "objectID": "reference/sim_mutations.html#returns",
-    "href": "reference/sim_mutations.html#returns",
-    "title": "sim_mutations",
-    "section": "",
-    "text": "Type\nDescription\n\n\n\n\nThe result of msprime.sim_mutations with the provided arguments.",
-    "crumbs": [
-      "Reference",
-      "Simulation",
-      "sim_mutations"
-    ]
-  },
-  {
-    "objectID": "reference/sim_mutations.html#notes",
-    "href": "reference/sim_mutations.html#notes",
-    "title": "sim_mutations",
-    "section": "",
-    "text": "This function takes the same arguments as msprime.sim_ancestry and calls it directly, allowing users to use simulation functionality within the spaceprime namespace.\nSee the msprime.sim_mutations documentation for more information: https://tskit.dev/msprime/docs/stable/api.html#msprime.sim_mutations",
-    "crumbs": [
-      "Reference",
-      "Simulation",
-      "sim_mutations"
+      "coords_to_sample_dict"
     ]
   },
   {
@@ -725,210 +306,6 @@
       "Reference",
       "Demography",
       "spDemography.stepping_stone_2d"
-    ]
-  },
-  {
-    "objectID": "reference/plot_landscape.html",
-    "href": "reference/plot_landscape.html",
-    "title": "plot_landscape",
-    "section": "",
-    "text": "plot_landscape(demo, raster, timestep, cmap='viridis', legend=True, basemap=False)\nPlots a static map of a transformed landscape at the timestep of your choice.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ndemo\nspaceprime.spDemography\nThe demographic model to plot.\nrequired\n\n\nraster\nrasterio.DatasetReader\nThe raster dataset used to create the demes matrix(es).\nrequired\n\n\ntimestep\nint\nThe timestep to plot.\nrequired\n\n\ncmap\nstr\nThe colormap to use. Defaults to “viridis”.\n'viridis'\n\n\nlegend\nbool\nWhether to show the colorbar legend. Defaults to True.\nTrue\n\n\nbasemap\nbool\nWhether to add a basemap. Requires an internet connection. Defaults to False.\nFalse\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nmatplotlib.axes.Axes\nA plot of the transformed landscape.\n\n\n\n\n\n\nSetting basemap=True requires an internet connection to download the basemap tiles. It may take some time to load the tiles depending on your internet speed. Since this function returns a matplotlib axes object, you can further modify the plot with the matplotlib library.",
-    "crumbs": [
-      "Reference",
-      "Plotting",
-      "plot_landscape"
-    ]
-  },
-  {
-    "objectID": "reference/plot_landscape.html#parameters",
-    "href": "reference/plot_landscape.html#parameters",
-    "title": "plot_landscape",
-    "section": "",
-    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ndemo\nspaceprime.spDemography\nThe demographic model to plot.\nrequired\n\n\nraster\nrasterio.DatasetReader\nThe raster dataset used to create the demes matrix(es).\nrequired\n\n\ntimestep\nint\nThe timestep to plot.\nrequired\n\n\ncmap\nstr\nThe colormap to use. Defaults to “viridis”.\n'viridis'\n\n\nlegend\nbool\nWhether to show the colorbar legend. Defaults to True.\nTrue\n\n\nbasemap\nbool\nWhether to add a basemap. Requires an internet connection. Defaults to False.\nFalse",
-    "crumbs": [
-      "Reference",
-      "Plotting",
-      "plot_landscape"
-    ]
-  },
-  {
-    "objectID": "reference/plot_landscape.html#returns",
-    "href": "reference/plot_landscape.html#returns",
-    "title": "plot_landscape",
-    "section": "",
-    "text": "Type\nDescription\n\n\n\n\nmatplotlib.axes.Axes\nA plot of the transformed landscape.",
-    "crumbs": [
-      "Reference",
-      "Plotting",
-      "plot_landscape"
-    ]
-  },
-  {
-    "objectID": "reference/plot_landscape.html#note",
-    "href": "reference/plot_landscape.html#note",
-    "title": "plot_landscape",
-    "section": "",
-    "text": "Setting basemap=True requires an internet connection to download the basemap tiles. It may take some time to load the tiles depending on your internet speed. Since this function returns a matplotlib axes object, you can further modify the plot with the matplotlib library.",
-    "crumbs": [
-      "Reference",
-      "Plotting",
-      "plot_landscape"
-    ]
-  },
-  {
-    "objectID": "reference/filter_gt.html",
-    "href": "reference/filter_gt.html",
-    "title": "filter_gt",
-    "section": "",
-    "text": "filter_gt(gt, deme_dict_inds=None, deme_dict_anc=None, missing_data_perc=0, r2_thresh=0.1, filter_monomorphic=True, filter_singletons=True)\nFilter genotype matrices output by ts.genotype_matrix() to filter out monomorphic sites, loci in linkage disequilibrium, and recreate missing data patterns common to empirical genotype data. Returns the genotype matrix and allele counts matrix for the filtered loci, and optionally allele counts matrices for demes and ancestral populations.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ngt\nnp.ndarray\nThe genotype matrix.\nrequired\n\n\ndeme_dict_inds\ndict\nA dictionary containing the indices of individuals in each deme. Defaults to None.\nNone\n\n\ndeme_dict_anc\ndict\nA dictionary containing the indices of individuals in each ancestral population. Defaults to None.\nNone\n\n\nmissing_data_perc\nfloat\nThe percentage of missing data allowed. Defaults to 0.\n0\n\n\nr2_thresh\nfloat\nThe threshold for linkage disequilibrium. Defaults to 0.1.\n0.1\n\n\nfilter_monomorphic\nbool\nWhether to filter out monomorphic sites, keeping only segregating sites. Defaults to True.\nTrue\n\n\nfilter_singletons\nbool\nWhether to filter out singletons. Defaults to True.\nTrue\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nTuple[allel.GenotypeArray, allel.AlleleCountsArray, Optional[Dict[str, allel.AlleleCountsArray]], Optional[Dict[str, allel.AlleleCountsArray]]]\nA tuple containing the filtered genotype matrix, the allele counts matrix, a dictionary of allele counts matrices for demes (if deme_dict_inds is provided), and a dictionary of allele counts matrices for ancestral populations (if deme_dict_anc is provided).\n\n\n\n\n\n\nThis function uses a random mask to simulate missing data in the genotype matrix. For reproducibility it’s advised to set a np.random.seed() before calling this function.",
-    "crumbs": [
-      "Reference",
-      "Analysis",
-      "filter_gt"
-    ]
-  },
-  {
-    "objectID": "reference/filter_gt.html#parameters",
-    "href": "reference/filter_gt.html#parameters",
-    "title": "filter_gt",
-    "section": "",
-    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ngt\nnp.ndarray\nThe genotype matrix.\nrequired\n\n\ndeme_dict_inds\ndict\nA dictionary containing the indices of individuals in each deme. Defaults to None.\nNone\n\n\ndeme_dict_anc\ndict\nA dictionary containing the indices of individuals in each ancestral population. Defaults to None.\nNone\n\n\nmissing_data_perc\nfloat\nThe percentage of missing data allowed. Defaults to 0.\n0\n\n\nr2_thresh\nfloat\nThe threshold for linkage disequilibrium. Defaults to 0.1.\n0.1\n\n\nfilter_monomorphic\nbool\nWhether to filter out monomorphic sites, keeping only segregating sites. Defaults to True.\nTrue\n\n\nfilter_singletons\nbool\nWhether to filter out singletons. Defaults to True.\nTrue",
-    "crumbs": [
-      "Reference",
-      "Analysis",
-      "filter_gt"
-    ]
-  },
-  {
-    "objectID": "reference/filter_gt.html#returns",
-    "href": "reference/filter_gt.html#returns",
-    "title": "filter_gt",
-    "section": "",
-    "text": "Type\nDescription\n\n\n\n\nTuple[allel.GenotypeArray, allel.AlleleCountsArray, Optional[Dict[str, allel.AlleleCountsArray]], Optional[Dict[str, allel.AlleleCountsArray]]]\nA tuple containing the filtered genotype matrix, the allele counts matrix, a dictionary of allele counts matrices for demes (if deme_dict_inds is provided), and a dictionary of allele counts matrices for ancestral populations (if deme_dict_anc is provided).",
-    "crumbs": [
-      "Reference",
-      "Analysis",
-      "filter_gt"
-    ]
-  },
-  {
-    "objectID": "reference/filter_gt.html#notes",
-    "href": "reference/filter_gt.html#notes",
-    "title": "filter_gt",
-    "section": "",
-    "text": "This function uses a random mask to simulate missing data in the genotype matrix. For reproducibility it’s advised to set a np.random.seed() before calling this function.",
-    "crumbs": [
-      "Reference",
-      "Analysis",
-      "filter_gt"
-    ]
-  },
-  {
-    "objectID": "reference/coords_to_sample_dict.html",
-    "href": "reference/coords_to_sample_dict.html",
-    "title": "coords_to_sample_dict",
-    "section": "",
-    "text": "coords_to_sample_dict(raster, coordinates, individual_ids=None, vcf_path=None)\nConvert sample coordinates to sample dictionaries for simulation and analysis. Can optionally include empirical data, which is accepted as a path to a VCF file.\nThis function takes a raster, a list of coordinates, and optional individual IDs and VCF path. It masks the raster with the given coordinates, retrieves the cell IDs for each individual’s locality, and returns two dictionaries: a sample dictionary containing the number of individuals to sample from the simulation, and a sample dictionary containing the range of individual indices for each cell ID. The first dictionary is used to sample individuals from the simulation, and the second dictionary is used to calculate genetic summary statistics from the sampled individuals.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nraster\nUnion[np.ndarray, rasterio.DatasetReader]\nThe raster data as a numpy array or rasterio DatasetReader object.\nrequired\n\n\ncoordinates\nUnion[List[Tuple[float, float]], gpd.GeoDataFrame]\nA list of (x, y) coordinates or a geopandas GeoDataFrame.\nrequired\n\n\nindividual_ids\nOptional[List[str]]\nA list of individual IDs corresponding to those in the VCF file, by default None.\nNone\n\n\nvcf_path\nOptional[str]\nThe path to the VCF file, by default None.\nNone\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nTuple[Dict[int, int], Dict[int, np.ndarray], Optional[Dict[int, np.ndarray]]]\nA tuple containing two or three dictionaries. The first dictionary contains the number of individuals to sample from the simulation for each cell ID. The second dictionary contains the indices of individuals for each cell ID. The third, optional dictionary contains the indices of individuals in the VCF file for each cell ID.",
-    "crumbs": [
-      "Reference",
-      "Utilities",
-      "coords_to_sample_dict"
-    ]
-  },
-  {
-    "objectID": "reference/coords_to_sample_dict.html#parameters",
-    "href": "reference/coords_to_sample_dict.html#parameters",
-    "title": "coords_to_sample_dict",
-    "section": "",
-    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nraster\nUnion[np.ndarray, rasterio.DatasetReader]\nThe raster data as a numpy array or rasterio DatasetReader object.\nrequired\n\n\ncoordinates\nUnion[List[Tuple[float, float]], gpd.GeoDataFrame]\nA list of (x, y) coordinates or a geopandas GeoDataFrame.\nrequired\n\n\nindividual_ids\nOptional[List[str]]\nA list of individual IDs corresponding to those in the VCF file, by default None.\nNone\n\n\nvcf_path\nOptional[str]\nThe path to the VCF file, by default None.\nNone",
-    "crumbs": [
-      "Reference",
-      "Utilities",
-      "coords_to_sample_dict"
-    ]
-  },
-  {
-    "objectID": "reference/coords_to_sample_dict.html#returns",
-    "href": "reference/coords_to_sample_dict.html#returns",
-    "title": "coords_to_sample_dict",
-    "section": "",
-    "text": "Type\nDescription\n\n\n\n\nTuple[Dict[int, int], Dict[int, np.ndarray], Optional[Dict[int, np.ndarray]]]\nA tuple containing two or three dictionaries. The first dictionary contains the number of individuals to sample from the simulation for each cell ID. The second dictionary contains the indices of individuals for each cell ID. The third, optional dictionary contains the indices of individuals in the VCF file for each cell ID.",
-    "crumbs": [
-      "Reference",
-      "Utilities",
-      "coords_to_sample_dict"
-    ]
-  },
-  {
-    "objectID": "reference/plot_timeseries.html",
-    "href": "reference/plot_timeseries.html",
-    "title": "plot_timeseries",
-    "section": "",
-    "text": "plot_timeseries(demo, times, units='')\nPlots the total number of individuals across the landscape across time.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ndemo\nspaceprime.spDemography\nThe demographic model to plot.\nrequired\n\n\ntimes\nList[float]\nA list of times that each landscape timestep corresponds with. This can be in whatever unit you choose.\nrequired\n\n\nunits\nstr\nThe units of time the timesteps are specified in. Defaults to a blank string.\n''\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\ntuple\nA tuple containing the figure and axes objects of the plot.",
-    "crumbs": [
-      "Reference",
-      "Plotting",
-      "plot_timeseries"
-    ]
-  },
-  {
-    "objectID": "reference/plot_timeseries.html#parameters",
-    "href": "reference/plot_timeseries.html#parameters",
-    "title": "plot_timeseries",
-    "section": "",
-    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ndemo\nspaceprime.spDemography\nThe demographic model to plot.\nrequired\n\n\ntimes\nList[float]\nA list of times that each landscape timestep corresponds with. This can be in whatever unit you choose.\nrequired\n\n\nunits\nstr\nThe units of time the timesteps are specified in. Defaults to a blank string.\n''",
-    "crumbs": [
-      "Reference",
-      "Plotting",
-      "plot_timeseries"
-    ]
-  },
-  {
-    "objectID": "reference/plot_timeseries.html#returns",
-    "href": "reference/plot_timeseries.html#returns",
-    "title": "plot_timeseries",
-    "section": "",
-    "text": "Type\nDescription\n\n\n\n\ntuple\nA tuple containing the figure and axes objects of the plot.",
-    "crumbs": [
-      "Reference",
-      "Plotting",
-      "plot_timeseries"
-    ]
-  },
-  {
-    "objectID": "reference/create_raster.html",
-    "href": "reference/create_raster.html",
-    "title": "create_raster",
-    "section": "",
-    "text": "create_raster(data, reference_raster, out_folder, out_prefix)\nCreates a raster dataset from a numpy array and reference raster and writes it to a new GeoTiff file. The new raster dataset will have the same dimensions, crs, and transform as the reference raster.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ndata\nnp.ndarray\nThe numpy array containing the data you want for the raster.\nrequired\n\n\nreference_raster\nrasterio.DatasetReader\nThe reference rasterio DatasetReader object.\nrequired\n\n\nout_folder\nstr\nThe output folder location where the new raster dataset will be saved.\nrequired\n\n\nout_prefix\nstr\nThe prefix for the output file name.\nrequired\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nNone\nThe function writes the new raster dataset to the output file location",
-    "crumbs": [
-      "Reference",
-      "Utilities",
-      "create_raster"
-    ]
-  },
-  {
-    "objectID": "reference/create_raster.html#parameters",
-    "href": "reference/create_raster.html#parameters",
-    "title": "create_raster",
-    "section": "",
-    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ndata\nnp.ndarray\nThe numpy array containing the data you want for the raster.\nrequired\n\n\nreference_raster\nrasterio.DatasetReader\nThe reference rasterio DatasetReader object.\nrequired\n\n\nout_folder\nstr\nThe output folder location where the new raster dataset will be saved.\nrequired\n\n\nout_prefix\nstr\nThe prefix for the output file name.\nrequired",
-    "crumbs": [
-      "Reference",
-      "Utilities",
-      "create_raster"
-    ]
-  },
-  {
-    "objectID": "reference/create_raster.html#returns",
-    "href": "reference/create_raster.html#returns",
-    "title": "create_raster",
-    "section": "",
-    "text": "Type\nDescription\n\n\n\n\nNone\nThe function writes the new raster dataset to the output file location",
-    "crumbs": [
-      "Reference",
-      "Utilities",
-      "create_raster"
     ]
   },
   {
@@ -992,6 +369,210 @@
     ]
   },
   {
+    "objectID": "reference/anc_to_deme_dict.html",
+    "href": "reference/anc_to_deme_dict.html",
+    "title": "anc_to_deme_dict",
+    "section": "",
+    "text": "anc_to_deme_dict(anc_pops, deme_dict)\nConverts the ancestral population assignments of demes into a dictionary mapping ancestral population IDs to deme indices.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nanc_pops\nnp.ndarray\nAn array containing the ancestral population assignments of all demes across the landscape.\nrequired\n\n\ndeme_dict\nDict[int, int]\nA dictionary mapping deme indices to the number of individuals being sampled from each deme.\nrequired\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nDict[int, List[int]]\nA dictionary mapping each ancestral population ID to the range of assigned deme indices.",
+    "crumbs": [
+      "Reference",
+      "Utilities",
+      "anc_to_deme_dict"
+    ]
+  },
+  {
+    "objectID": "reference/anc_to_deme_dict.html#parameters",
+    "href": "reference/anc_to_deme_dict.html#parameters",
+    "title": "anc_to_deme_dict",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nanc_pops\nnp.ndarray\nAn array containing the ancestral population assignments of all demes across the landscape.\nrequired\n\n\ndeme_dict\nDict[int, int]\nA dictionary mapping deme indices to the number of individuals being sampled from each deme.\nrequired",
+    "crumbs": [
+      "Reference",
+      "Utilities",
+      "anc_to_deme_dict"
+    ]
+  },
+  {
+    "objectID": "reference/anc_to_deme_dict.html#returns",
+    "href": "reference/anc_to_deme_dict.html#returns",
+    "title": "anc_to_deme_dict",
+    "section": "",
+    "text": "Type\nDescription\n\n\n\n\nDict[int, List[int]]\nA dictionary mapping each ancestral population ID to the range of assigned deme indices.",
+    "crumbs": [
+      "Reference",
+      "Utilities",
+      "anc_to_deme_dict"
+    ]
+  },
+  {
+    "objectID": "reference/create_raster.html",
+    "href": "reference/create_raster.html",
+    "title": "create_raster",
+    "section": "",
+    "text": "create_raster(data, reference_raster, out_folder, out_prefix)\nCreates a raster dataset from a numpy array and reference raster and writes it to a new GeoTiff file. The new raster dataset will have the same dimensions, crs, and transform as the reference raster.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ndata\nnp.ndarray\nThe numpy array containing the data you want for the raster.\nrequired\n\n\nreference_raster\nrasterio.DatasetReader\nThe reference rasterio DatasetReader object.\nrequired\n\n\nout_folder\nstr\nThe output folder location where the new raster dataset will be saved.\nrequired\n\n\nout_prefix\nstr\nThe prefix for the output file name.\nrequired\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nNone\nThe function writes the new raster dataset to the output file location",
+    "crumbs": [
+      "Reference",
+      "Utilities",
+      "create_raster"
+    ]
+  },
+  {
+    "objectID": "reference/create_raster.html#parameters",
+    "href": "reference/create_raster.html#parameters",
+    "title": "create_raster",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ndata\nnp.ndarray\nThe numpy array containing the data you want for the raster.\nrequired\n\n\nreference_raster\nrasterio.DatasetReader\nThe reference rasterio DatasetReader object.\nrequired\n\n\nout_folder\nstr\nThe output folder location where the new raster dataset will be saved.\nrequired\n\n\nout_prefix\nstr\nThe prefix for the output file name.\nrequired",
+    "crumbs": [
+      "Reference",
+      "Utilities",
+      "create_raster"
+    ]
+  },
+  {
+    "objectID": "reference/create_raster.html#returns",
+    "href": "reference/create_raster.html#returns",
+    "title": "create_raster",
+    "section": "",
+    "text": "Type\nDescription\n\n\n\n\nNone\nThe function writes the new raster dataset to the output file location",
+    "crumbs": [
+      "Reference",
+      "Utilities",
+      "create_raster"
+    ]
+  },
+  {
+    "objectID": "reference/plot_timeseries.html",
+    "href": "reference/plot_timeseries.html",
+    "title": "plot_timeseries",
+    "section": "",
+    "text": "plot_timeseries(demo, times, units='')\nPlots the total number of individuals across the landscape across time.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ndemo\nspaceprime.spDemography\nThe demographic model to plot.\nrequired\n\n\ntimes\nList[float]\nA list of times that each landscape timestep corresponds with. This can be in whatever unit you choose.\nrequired\n\n\nunits\nstr\nThe units of time the timesteps are specified in. Defaults to a blank string.\n''\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\ntuple\nA tuple containing the figure and axes objects of the plot.",
+    "crumbs": [
+      "Reference",
+      "Plotting",
+      "plot_timeseries"
+    ]
+  },
+  {
+    "objectID": "reference/plot_timeseries.html#parameters",
+    "href": "reference/plot_timeseries.html#parameters",
+    "title": "plot_timeseries",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ndemo\nspaceprime.spDemography\nThe demographic model to plot.\nrequired\n\n\ntimes\nList[float]\nA list of times that each landscape timestep corresponds with. This can be in whatever unit you choose.\nrequired\n\n\nunits\nstr\nThe units of time the timesteps are specified in. Defaults to a blank string.\n''",
+    "crumbs": [
+      "Reference",
+      "Plotting",
+      "plot_timeseries"
+    ]
+  },
+  {
+    "objectID": "reference/plot_timeseries.html#returns",
+    "href": "reference/plot_timeseries.html#returns",
+    "title": "plot_timeseries",
+    "section": "",
+    "text": "Type\nDescription\n\n\n\n\ntuple\nA tuple containing the figure and axes objects of the plot.",
+    "crumbs": [
+      "Reference",
+      "Plotting",
+      "plot_timeseries"
+    ]
+  },
+  {
+    "objectID": "reference/sim_mutations.html",
+    "href": "reference/sim_mutations.html",
+    "title": "sim_mutations",
+    "section": "",
+    "text": "sim_mutations(*args, **kwargs)\nA thin wrapper around msprime.sim_mutations.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\n*args\nVariable length argument list.\n\n()\n\n\n**kwargs\nArbitrary keyword arguments.\n\n{}\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nThe result of msprime.sim_mutations with the provided arguments.\n\n\n\n\n\n\n\nThis function takes the same arguments as msprime.sim_ancestry and calls it directly, allowing users to use simulation functionality within the spaceprime namespace.\nSee the msprime.sim_mutations documentation for more information: https://tskit.dev/msprime/docs/stable/api.html#msprime.sim_mutations",
+    "crumbs": [
+      "Reference",
+      "Simulation",
+      "sim_mutations"
+    ]
+  },
+  {
+    "objectID": "reference/sim_mutations.html#parameters",
+    "href": "reference/sim_mutations.html#parameters",
+    "title": "sim_mutations",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\n*args\nVariable length argument list.\n\n()\n\n\n**kwargs\nArbitrary keyword arguments.\n\n{}",
+    "crumbs": [
+      "Reference",
+      "Simulation",
+      "sim_mutations"
+    ]
+  },
+  {
+    "objectID": "reference/sim_mutations.html#returns",
+    "href": "reference/sim_mutations.html#returns",
+    "title": "sim_mutations",
+    "section": "",
+    "text": "Type\nDescription\n\n\n\n\nThe result of msprime.sim_mutations with the provided arguments.",
+    "crumbs": [
+      "Reference",
+      "Simulation",
+      "sim_mutations"
+    ]
+  },
+  {
+    "objectID": "reference/sim_mutations.html#notes",
+    "href": "reference/sim_mutations.html#notes",
+    "title": "sim_mutations",
+    "section": "",
+    "text": "This function takes the same arguments as msprime.sim_ancestry and calls it directly, allowing users to use simulation functionality within the spaceprime namespace.\nSee the msprime.sim_mutations documentation for more information: https://tskit.dev/msprime/docs/stable/api.html#msprime.sim_mutations",
+    "crumbs": [
+      "Reference",
+      "Simulation",
+      "sim_mutations"
+    ]
+  },
+  {
+    "objectID": "reference/mtp_thresh_from_coords.html",
+    "href": "reference/mtp_thresh_from_coords.html",
+    "title": "mtp_thresh_from_coords",
+    "section": "",
+    "text": "mtp_thresh_from_coords(raster, coordinates)\nThis function takes the coordinates of empirical sampling localities, finds which raster cells they belong to, extracts the values of the first layer for those localities, and finds the minimum value. This value is the maximum threshold value to determine a presence vs absence in a threshold transformation. If the threshold is set any higher, empirical sampling localities will not be sampled in the simulations.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nraster\nrasterio.DatasetReader\nThe rasterio DatasetReader object representing the raster data containing the suitability values.\nrequired\n\n\ncoordinates\nUnion[List[Tuple[float, float]], gpd.GeoDataFrame]\nThe longitude, latitude coordinates of the empirical sampling localities as a list of coordinate pair tuples or a geopandas GeoDataFrame.\nrequired\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nfloat\nThe maximum threshold value to determine a presence vs absence in a threshold transformation.\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nTypeError\nIf the coordinates input is not a list, geopandas GeoDataFrame, or pandas DataFrame.",
+    "crumbs": [
+      "Reference",
+      "Utilities",
+      "mtp_thresh_from_coords"
+    ]
+  },
+  {
+    "objectID": "reference/mtp_thresh_from_coords.html#parameters",
+    "href": "reference/mtp_thresh_from_coords.html#parameters",
+    "title": "mtp_thresh_from_coords",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nraster\nrasterio.DatasetReader\nThe rasterio DatasetReader object representing the raster data containing the suitability values.\nrequired\n\n\ncoordinates\nUnion[List[Tuple[float, float]], gpd.GeoDataFrame]\nThe longitude, latitude coordinates of the empirical sampling localities as a list of coordinate pair tuples or a geopandas GeoDataFrame.\nrequired",
+    "crumbs": [
+      "Reference",
+      "Utilities",
+      "mtp_thresh_from_coords"
+    ]
+  },
+  {
+    "objectID": "reference/mtp_thresh_from_coords.html#returns",
+    "href": "reference/mtp_thresh_from_coords.html#returns",
+    "title": "mtp_thresh_from_coords",
+    "section": "",
+    "text": "Type\nDescription\n\n\n\n\nfloat\nThe maximum threshold value to determine a presence vs absence in a threshold transformation.",
+    "crumbs": [
+      "Reference",
+      "Utilities",
+      "mtp_thresh_from_coords"
+    ]
+  },
+  {
+    "objectID": "reference/mtp_thresh_from_coords.html#raises",
+    "href": "reference/mtp_thresh_from_coords.html#raises",
+    "title": "mtp_thresh_from_coords",
+    "section": "",
+    "text": "Type\nDescription\n\n\n\n\nTypeError\nIf the coordinates input is not a list, geopandas GeoDataFrame, or pandas DataFrame.",
+    "crumbs": [
+      "Reference",
+      "Utilities",
+      "mtp_thresh_from_coords"
+    ]
+  },
+  {
     "objectID": "transformation-functions.html",
     "href": "transformation-functions.html",
     "title": "Suitability to deme size transformation functions",
@@ -1004,5 +585,424 @@
     "title": "Suitability to deme size transformation functions",
     "section": "",
     "text": "All transformations are performed on a raster with 0-1 suitability values (or a raster that will be normalized to 0-1). The output of the transformation is an array of the same shape as the input raster, but with values transformed according to the specified function.\nThe “linear” transformation multiplies the input values by the maximum local deme size (max_local_size).\nThe “threshold” transformation creates an array where values below the threshold value are set to zero and values about the threshold value are set to 1.\nThe “sigmoid” transformation applies a sigmoid function to the data using Eq. 1 from Frazier and Wang 2013, Modeling landscape structure response across a gradient of land cover intensity, where an inflection_point and slope are specified. The inflection_point can be thought of like a threshold value, where original values below this value descend quicker to zero, and values about this value increase quicker to 1. The slope determines how fast values change on either side of the inflection point. A sufficiently steep slope makes this a threshold function, while a sufficiently shallow slope makes this a linear function."
+  },
+  {
+    "objectID": "changelog.html",
+    "href": "changelog.html",
+    "title": "spaceprime",
+    "section": "",
+    "text": "Changelog\nAll notable changes to this project will be documented in this file. Dates are displayed in UTC.\nGenerated by auto-changelog.\n\nv0.0.3\n\n22 April 2024\n\n\nadd analysis module black fix 28ce742\nfinish first round of utilities functions- black fix 1b48527\nadd demography module and associated package updates- black fixes b4e292e\nblack fix c9d8981\nfinish up utilities 3a2daea\nupdate documentation- black fix 8f759de\nreformat function based on black 35b1d09\nfix some typing around integers- black fix 7fbec2d\nadd linting pre-commit hook 40adedf\nmore docs config 83d26aa\nclean up some files 3a8f372\ndebug demography functions black fix c575312\nfix mkdocs spacing ba3973f\nremove common module c447ef5\nclean up docs 182cfbc\nadd transformation docs 9c0dd29\nfix 4ad0fd9\nBump version: 0.0.2 → 0.0.3 70491b3\nblack fix f2384e1\nfix tests and forgot to add requirements 7ba1ef3\nfiguring out docs 753a6fe\nfix index and move stuff around 73fb2ac\nfix typo fea66dd\nadd pytest to ubuntu.yml 9520751\n\n\n\nv0.0.2\n\n4 April 2024\n\n\nadd package stuff 8de8843\nBump version: 0.0.1 → 0.0.2 43a7eb4\n\n\n\nv0.0.1\n\n4 April 2024\n\n\nfirst commit e322482"
+  },
+  {
+    "objectID": "contributing.html",
+    "href": "contributing.html",
+    "title": "Contributing",
+    "section": "",
+    "text": "Contributions are welcome, and they are greatly appreciated! Every little bit helps, and credit will always be given.\nYou can contribute in many ways:\n\n\n\n\nReport bugs at https://github.com/connor-french/spaceprime/issues.\nIf you are reporting a bug, please include:\n\nYour operating system name and version.\nAny details about your local setup that might be helpful in troubleshooting.\nDetailed steps to reproduce the bug.\n\n\n\n\nLook through the GitHub issues for bugs. Anything tagged with bug and help wanted is open to whoever wants to implement it.\n\n\n\nLook through the GitHub issues for features. Anything tagged with enhancement and help wanted is open to whoever wants to implement it.\n\n\n\nspaceprime could always use more documentation, whether as part of the official spaceprime docs, in docstrings, or even on the web in blog posts, articles, and such.\n\n\n\nThe best way to send feedback is to file an issue at https://github.com/connor-french/spaceprime/issues.\nIf you are proposing a feature:\n\nExplain in detail how it would work.\nKeep the scope as narrow as possible, to make it easier to implement.\nRemember that this is a volunteer-driven project, and that contributions are welcome :)\n\n\n\n\n\nReady to contribute? Here’s how to set up spaceprime for local development.\n\nFork the spaceprime repo on GitHub.\nClone your fork locally:\n$ git clone git@github.com:your_name_here/spaceprime.git\nInstall your local copy into a virtualenv. Assuming you have virtualenvwrapper installed, this is how you set up your fork for local development:\n$ mkvirtualenv spaceprime\n$ cd spaceprime/\n$ python setup.py develop\nCreate a branch for local development:\n$ git checkout -b name-of-your-bugfix-or-feature\nNow you can make your changes locally.\nWhen you’re done making changes, check that your changes pass flake8 and the tests, including testing other Python versions with tox:\n$ flake8 spaceprime tests\n$ python setup.py test or pytest\n$ tox\nTo get flake8 and tox, just pip install them into your virtualenv.\nCommit your changes and push your branch to GitHub:\n$ git add .\n$ git commit -m \"Your detailed description of your changes.\"\n$ git push origin name-of-your-bugfix-or-feature\nSubmit a pull request through the GitHub website.\n\n\n\n\nBefore you submit a pull request, check that it meets these guidelines:\n\nThe pull request should include tests.\nIf the pull request adds functionality, the docs should be updated. Put your new functionality into a function with a docstring, and add the feature to the list in README.rst.\nThe pull request should work for Python 3.8 and later, and for PyPy. Check https://github.com/connor-french/spaceprime/pull_requests and make sure that the tests pass for all supported Python versions."
+  },
+  {
+    "objectID": "contributing.html#types-of-contributions",
+    "href": "contributing.html#types-of-contributions",
+    "title": "Contributing",
+    "section": "",
+    "text": "Report bugs at https://github.com/connor-french/spaceprime/issues.\nIf you are reporting a bug, please include:\n\nYour operating system name and version.\nAny details about your local setup that might be helpful in troubleshooting.\nDetailed steps to reproduce the bug.\n\n\n\n\nLook through the GitHub issues for bugs. Anything tagged with bug and help wanted is open to whoever wants to implement it.\n\n\n\nLook through the GitHub issues for features. Anything tagged with enhancement and help wanted is open to whoever wants to implement it.\n\n\n\nspaceprime could always use more documentation, whether as part of the official spaceprime docs, in docstrings, or even on the web in blog posts, articles, and such.\n\n\n\nThe best way to send feedback is to file an issue at https://github.com/connor-french/spaceprime/issues.\nIf you are proposing a feature:\n\nExplain in detail how it would work.\nKeep the scope as narrow as possible, to make it easier to implement.\nRemember that this is a volunteer-driven project, and that contributions are welcome :)"
+  },
+  {
+    "objectID": "contributing.html#get-started",
+    "href": "contributing.html#get-started",
+    "title": "Contributing",
+    "section": "",
+    "text": "Ready to contribute? Here’s how to set up spaceprime for local development.\n\nFork the spaceprime repo on GitHub.\nClone your fork locally:\n$ git clone git@github.com:your_name_here/spaceprime.git\nInstall your local copy into a virtualenv. Assuming you have virtualenvwrapper installed, this is how you set up your fork for local development:\n$ mkvirtualenv spaceprime\n$ cd spaceprime/\n$ python setup.py develop\nCreate a branch for local development:\n$ git checkout -b name-of-your-bugfix-or-feature\nNow you can make your changes locally.\nWhen you’re done making changes, check that your changes pass flake8 and the tests, including testing other Python versions with tox:\n$ flake8 spaceprime tests\n$ python setup.py test or pytest\n$ tox\nTo get flake8 and tox, just pip install them into your virtualenv.\nCommit your changes and push your branch to GitHub:\n$ git add .\n$ git commit -m \"Your detailed description of your changes.\"\n$ git push origin name-of-your-bugfix-or-feature\nSubmit a pull request through the GitHub website."
+  },
+  {
+    "objectID": "contributing.html#pull-request-guidelines",
+    "href": "contributing.html#pull-request-guidelines",
+    "title": "Contributing",
+    "section": "",
+    "text": "Before you submit a pull request, check that it meets these guidelines:\n\nThe pull request should include tests.\nIf the pull request adds functionality, the docs should be updated. Put your new functionality into a function with a docstring, and add the feature to the list in README.rst.\nThe pull request should work for Python 3.8 and later, and for PyPy. Check https://github.com/connor-french/spaceprime/pull_requests and make sure that the tests pass for all supported Python versions."
+  },
+  {
+    "objectID": "reference/filter_gt.html",
+    "href": "reference/filter_gt.html",
+    "title": "filter_gt",
+    "section": "",
+    "text": "filter_gt(gt, deme_dict_inds=None, deme_dict_anc=None, missing_data_perc=0, r2_thresh=0.1, filter_monomorphic=True, filter_singletons=True)\nFilter genotype matrices output by ts.genotype_matrix() to filter out monomorphic sites, loci in linkage disequilibrium, and recreate missing data patterns common to empirical genotype data. Returns the genotype matrix and allele counts matrix for the filtered loci, and optionally allele counts matrices for demes and ancestral populations.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ngt\nnp.ndarray\nThe genotype matrix.\nrequired\n\n\ndeme_dict_inds\ndict\nA dictionary containing the indices of individuals in each deme. Defaults to None.\nNone\n\n\ndeme_dict_anc\ndict\nA dictionary containing the indices of individuals in each ancestral population. Defaults to None.\nNone\n\n\nmissing_data_perc\nfloat\nThe percentage of missing data allowed. Defaults to 0.\n0\n\n\nr2_thresh\nfloat\nThe threshold for linkage disequilibrium. Defaults to 0.1.\n0.1\n\n\nfilter_monomorphic\nbool\nWhether to filter out monomorphic sites, keeping only segregating sites. Defaults to True.\nTrue\n\n\nfilter_singletons\nbool\nWhether to filter out singletons. Defaults to True.\nTrue\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nTuple[allel.GenotypeArray, allel.AlleleCountsArray, Optional[Dict[str, allel.AlleleCountsArray]], Optional[Dict[str, allel.AlleleCountsArray]]]\nA tuple containing the filtered genotype matrix, the allele counts matrix, a dictionary of allele counts matrices for demes (if deme_dict_inds is provided), and a dictionary of allele counts matrices for ancestral populations (if deme_dict_anc is provided).\n\n\n\n\n\n\nThis function uses a random mask to simulate missing data in the genotype matrix. For reproducibility it’s advised to set a np.random.seed() before calling this function.",
+    "crumbs": [
+      "Reference",
+      "Analysis",
+      "filter_gt"
+    ]
+  },
+  {
+    "objectID": "reference/filter_gt.html#parameters",
+    "href": "reference/filter_gt.html#parameters",
+    "title": "filter_gt",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ngt\nnp.ndarray\nThe genotype matrix.\nrequired\n\n\ndeme_dict_inds\ndict\nA dictionary containing the indices of individuals in each deme. Defaults to None.\nNone\n\n\ndeme_dict_anc\ndict\nA dictionary containing the indices of individuals in each ancestral population. Defaults to None.\nNone\n\n\nmissing_data_perc\nfloat\nThe percentage of missing data allowed. Defaults to 0.\n0\n\n\nr2_thresh\nfloat\nThe threshold for linkage disequilibrium. Defaults to 0.1.\n0.1\n\n\nfilter_monomorphic\nbool\nWhether to filter out monomorphic sites, keeping only segregating sites. Defaults to True.\nTrue\n\n\nfilter_singletons\nbool\nWhether to filter out singletons. Defaults to True.\nTrue",
+    "crumbs": [
+      "Reference",
+      "Analysis",
+      "filter_gt"
+    ]
+  },
+  {
+    "objectID": "reference/filter_gt.html#returns",
+    "href": "reference/filter_gt.html#returns",
+    "title": "filter_gt",
+    "section": "",
+    "text": "Type\nDescription\n\n\n\n\nTuple[allel.GenotypeArray, allel.AlleleCountsArray, Optional[Dict[str, allel.AlleleCountsArray]], Optional[Dict[str, allel.AlleleCountsArray]]]\nA tuple containing the filtered genotype matrix, the allele counts matrix, a dictionary of allele counts matrices for demes (if deme_dict_inds is provided), and a dictionary of allele counts matrices for ancestral populations (if deme_dict_anc is provided).",
+    "crumbs": [
+      "Reference",
+      "Analysis",
+      "filter_gt"
+    ]
+  },
+  {
+    "objectID": "reference/filter_gt.html#notes",
+    "href": "reference/filter_gt.html#notes",
+    "title": "filter_gt",
+    "section": "",
+    "text": "This function uses a random mask to simulate missing data in the genotype matrix. For reproducibility it’s advised to set a np.random.seed() before calling this function.",
+    "crumbs": [
+      "Reference",
+      "Analysis",
+      "filter_gt"
+    ]
+  },
+  {
+    "objectID": "reference/calc_migration_matrix.html",
+    "href": "reference/calc_migration_matrix.html",
+    "title": "calc_migration_matrix",
+    "section": "",
+    "text": "calc_migration_matrix(demes, rate, scale=True)\nCalculates a migration matrix based on deme sizes and a global migration rate. The migration rate can be scaled based on population size or set as a constant.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ndemes\nnp.ndarray\nThe 2D numpy array representing the deme sizes.\nrequired\n\n\nrate\nfloat\nThe migration rate.\nrequired\n\n\nscale\nbool\nWhether to scale the migration rate based on population size. Default is True.\nTrue\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nnp.ndarray\nThe migration matrix as a 2D numpy array.",
+    "crumbs": [
+      "Reference",
+      "Utilities",
+      "calc_migration_matrix"
+    ]
+  },
+  {
+    "objectID": "reference/calc_migration_matrix.html#parameters",
+    "href": "reference/calc_migration_matrix.html#parameters",
+    "title": "calc_migration_matrix",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ndemes\nnp.ndarray\nThe 2D numpy array representing the deme sizes.\nrequired\n\n\nrate\nfloat\nThe migration rate.\nrequired\n\n\nscale\nbool\nWhether to scale the migration rate based on population size. Default is True.\nTrue",
+    "crumbs": [
+      "Reference",
+      "Utilities",
+      "calc_migration_matrix"
+    ]
+  },
+  {
+    "objectID": "reference/calc_migration_matrix.html#returns",
+    "href": "reference/calc_migration_matrix.html#returns",
+    "title": "calc_migration_matrix",
+    "section": "",
+    "text": "Type\nDescription\n\n\n\n\nnp.ndarray\nThe migration matrix as a 2D numpy array.",
+    "crumbs": [
+      "Reference",
+      "Utilities",
+      "calc_migration_matrix"
+    ]
+  },
+  {
+    "objectID": "reference/spDemography.html",
+    "href": "reference/spDemography.html",
+    "title": "spDemography",
+    "section": "",
+    "text": "spDemography(self, *args, **kwargs)\n\n\n\n\n\nName\nDescription\n\n\n\n\nadd_ancestral_populations\nAdds ancestral populations to the given demographic model, mapping demes in the spatial simulation to ancestral populations.\n\n\nstepping_stone_2d\nCreate a 2D stepping stone model, either for a single time step or for multiple time steps of deme size change.\n\n\n\n\n\nspDemography.add_ancestral_populations(anc_sizes, merge_time, anc_id=None, anc_merge_times=None, anc_merge_sizes=None, migration_rate=None)\nAdds ancestral populations to the given demographic model, mapping demes in the spatial simulation to ancestral populations.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nanc_sizes\nList[float]\nA list of ancestral population sizes.\nrequired\n\n\nmerge_time\nUnion[float, int]\nThe time at which all demes in the spatial simulation merge into one or more ancestral populations.\nrequired\n\n\nanc_id\nOptional[np.ndarray]\nAn array of ancestral population IDs- the output of [split_landscape_by_pop][utilities.split_landscape_by_pop]. Defaults to None.\nNone\n\n\nanc_merge_times\nOptional[List[float]]\nA list of merge times for ancestral populations. Defaults to None.\nNone\n\n\nanc_merge_sizes\nOptional[List[float]]\nA list of sizes for merged ancestral populations. Defaults to None.\nNone\n\n\nmigration_rate\nOptional[float]\nThe symmetric migration rate between ancestral populations. Defaults to None.\nNone\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nmsprime.Demography\nThe demographic model with the added ancestral populations.\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nValueError\nIf the model already contains ancestral populations.\n\n\nValueError\nIf the number of demes in the demographic model does not match the number of demes in the admixture ID raster.\n\n\n\n\n\n\nThe function adds ancestral populations to the given demographic model. If anc_id is not provided, a single ancestral population is added with the initial size specified in anc_sizes[0]. If anc_id is provided, a new ancestral population is added for each admixture population, with sizes specified in anc_sizes. The demes in the simulation are then merged into their respective ancestral populations based on the values in anc_id. If anc_merge_times is provided, the ancestral populations are merged at the specified times. If migration_rate is provided, symmetric migration is allowed between ancestral populations.\n\n\n\n\nspDemography.stepping_stone_2d(d, rate, scale=True, timesteps=None)\nCreate a 2D stepping stone model, either for a single time step or for multiple time steps of deme size change.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nd\nnumpy.ndarray\nThe demography matrix representing the population sizes.\nrequired\n\n\nrate\nfloat or numpy.ndarray\nThe migration rate(s) between populations. If a float, it represents a constant migration rate for all populations. If a numpy.ndarray, it represents a migration matrix with shape (T, N, N), where N is the total number of populations and T is the number of time steps - 1, if T &gt; 1.\nrequired\n\n\nscale\nbool\nWhether to scale the migration rate matrix. Default is True.\nTrue\n\n\ntimesteps\nUnion[int, List[int]]\nThe list of timesteps representing the amount of time passing between each demographic event, in generations. If a single integer is provided, the function assumes that the time steps are equal.\nNone\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nmsprime.Demography\nThe constructed 2d stepping stone model as an msprime.Demography object.\n\n\n\n\n\n\nThe demography matrix d should have shape (n, m) or (k, n, m), where n is the number of rows and m is the number of columns for a 2D array and k is the number of layers in a 3D array. The migration rate matrix rate should have shape (N, N), where N is the total number of populations. If there are multiple time steps of population size change, the add_landscape_change function is called to modify the model accordingly.",
+    "crumbs": [
+      "Reference",
+      "Demography",
+      "spDemography"
+    ]
+  },
+  {
+    "objectID": "reference/spDemography.html#methods",
+    "href": "reference/spDemography.html#methods",
+    "title": "spDemography",
+    "section": "",
+    "text": "Name\nDescription\n\n\n\n\nadd_ancestral_populations\nAdds ancestral populations to the given demographic model, mapping demes in the spatial simulation to ancestral populations.\n\n\nstepping_stone_2d\nCreate a 2D stepping stone model, either for a single time step or for multiple time steps of deme size change.\n\n\n\n\n\nspDemography.add_ancestral_populations(anc_sizes, merge_time, anc_id=None, anc_merge_times=None, anc_merge_sizes=None, migration_rate=None)\nAdds ancestral populations to the given demographic model, mapping demes in the spatial simulation to ancestral populations.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nanc_sizes\nList[float]\nA list of ancestral population sizes.\nrequired\n\n\nmerge_time\nUnion[float, int]\nThe time at which all demes in the spatial simulation merge into one or more ancestral populations.\nrequired\n\n\nanc_id\nOptional[np.ndarray]\nAn array of ancestral population IDs- the output of [split_landscape_by_pop][utilities.split_landscape_by_pop]. Defaults to None.\nNone\n\n\nanc_merge_times\nOptional[List[float]]\nA list of merge times for ancestral populations. Defaults to None.\nNone\n\n\nanc_merge_sizes\nOptional[List[float]]\nA list of sizes for merged ancestral populations. Defaults to None.\nNone\n\n\nmigration_rate\nOptional[float]\nThe symmetric migration rate between ancestral populations. Defaults to None.\nNone\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nmsprime.Demography\nThe demographic model with the added ancestral populations.\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nValueError\nIf the model already contains ancestral populations.\n\n\nValueError\nIf the number of demes in the demographic model does not match the number of demes in the admixture ID raster.\n\n\n\n\n\n\nThe function adds ancestral populations to the given demographic model. If anc_id is not provided, a single ancestral population is added with the initial size specified in anc_sizes[0]. If anc_id is provided, a new ancestral population is added for each admixture population, with sizes specified in anc_sizes. The demes in the simulation are then merged into their respective ancestral populations based on the values in anc_id. If anc_merge_times is provided, the ancestral populations are merged at the specified times. If migration_rate is provided, symmetric migration is allowed between ancestral populations.\n\n\n\n\nspDemography.stepping_stone_2d(d, rate, scale=True, timesteps=None)\nCreate a 2D stepping stone model, either for a single time step or for multiple time steps of deme size change.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nd\nnumpy.ndarray\nThe demography matrix representing the population sizes.\nrequired\n\n\nrate\nfloat or numpy.ndarray\nThe migration rate(s) between populations. If a float, it represents a constant migration rate for all populations. If a numpy.ndarray, it represents a migration matrix with shape (T, N, N), where N is the total number of populations and T is the number of time steps - 1, if T &gt; 1.\nrequired\n\n\nscale\nbool\nWhether to scale the migration rate matrix. Default is True.\nTrue\n\n\ntimesteps\nUnion[int, List[int]]\nThe list of timesteps representing the amount of time passing between each demographic event, in generations. If a single integer is provided, the function assumes that the time steps are equal.\nNone\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nmsprime.Demography\nThe constructed 2d stepping stone model as an msprime.Demography object.\n\n\n\n\n\n\nThe demography matrix d should have shape (n, m) or (k, n, m), where n is the number of rows and m is the number of columns for a 2D array and k is the number of layers in a 3D array. The migration rate matrix rate should have shape (N, N), where N is the total number of populations. If there are multiple time steps of population size change, the add_landscape_change function is called to modify the model accordingly.",
+    "crumbs": [
+      "Reference",
+      "Demography",
+      "spDemography"
+    ]
+  },
+  {
+    "objectID": "reference/index.html",
+    "href": "reference/index.html",
+    "title": "Reference",
+    "section": "",
+    "text": "Functions for processing data.\n\n\n\nanc_to_deme_dict\nConverts the ancestral population assignments of demes into a dictionary mapping ancestral population IDs to deme indices.\n\n\ncalc_migration_matrix\nCalculates a migration matrix based on deme sizes and a global migration rate. The migration rate can be scaled based on population size or set as a constant.\n\n\ncoords_to_deme_dict\nFinds the cells a given set of coordinates belong to in a raster and returns a dictionary mapping the cell indices to the centroid coordinates of those cells.\n\n\ncoords_to_sample_dict\nConvert sample coordinates to sample dictionaries for simulation and analysis. Can optionally include empirical data, which is accepted as a path to a VCF file.\n\n\ncreate_raster\nCreates a raster dataset from a numpy array and reference raster and writes it to a new GeoTiff file.\n\n\nmtp_thresh_from_coords\nThis function takes the coordinates of empirical sampling localities, finds which raster cells they belong to, extracts the values of the first layer for those localities, and finds the minimum value.\n\n\nraster_to_demes\nConverts a raster to a 2D np.ndarray of deme sizes using either linear, threshold, or sigmoid transformation functions. For more detail about transformation functions, see this brief overview.\n\n\nsplit_landscape_by_pop\nUses nearest-neighbor interpolation to classify a landscape raster based on the ancestral population assigned to sampled individuals.\n\n\n\n\n\n\nMethods to create and manipulate demographic models.\n\n\n\nspDemography\n\n\n\nspDemography.add_ancestral_populations\nAdds ancestral populations to the given demographic model, mapping demes in the spatial simulation to ancestral populations.\n\n\nspDemography.stepping_stone_2d\nCreate a 2D stepping stone model, either for a single time step or for multiple time steps of deme size change.\n\n\n\n\n\n\nFunctions for visualizing data.\n\n\n\nplot_landscape\nPlots a static map of a transformed landscape at the timestep of your choice.\n\n\nplot_model\nPlots the demes and migration rates for a given timestep as an interactive map.\n\n\nplot_timeseries\nPlots the total number of individuals across the landscape across time.\n\n\n\n\n\n\nThin wrappers around msprime simulation functions.\n\n\n\nsim_ancestry\nA thin wrapper around msprime.sim_ancestry.\n\n\nsim_mutations\nA thin wrapper around msprime.sim_mutations.\n\n\n\n\n\n\nFunctions for analyzing data.\n\n\n\ncalc_sumstats\nCalculates a suite of genetic summary statistics on allele counts matrices generated by filter_gt or otherwise generated through scikit-allel.\n\n\nfilter_gt\nFilter genotype matrices output by ts.genotype_matrix() to filter out monomorphic sites, loci in linkage disequilibrium, and recreate missing data patterns common to empirical genotype data.",
+    "crumbs": [
+      "Reference"
+    ]
+  },
+  {
+    "objectID": "reference/index.html#utilities",
+    "href": "reference/index.html#utilities",
+    "title": "Reference",
+    "section": "",
+    "text": "Functions for processing data.\n\n\n\nanc_to_deme_dict\nConverts the ancestral population assignments of demes into a dictionary mapping ancestral population IDs to deme indices.\n\n\ncalc_migration_matrix\nCalculates a migration matrix based on deme sizes and a global migration rate. The migration rate can be scaled based on population size or set as a constant.\n\n\ncoords_to_deme_dict\nFinds the cells a given set of coordinates belong to in a raster and returns a dictionary mapping the cell indices to the centroid coordinates of those cells.\n\n\ncoords_to_sample_dict\nConvert sample coordinates to sample dictionaries for simulation and analysis. Can optionally include empirical data, which is accepted as a path to a VCF file.\n\n\ncreate_raster\nCreates a raster dataset from a numpy array and reference raster and writes it to a new GeoTiff file.\n\n\nmtp_thresh_from_coords\nThis function takes the coordinates of empirical sampling localities, finds which raster cells they belong to, extracts the values of the first layer for those localities, and finds the minimum value.\n\n\nraster_to_demes\nConverts a raster to a 2D np.ndarray of deme sizes using either linear, threshold, or sigmoid transformation functions. For more detail about transformation functions, see this brief overview.\n\n\nsplit_landscape_by_pop\nUses nearest-neighbor interpolation to classify a landscape raster based on the ancestral population assigned to sampled individuals.",
+    "crumbs": [
+      "Reference"
+    ]
+  },
+  {
+    "objectID": "reference/index.html#demography",
+    "href": "reference/index.html#demography",
+    "title": "Reference",
+    "section": "",
+    "text": "Methods to create and manipulate demographic models.\n\n\n\nspDemography\n\n\n\nspDemography.add_ancestral_populations\nAdds ancestral populations to the given demographic model, mapping demes in the spatial simulation to ancestral populations.\n\n\nspDemography.stepping_stone_2d\nCreate a 2D stepping stone model, either for a single time step or for multiple time steps of deme size change.",
+    "crumbs": [
+      "Reference"
+    ]
+  },
+  {
+    "objectID": "reference/index.html#plotting",
+    "href": "reference/index.html#plotting",
+    "title": "Reference",
+    "section": "",
+    "text": "Functions for visualizing data.\n\n\n\nplot_landscape\nPlots a static map of a transformed landscape at the timestep of your choice.\n\n\nplot_model\nPlots the demes and migration rates for a given timestep as an interactive map.\n\n\nplot_timeseries\nPlots the total number of individuals across the landscape across time.",
+    "crumbs": [
+      "Reference"
+    ]
+  },
+  {
+    "objectID": "reference/index.html#simulation",
+    "href": "reference/index.html#simulation",
+    "title": "Reference",
+    "section": "",
+    "text": "Thin wrappers around msprime simulation functions.\n\n\n\nsim_ancestry\nA thin wrapper around msprime.sim_ancestry.\n\n\nsim_mutations\nA thin wrapper around msprime.sim_mutations.",
+    "crumbs": [
+      "Reference"
+    ]
+  },
+  {
+    "objectID": "reference/index.html#analysis",
+    "href": "reference/index.html#analysis",
+    "title": "Reference",
+    "section": "",
+    "text": "Functions for analyzing data.\n\n\n\ncalc_sumstats\nCalculates a suite of genetic summary statistics on allele counts matrices generated by filter_gt or otherwise generated through scikit-allel.\n\n\nfilter_gt\nFilter genotype matrices output by ts.genotype_matrix() to filter out monomorphic sites, loci in linkage disequilibrium, and recreate missing data patterns common to empirical genotype data.",
+    "crumbs": [
+      "Reference"
+    ]
+  },
+  {
+    "objectID": "reference/plot_landscape.html",
+    "href": "reference/plot_landscape.html",
+    "title": "plot_landscape",
+    "section": "",
+    "text": "plot_landscape(demo, raster, timestep, cmap='viridis', legend=True, basemap=False)\nPlots a static map of a transformed landscape at the timestep of your choice.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ndemo\nspaceprime.spDemography\nThe demographic model to plot.\nrequired\n\n\nraster\nrasterio.DatasetReader\nThe raster dataset used to create the demes matrix(es).\nrequired\n\n\ntimestep\nint\nThe timestep to plot.\nrequired\n\n\ncmap\nstr\nThe colormap to use. Defaults to “viridis”.\n'viridis'\n\n\nlegend\nbool\nWhether to show the colorbar legend. Defaults to True.\nTrue\n\n\nbasemap\nbool\nWhether to add a basemap. Requires an internet connection. Defaults to False.\nFalse\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nmatplotlib.axes.Axes\nA plot of the transformed landscape.\n\n\n\n\n\n\nSetting basemap=True requires an internet connection to download the basemap tiles. It may take some time to load the tiles depending on your internet speed. Since this function returns a matplotlib axes object, you can further modify the plot with the matplotlib library.",
+    "crumbs": [
+      "Reference",
+      "Plotting",
+      "plot_landscape"
+    ]
+  },
+  {
+    "objectID": "reference/plot_landscape.html#parameters",
+    "href": "reference/plot_landscape.html#parameters",
+    "title": "plot_landscape",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ndemo\nspaceprime.spDemography\nThe demographic model to plot.\nrequired\n\n\nraster\nrasterio.DatasetReader\nThe raster dataset used to create the demes matrix(es).\nrequired\n\n\ntimestep\nint\nThe timestep to plot.\nrequired\n\n\ncmap\nstr\nThe colormap to use. Defaults to “viridis”.\n'viridis'\n\n\nlegend\nbool\nWhether to show the colorbar legend. Defaults to True.\nTrue\n\n\nbasemap\nbool\nWhether to add a basemap. Requires an internet connection. Defaults to False.\nFalse",
+    "crumbs": [
+      "Reference",
+      "Plotting",
+      "plot_landscape"
+    ]
+  },
+  {
+    "objectID": "reference/plot_landscape.html#returns",
+    "href": "reference/plot_landscape.html#returns",
+    "title": "plot_landscape",
+    "section": "",
+    "text": "Type\nDescription\n\n\n\n\nmatplotlib.axes.Axes\nA plot of the transformed landscape.",
+    "crumbs": [
+      "Reference",
+      "Plotting",
+      "plot_landscape"
+    ]
+  },
+  {
+    "objectID": "reference/plot_landscape.html#note",
+    "href": "reference/plot_landscape.html#note",
+    "title": "plot_landscape",
+    "section": "",
+    "text": "Setting basemap=True requires an internet connection to download the basemap tiles. It may take some time to load the tiles depending on your internet speed. Since this function returns a matplotlib axes object, you can further modify the plot with the matplotlib library.",
+    "crumbs": [
+      "Reference",
+      "Plotting",
+      "plot_landscape"
+    ]
+  },
+  {
+    "objectID": "reference/calc_sumstats.html",
+    "href": "reference/calc_sumstats.html",
+    "title": "calc_sumstats",
+    "section": "",
+    "text": "calc_sumstats(ac, coords_dict, anc_demes_dict=None, ac_demes=None, ac_anc=None, between_anc_pop_sumstats=False, return_df=False, precision=6)\nCalculates a suite of genetic summary statistics on allele counts matrices generated by filter_gt or otherwise generated through scikit-allel. The required input is an allele counts matrix for all individuals/demes, and a dictionary mapping deme IDs to their coordinates, generated by coords_to_deme_dict. Optional inputs are dictionaries mapping ancestral population IDs to their constituent demes (anc_demes_dict), an dictionary of allele counts matrices for each deme (ac_demes), and dictionary of allele counts matrices for each ancestral population (ac_anc).\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nac\nnp.ndarray\nAn allele counts matrix for all individuals/demes.\nrequired\n\n\ncoords_dict\ndict\nA dictionary mapping deme IDs to their coordinates, generated by [coords_to_deme_dict][utilities.coords_to_deme_dict].\nrequired\n\n\nanc_demes_dict\ndict\nA dictionary mapping ancestral population IDs to their constituent demes. Defaults to None.\nNone\n\n\nac_demes\ndict\nA dictionary mapping deme IDs to their allele counts matrices. Necessary if you want to calculate Fst or Dxy between demes. Defaults to None.\nNone\n\n\nac_anc\ndict\nA dictionary mapping ancestral population IDs to their allel counts matrices. If provided, summary statistics are calculated within ancestral populations and not among them. Defaults to None.\nNone\n\n\nbetween_anc_pop_sumstats\nbool\nWhether to calculate Fst or Dxy between ancestral populations. Defaults to False.\nFalse\n\n\nreturn_df\nbool\nWhether to return the summary statistics as a pandas DataFrame. Defaults to False.\nFalse\n\n\nprecision\nint\nThe number of decimal places to round the summary statistics to. Defaults to 6.\n6\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\ndict\nA dictionary of summary statistics.\n\n\n\n\n\n\nThis function calculates the following summary statistics, either species-wide or per ancestral population, if provided: - Site Frequency Spectrum Hill numbers (q1 and q2), corrected for the number of sites - Pi (nucleotide diversity) - Tajima’s D - Pairwise Dxy - If between_anc_pop_sumstats is True, also calculates pairwise Dxy and Hudson’s FST between ancestral populations - Pairwise Hudson’s FST - If between_anc_pop_sumstats is True, also calculates pairwise Dxy and Hudson’s FST between ancestral populations - Isolation-by-distance slope and R2 - Moran’s I",
+    "crumbs": [
+      "Reference",
+      "Analysis",
+      "calc_sumstats"
+    ]
+  },
+  {
+    "objectID": "reference/calc_sumstats.html#parameters",
+    "href": "reference/calc_sumstats.html#parameters",
+    "title": "calc_sumstats",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nac\nnp.ndarray\nAn allele counts matrix for all individuals/demes.\nrequired\n\n\ncoords_dict\ndict\nA dictionary mapping deme IDs to their coordinates, generated by [coords_to_deme_dict][utilities.coords_to_deme_dict].\nrequired\n\n\nanc_demes_dict\ndict\nA dictionary mapping ancestral population IDs to their constituent demes. Defaults to None.\nNone\n\n\nac_demes\ndict\nA dictionary mapping deme IDs to their allele counts matrices. Necessary if you want to calculate Fst or Dxy between demes. Defaults to None.\nNone\n\n\nac_anc\ndict\nA dictionary mapping ancestral population IDs to their allel counts matrices. If provided, summary statistics are calculated within ancestral populations and not among them. Defaults to None.\nNone\n\n\nbetween_anc_pop_sumstats\nbool\nWhether to calculate Fst or Dxy between ancestral populations. Defaults to False.\nFalse\n\n\nreturn_df\nbool\nWhether to return the summary statistics as a pandas DataFrame. Defaults to False.\nFalse\n\n\nprecision\nint\nThe number of decimal places to round the summary statistics to. Defaults to 6.\n6",
+    "crumbs": [
+      "Reference",
+      "Analysis",
+      "calc_sumstats"
+    ]
+  },
+  {
+    "objectID": "reference/calc_sumstats.html#returns",
+    "href": "reference/calc_sumstats.html#returns",
+    "title": "calc_sumstats",
+    "section": "",
+    "text": "Type\nDescription\n\n\n\n\ndict\nA dictionary of summary statistics.",
+    "crumbs": [
+      "Reference",
+      "Analysis",
+      "calc_sumstats"
+    ]
+  },
+  {
+    "objectID": "reference/calc_sumstats.html#notes",
+    "href": "reference/calc_sumstats.html#notes",
+    "title": "calc_sumstats",
+    "section": "",
+    "text": "This function calculates the following summary statistics, either species-wide or per ancestral population, if provided: - Site Frequency Spectrum Hill numbers (q1 and q2), corrected for the number of sites - Pi (nucleotide diversity) - Tajima’s D - Pairwise Dxy - If between_anc_pop_sumstats is True, also calculates pairwise Dxy and Hudson’s FST between ancestral populations - Pairwise Hudson’s FST - If between_anc_pop_sumstats is True, also calculates pairwise Dxy and Hudson’s FST between ancestral populations - Isolation-by-distance slope and R2 - Moran’s I",
+    "crumbs": [
+      "Reference",
+      "Analysis",
+      "calc_sumstats"
+    ]
+  },
+  {
+    "objectID": "reference/raster_to_demes.html",
+    "href": "reference/raster_to_demes.html",
+    "title": "raster_to_demes",
+    "section": "",
+    "text": "raster_to_demes(raster, transformation='linear', max_local_size=1000, normalize=False, threshold=None, thresh_norm=False, inflection_point=0.5, slope=0.05)\nConverts a raster to a 2D np.ndarray of deme sizes using either linear, threshold, or sigmoid transformation functions. For more detail about transformation functions, see this brief overview. Raster data should be continuous and positive. This function was created with the idea of taking in habitat suitability rasters scaled from 0 to 1, where 0 is no suitability and 1 is the highest suitability. However, it is flexible enough to accommodate other continuous rasters that can be coaxed to a 0 to 1 scale with the operation (data - np.min(data)) / (np.max(data) - np.min(data)) by setting the normalize flag to True.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nraster\nUnion[np.ndarray, rasterio.DatasetReader]\nThe input raster data. It can be a numpy array or a rasterio DatasetReader with one or more layers.\nrequired\n\n\ntransformation\nstr\nThe transformation function to be used. Options are “linear”, “threshold”, and “sigmoid”. Default is “linear”.\n'linear'\n\n\nmax_local_size\nint\nThe maximum local deme size. Default is 1000.\n1000\n\n\nnormalize\nbool\nWhether to normalize the raster data. Use if your data is not scaled from 0-1. Default is False.\nFalse\n\n\nthreshold\nfloat\nThe threshold value for the “threshold” transformation method. Default is None.\nNone\n\n\nthresh_norm\nbool\nWhether to normalize the local deme size based on the average suitability above the threshold. This is useful when comparing thresholded simulations with linear or sigmoid simulations, to maintain similar landscape-wide population sizes across max_local_size values. Default is False.\nFalse\n\n\ninflection_point\nfloat\nThe inflection point for the “sigmoid” transformation method. Default is 0.5.\n0.5\n\n\nslope\nfloat\nThe slope value for the “sigmoid” transformation method. Default is 0.05.\n0.05\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nnp.ndarray\nAn ndarray of deme sizes.",
+    "crumbs": [
+      "Reference",
+      "Utilities",
+      "raster_to_demes"
+    ]
+  },
+  {
+    "objectID": "reference/raster_to_demes.html#parameters",
+    "href": "reference/raster_to_demes.html#parameters",
+    "title": "raster_to_demes",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nraster\nUnion[np.ndarray, rasterio.DatasetReader]\nThe input raster data. It can be a numpy array or a rasterio DatasetReader with one or more layers.\nrequired\n\n\ntransformation\nstr\nThe transformation function to be used. Options are “linear”, “threshold”, and “sigmoid”. Default is “linear”.\n'linear'\n\n\nmax_local_size\nint\nThe maximum local deme size. Default is 1000.\n1000\n\n\nnormalize\nbool\nWhether to normalize the raster data. Use if your data is not scaled from 0-1. Default is False.\nFalse\n\n\nthreshold\nfloat\nThe threshold value for the “threshold” transformation method. Default is None.\nNone\n\n\nthresh_norm\nbool\nWhether to normalize the local deme size based on the average suitability above the threshold. This is useful when comparing thresholded simulations with linear or sigmoid simulations, to maintain similar landscape-wide population sizes across max_local_size values. Default is False.\nFalse\n\n\ninflection_point\nfloat\nThe inflection point for the “sigmoid” transformation method. Default is 0.5.\n0.5\n\n\nslope\nfloat\nThe slope value for the “sigmoid” transformation method. Default is 0.05.\n0.05",
+    "crumbs": [
+      "Reference",
+      "Utilities",
+      "raster_to_demes"
+    ]
+  },
+  {
+    "objectID": "reference/raster_to_demes.html#returns",
+    "href": "reference/raster_to_demes.html#returns",
+    "title": "raster_to_demes",
+    "section": "",
+    "text": "Type\nDescription\n\n\n\n\nnp.ndarray\nAn ndarray of deme sizes.",
+    "crumbs": [
+      "Reference",
+      "Utilities",
+      "raster_to_demes"
+    ]
+  },
+  {
+    "objectID": "reference/coords_to_deme_dict.html",
+    "href": "reference/coords_to_deme_dict.html",
+    "title": "coords_to_deme_dict",
+    "section": "",
+    "text": "coords_to_deme_dict(raster, coordinates)\nFinds the cells a given set of coordinates belong to in a raster and returns a dictionary mapping the cell indices to the centroid coordinates of those cells. Because the cells correspond with demes in the 2D stepping stone models, the cell indices are considered deme indices. The coordinates typically correspond to empirical data that the simulations need to be sampled from.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nraster\nrasterio.DatasetReader\nThe raster data as a rasterio DatasetReader object.\nrequired\n\n\ncoordinates\nUnion[List[Tuple[float, float]], gpd.GeoDataFrame]\nA list of (x, y) coordinates or a geopandas GeoDataFrame.\nrequired\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nDict[int, List[float]]\nA dictionary mapping deme indices to their corresponding coordinates.",
+    "crumbs": [
+      "Reference",
+      "Utilities",
+      "coords_to_deme_dict"
+    ]
+  },
+  {
+    "objectID": "reference/coords_to_deme_dict.html#parameters",
+    "href": "reference/coords_to_deme_dict.html#parameters",
+    "title": "coords_to_deme_dict",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nraster\nrasterio.DatasetReader\nThe raster data as a rasterio DatasetReader object.\nrequired\n\n\ncoordinates\nUnion[List[Tuple[float, float]], gpd.GeoDataFrame]\nA list of (x, y) coordinates or a geopandas GeoDataFrame.\nrequired",
+    "crumbs": [
+      "Reference",
+      "Utilities",
+      "coords_to_deme_dict"
+    ]
+  },
+  {
+    "objectID": "reference/coords_to_deme_dict.html#returns",
+    "href": "reference/coords_to_deme_dict.html#returns",
+    "title": "coords_to_deme_dict",
+    "section": "",
+    "text": "Type\nDescription\n\n\n\n\nDict[int, List[float]]\nA dictionary mapping deme indices to their corresponding coordinates.",
+    "crumbs": [
+      "Reference",
+      "Utilities",
+      "coords_to_deme_dict"
+    ]
+  },
+  {
+    "objectID": "reference/split_landscape_by_pop.html",
+    "href": "reference/split_landscape_by_pop.html",
+    "title": "split_landscape_by_pop",
+    "section": "",
+    "text": "split_landscape_by_pop(raster, coordinates, anc_pop_id, band_index=1, mask_rast=False)\nUses nearest-neighbor interpolation to classify a landscape raster based on the ancestral population assigned to sampled individuals. This function takes in a raster and a list of coordinates and ancestral population IDs assigned to each individual in the empirical data set. It then interpolates the population IDs across the landscape and returns the new raster as a masked array.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nraster\nrasterio.DatasetReader\nThe rasterio DatasetReader object representing the landscape raster that you want to divide.\nrequired\n\n\ncoordinates\nUnion[List[Tuple[float, float]], gpd.GeoDataFrame]\nA list of (x, y) coordinates or a geopandas GeoDataFrame representing the coordinates assigned to each individual in the empirical data set.\nrequired\n\n\nanc_pop_id\nList[Union[int, np.integer]]\nA list of ancestral population IDs assigned to each empirical individual1.\nrequired\n\n\nband_index\nint\nThe index of the raster to read in. Default is 1. Note- rasterio begins indexing at 1 for raster bands.\n1\n\n\nmask_rast\nbool\nWhether to mask the interpolation by the landscape. Default is False.\nFalse\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nnp.ma.MaskedArray\nThe new population assignment raster as a masked array.",
+    "crumbs": [
+      "Reference",
+      "Utilities",
+      "split_landscape_by_pop"
+    ]
+  },
+  {
+    "objectID": "reference/split_landscape_by_pop.html#parameters",
+    "href": "reference/split_landscape_by_pop.html#parameters",
+    "title": "split_landscape_by_pop",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nraster\nrasterio.DatasetReader\nThe rasterio DatasetReader object representing the landscape raster that you want to divide.\nrequired\n\n\ncoordinates\nUnion[List[Tuple[float, float]], gpd.GeoDataFrame]\nA list of (x, y) coordinates or a geopandas GeoDataFrame representing the coordinates assigned to each individual in the empirical data set.\nrequired\n\n\nanc_pop_id\nList[Union[int, np.integer]]\nA list of ancestral population IDs assigned to each empirical individual1.\nrequired\n\n\nband_index\nint\nThe index of the raster to read in. Default is 1. Note- rasterio begins indexing at 1 for raster bands.\n1\n\n\nmask_rast\nbool\nWhether to mask the interpolation by the landscape. Default is False.\nFalse",
+    "crumbs": [
+      "Reference",
+      "Utilities",
+      "split_landscape_by_pop"
+    ]
+  },
+  {
+    "objectID": "reference/split_landscape_by_pop.html#returns",
+    "href": "reference/split_landscape_by_pop.html#returns",
+    "title": "split_landscape_by_pop",
+    "section": "",
+    "text": "Type\nDescription\n\n\n\n\nnp.ma.MaskedArray\nThe new population assignment raster as a masked array.",
+    "crumbs": [
+      "Reference",
+      "Utilities",
+      "split_landscape_by_pop"
+    ]
+  },
+  {
+    "objectID": "reference/split_landscape_by_pop.html#footnotes",
+    "href": "reference/split_landscape_by_pop.html#footnotes",
+    "title": "split_landscape_by_pop",
+    "section": "Footnotes",
+    "text": "Footnotes\n\n\nThese IDs are assigned to each empirical individual typically based on genetic clustering methods like STRUCTURE or PCA. The IDs are used to assign individuals to ancestral populations in the landscape.↩︎",
+    "crumbs": [
+      "Reference",
+      "Utilities",
+      "split_landscape_by_pop"
+    ]
   }
 ]

@@ -1,9 +1,6 @@
 [project]
 name = "spaceprime"
 version = "0.0.5"
-dynamic = [
-    "dependencies",
-]
 description = "A python package to facilitate spatially explicit coalescent modeling in msprime"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -24,6 +21,22 @@ classifiers = [
     "Programming Language :: Python :: 3.13"
 ]
 
+# Dependencies are now specified directly rather than dynamically
+dependencies = [
+    "numpy<2",
+    "typing",
+    "msprime",
+    "rasterio>=1.0.0",
+    "scipy",
+    "shapely",
+    "geopandas",
+    "scikit-allel",
+    "contextily",
+    "matplotlib",
+    "folium",
+    "mapclassify",
+]
+
 [project.scripts]
 spaceprime = "spaceprime.cli:main"
 
@@ -35,51 +48,39 @@ all = [
 analysis = [
     "esda >= 2.5.1",
     "libpysal >= 4.10",
-    "sklearn",
-    "itertools",
+    "scikit-learn",
     "pandas",
 ]
-
-
-[tool]
-[tool.setuptools.packages.find]
-include = ["spaceprime*"]
-exclude = ["docs*"]
-
-[tool.setuptools.dynamic]
-dependencies = {file = ["requirements.txt"]}
-
-
-[tool.distutils.bdist_wheel]
-universal = true
-
-
-[tool.bumpversion]
-current_version = "0.0.5"
-commit = true
-tag = true
-
-[[tool.bumpversion.files]]
-filename = "pyproject.toml"
-search = 'version = "{current_version}"'
-replace = 'version = "{new_version}"'
-
-[[tool.bumpversion.files]]
-filename = "spaceprime/__init__.py"
-search = '__version__ = "{current_version}"'
-replace = '__version__ = "{new_version}"'
-
-
-[tool.flake8]
-exclude = [
-    "docs",
-]
-max-line-length = 88
-
 
 [project.urls]
 Homepage = "https://github.com/connor-french/spaceprime"
 
 [build-system]
-requires = ["setuptools>=64", "setuptools_scm>=8"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling>=1.12.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["spaceprime"]
+
+[tool.hatch.version]
+path = "spaceprime/__init__.py"
+
+# Keep your pixi configuration
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["linux-64", "osx-arm64", "osx-64"]
+
+[tool.pixi.pypi-dependencies]
+spaceprime = { path = ".", editable = true }
+
+[tool.pixi.environments]
+default = { solve-group = "default" }
+all = { features = ["all", "analysis"], solve-group = "default" }
+analysis = { features = ["analysis"], solve-group = "default" }
+
+# Keep other tools you need
+[tool.flake8]
+exclude = [
+    "docs",
+]
+max-line-length = 88

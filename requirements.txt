@@ -1,7 +1,7 @@
 numpy<2
 typing
 msprime
-rasterio >= 1.0.0
+rasterio>=1.0.0
 scipy 
 shapely
 geopandas
@@ -11,8 +11,8 @@ matplotlib
 folium
 mapclassify
 
-# analysis
-esda >= 2.5.1
-libpysal >= 4.10
+
+esda>=2.5.1
+libpysal>=4.10
 scikit-learn
 pandas

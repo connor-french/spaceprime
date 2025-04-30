@@ -28,9 +28,9 @@ jobs:
             uses: actions/setup-python@v5
             with:
               python-version: ${{ matrix.python-version}}
-              - name: Install GSL
-                run: |
-                  brew install gsl
+          - name: Install GSL
+            run: |
+              brew install gsl
           - name: Install GDAL
             run: |
               brew install gdal

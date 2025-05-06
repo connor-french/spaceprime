@@ -1,10 +1,6 @@
 # file: .pre-commit-config.yaml
 repos:
-  - repo: https://github.com/PyCQA/isort
-    rev: 5.13.2
-    hooks:
-      - id: isort
-        files: \.py$
+  # Removed isort as Ruff now handles this
 
   # Misc commit checks using built in pre-commit checks
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -19,19 +15,21 @@ repos:
       - id: check-case-conflict
       - id: trailing-whitespace
 
-  # Linting: Python code (see the file .flake8)
-  - repo: https://github.com/PyCQA/flake8
-    rev: "7.0.0"
+  # Ruff (replaces both flake8 and isort)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.13
     hooks:
-      - id: flake8
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+        args: [--check]
 
-# Black for auto code formatting
-repos:
-- repo: https://github.com/psf/black
-  rev: 24.3.0
-  hooks:
-  - id: black
-    language_version: python3
+  # Black for auto code formatting
+  - repo: https://github.com/psf/black
+    rev: 24.3.0
+    hooks:
+      - id: black
+        language_version: python3
 
 # Tell precommit.ci bot to update code format tools listed in the file
 # versions every quarter

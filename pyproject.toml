@@ -22,7 +22,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "numpy<2",
+    "numpy",
     "typing",
     "msprime",
     "rasterio>=1.0.0",
@@ -34,6 +34,7 @@ dependencies = [
     "matplotlib",
     "folium",
     "mapclassify",
+    # GDAL is intentionally not listed here to avoid version conflicts
 ]
 
 [project.scripts]
@@ -51,6 +52,31 @@ analysis = [
     "pandas",
 ]
 
+dev = [
+    "hatchling>=1.12.0",
+    "black",
+    "black[jupyter]",
+    "build",
+    "bump-my-version",
+    "codespell",
+    "wheel",
+    "ruff",
+    "twine",
+    "click",
+    "pre-commit",
+    "pytest",
+    "pytest-runner",
+    "pytest-cov",
+    "ipykernel",
+    "livereload",
+    "nbconvert",
+    "nbformat",
+    "sphinx",
+    "watchdog",
+    "pygments",
+    "pymdown-extensions",
+]
+
 [project.urls]
 Homepage = "https://github.com/connor-french/spaceprime"
 
@@ -64,22 +90,58 @@ packages = ["spaceprime"]
 [tool.hatch.version]
 path = "spaceprime/__init__.py"
 
-# Keep your pixi configuration
+# Minimal Pixi configuration
 [tool.pixi.workspace]
 channels = ["conda-forge"]
 platforms = ["linux-64", "osx-arm64", "osx-64"]
 
-[tool.pixi.pypi-dependencies]
-spaceprime = { path = ".", editable = true }
+# Add specific dependencies for Pixi - use * to get latest version
+[tool.pixi.dependencies]
+gdal = "*"
+libgdal = "*"
 
+# Restore environments configuration
 [tool.pixi.environments]
-default = { solve-group = "default" }
-all = { features = ["all", "analysis"], solve-group = "default" }
-analysis = { features = ["analysis"], solve-group = "default" }
+default = { features = [] }
+analysis = { features = ["analysis"] }
+dev = { features = ["dev"] }
+all = { features = ["analysis", "dev"] }
 
-# Keep other tools you need
-[tool.flake8]
+# Define tasks for convenience
+[tool.pixi.tasks]
+test = "pytest tests/"
+coverage = "pytest --cov=spaceprime tests/"
+build = "pip install -e ."
+
+# Ruff configuration (replacing flake8)
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort
+    "W",   # pycodestyle warnings
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "N",   # pep8-naming
+]
+ignore = [
+    "E203",  # Whitespace before ':' (not PEP 8 compliant but black does this)
+]
 exclude = [
     "docs",
+    ".git",
+    "__pycache__",
+    "*.pyc",
+    "build",
+    "dist",
 ]
-max-line-length = 88
+
+[tool.ruff.isort]
+force-single-line = false
+known-first-party = ["spaceprime"]
+
+[tool.ruff.flake8-quotes]
+docstring-quotes = "double"
+inline-quotes = "single"

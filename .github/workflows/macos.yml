@@ -10,40 +10,34 @@ on:
 
 name: macOS build
 jobs:
-    test-macOS:
-        runs-on: ${{ matrix.os }}
-        name: ${{ matrix.os }} (${{ matrix.python-version}})
-
+    py-check:
+        runs-on: ${{ matrix.config.os }}
+        name: ${{ matrix.config.os }} (${{ matrix.config.py }})
         strategy:
             fail-fast: false
             matrix:
-              os: ["macOS-latest"]
-              python-version: ["3.12"]
-
+                config:
+                    - { os: macos-latest, py: "3.10" }
+                    - { os: macos-latest, py: "3.11" }
+                    - { os: macos-latest, py: "3.12" }
+                    - { os: macos-latest, py: "3.13" }
         steps:
-          - name: Checkout code
-            uses: actions/checkout@v4
-      
-          - name: Set up Python
-            uses: actions/setup-python@v5
-            with:
-              python-version: ${{ matrix.python-version}}
-          - name: Install GSL
-            run: |
-              brew install gsl
-          - name: Install GDAL
-            run: |
-              brew install gdal
-          - name: Test GDAL installation
-            run: |
-              gdalinfo --version
-          - name: Install dependencies
-            run: |
-                python -m pip install --upgrade pip
-                pip install --no-cache-dir Cython
-                pip install -r requirements.txt
-                pip install -r requirements_tests.txt
-                pip install .
-          - name: Test import
-            run: |
-                python -c "import spaceprime"
+            - name: Checkout Code
+              uses: actions/checkout@v4
+            - name: Setup Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: ${{ matrix.config.py }}
+            - name: Install Pixi
+              run: |
+                  curl -fsSL https://pixi.sh/install.sh | bash
+                  echo "$HOME/.pixi/bin" >> $GITHUB_PATH
+            - name: Install dependencies and test
+              run: |
+                  pixi install
+                  pixi run python -c "from osgeo import gdal; print(f\"GDAL version: {gdal.VersionInfo()}\")"
+                  pixi run test
+            - name: Upload coverage reports to Codecov
+              uses: codecov/codecov-action@v4.0.1
+              with:
+                  token: ${{ secrets.CODECOV_TOKEN }}

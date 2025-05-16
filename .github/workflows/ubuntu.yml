@@ -2,11 +2,12 @@ on:
     push:
         branches:
             - main
-            - master
+            - dev
     pull_request:
         branches:
             - main
-            - master
+            - dev
+            
 
 name: Linux build
 jobs:
@@ -34,9 +35,9 @@ jobs:
                   echo "$HOME/.pixi/bin" >> $GITHUB_PATH
             - name: Install dependencies and test
               run: |
-                  pixi install
+                  pixi install --all
                   pixi run python -c "from osgeo import gdal; print(f\"GDAL version: {gdal.VersionInfo()}\")"
-                  pixi run test
+                  pixi run -e dev -e analysis test
             - name: Upload coverage reports to Codecov
               uses: codecov/codecov-action@v4.0.1
               with:

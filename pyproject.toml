@@ -7,7 +7,7 @@ requires-python = ">=3.10"
 keywords = [
     "spaceprime",
 ]
-license = {text = "MIT License"}
+license =  "MIT"
 authors = [
   {name = "Connor French", email = "french.connor.m@gmail.com"},
 ]

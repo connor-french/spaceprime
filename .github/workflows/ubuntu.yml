@@ -36,7 +36,7 @@ jobs:
               run: |
                   pixi install --all
                   pixi run python -c "from osgeo import gdal; print(f\"GDAL version: {gdal.VersionInfo()}\")"
-                  pixi run test
+                  pixi run -e all test
             - name: Upload coverage reports to Codecov
               uses: codecov/codecov-action@v4.0.1
               with:

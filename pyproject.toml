@@ -1,16 +1,13 @@
 [project]
 name = "spaceprime"
-version = "0.0.5"
-dynamic = [
-    "dependencies",
-]
+version = "0.0.6"
 description = "A python package to facilitate spatially explicit coalescent modeling in msprime"
 readme = "README.md"
 requires-python = ">=3.10"
 keywords = [
     "spaceprime",
 ]
-license = {text = "MIT License"}
+license =  "MIT"
 authors = [
   {name = "Connor French", email = "french.connor.m@gmail.com"},
 ]
@@ -24,6 +21,22 @@ classifiers = [
     "Programming Language :: Python :: 3.13"
 ]
 
+dependencies = [
+    "numpy",
+    "typing",
+    "msprime",
+    "rasterio>=1.0.0",
+    "scipy",
+    "shapely",
+    "geopandas",
+    "scikit-allel",
+    "contextily",
+    "matplotlib",
+    "folium",
+    "mapclassify",
+    # GDAL is intentionally not listed here to avoid version conflicts
+]
+
 [project.scripts]
 spaceprime = "spaceprime.cli:main"
 
@@ -35,51 +48,122 @@ all = [
 analysis = [
     "esda >= 2.5.1",
     "libpysal >= 4.10",
-    "sklearn",
-    "itertools",
+    "scikit-learn",
     "pandas",
 ]
 
-
-[tool]
-[tool.setuptools.packages.find]
-include = ["spaceprime*"]
-exclude = ["docs*"]
-
-[tool.setuptools.dynamic]
-dependencies = {file = ["requirements.txt"]}
-
-
-[tool.distutils.bdist_wheel]
-universal = true
-
-
-[tool.bumpversion]
-current_version = "0.0.5"
-commit = true
-tag = true
-
-[[tool.bumpversion.files]]
-filename = "pyproject.toml"
-search = 'version = "{current_version}"'
-replace = 'version = "{new_version}"'
-
-[[tool.bumpversion.files]]
-filename = "spaceprime/__init__.py"
-search = '__version__ = "{current_version}"'
-replace = '__version__ = "{new_version}"'
-
-
-[tool.flake8]
-exclude = [
-    "docs",
+dev = [
+    "hatchling>=1.12.0",
+    "black",
+    "black[jupyter]",
+    "build",
+    "bump-my-version",
+    "codespell",
+    "wheel",
+    "ruff",
+    "twine",
+    "click",
+    "pre-commit",
+    "pytest",
+    "pytest-runner",
+    "pytest-cov",
+    "ipykernel",
+    "livereload",
+    "nbconvert",
+    "nbformat",
+    "sphinx",
+    "watchdog",
+    "pygments",
+    "pymdown-extensions",
 ]
-max-line-length = 88
-
 
 [project.urls]
 Homepage = "https://github.com/connor-french/spaceprime"
 
 [build-system]
-requires = ["setuptools>=64", "setuptools_scm>=8"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling>=1.12.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["spaceprime"]
+
+[tool.hatch.version]
+path = "spaceprime/__init__.py"
+
+# Minimal Pixi configuration
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["linux-64", "osx-arm64", "osx-64"]
+
+# Add specific dependencies for Pixi - use * to get latest version
+[tool.pixi.dependencies]
+gdal = "*"
+libgdal = "*"
+
+# Restore environments configuration
+[tool.pixi.environments]
+default = { features = [] }
+analysis = { features = ["analysis"] }
+dev = { features = ["dev"] }
+all = { features = ["analysis", "dev"] }
+
+# Define tasks for convenience
+[tool.pixi.tasks]
+test = "pytest tests/"
+coverage = "pytest --cov=spaceprime tests/"
+build = "pip install -e ."
+
+# Ruff configuration (replacing flake8)
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort
+    "W",   # pycodestyle warnings
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "N",   # pep8-naming
+]
+ignore = [
+    "E203",  # Whitespace before ':' (not PEP 8 compliant but black does this)
+]
+exclude = [
+    "docs",
+    ".git",
+    "__pycache__",
+    "*.pyc",
+    "build",
+    "dist",
+]
+
+[tool.ruff.isort]
+force-single-line = false
+known-first-party = ["spaceprime"]
+
+[tool.ruff.flake8-quotes]
+docstring-quotes = "double"
+inline-quotes = "single"
+
+[tool.bumpversion]
+current_version = "0.0.6"
+parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
+serialize = ["{major}.{minor}.{patch}"]
+search = "{current_version}"
+replace = "{new_version}"
+regex = false
+ignore_missing_version = false
+ignore_missing_files = false
+tag = false
+sign_tags = false
+tag_name = "v{new_version}"
+tag_message = "Bump version: {current_version} → {new_version}"
+allow_dirty = false
+commit = false
+message = "Bump version: {current_version} → {new_version}"
+moveable_tags = []
+commit_args = ""
+setup_hooks = []
+pre_commit_hooks = []
+post_commit_hooks = []

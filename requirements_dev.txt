@@ -4,7 +4,7 @@ build
 bump-my-version
 codespell
 wheel
-flake8
+ruff
 twine
 click
 pre-commit

@@ -112,3 +112,6 @@ manuscript/
 
 # sandbox
 sandbox*
+# pixi environments
+.pixi
+*.egg-info

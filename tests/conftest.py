@@ -1,10 +1,14 @@
 """Shared pytest fixtures for the spaceprime test suite."""
 
+from pathlib import Path
+
 import numpy as np
 import pytest
 import rasterio
 
 from spaceprime import demography
+
+_TESTS_DIR = Path(__file__).parent
 
 
 @pytest.fixture
@@ -27,7 +31,9 @@ def deme_array_3d():
 @pytest.fixture
 def raster():
     """A 2x2 rasterio DatasetReader (EPSG:4326, cell centres at 0.5/-0.5 etc.)."""
-    return rasterio.open("tests/data/demes_raster.tif")
+    ds = rasterio.open(_TESTS_DIR / "data" / "demes_raster.tif")
+    yield ds
+    ds.close()
 
 
 @pytest.fixture

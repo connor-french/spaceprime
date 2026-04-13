@@ -1,6 +1,5 @@
 """Tests for the `simulation` module."""
 
-import msprime
 import numpy as np
 import pytest
 import tskit

@@ -115,3 +115,13 @@ sandbox*
 # pixi environments
 .pixi
 *.egg-info
+
+# claude
+.claude
+CLAUDE.md
+ai_log.md
+
+# Benchmarking results
+benchmarking/results/*.csv
+benchmarking/results/*.json
+!benchmarking/results/.gitkeep

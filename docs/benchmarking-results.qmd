@@ -1,0 +1,303 @@
+---
+title: "Benchmarking Results"
+execute:
+  echo: true
+  warning: false
+---
+
+```{python}
+#| label: setup
+#| echo: false
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from pathlib import Path
+
+# Try to load benchmark results
+results_dir = Path("../benchmarking/results")
+csv_files = list(results_dir.glob("benchmark_*.csv"))
+
+if csv_files:
+    # Load the most recent results file
+    latest_file = max(csv_files, key=lambda p: p.stat().st_mtime)
+    df = pd.read_csv(latest_file)
+    df = df[df["completed"] == True].copy()
+    has_data = len(df) > 0
+else:
+    has_data = False
+    df = None
+```
+
+This page presents results from spaceprime benchmark runs. If no benchmark results are available, example interpretations are shown.
+
+## Data Overview
+
+```{python}
+#| label: data-overview
+
+if has_data:
+    print(f"Loaded {len(df)} benchmark results from {latest_file.name}")
+    print(f"\nParameter ranges:")
+    print(f"  Grid sizes: {sorted(df['num_demes'].unique())}")
+    print(f"  Max local sizes: {sorted(df['max_local_size'].unique())}")
+    print(f"  Migration rates: {sorted(df['migration_rate'].unique())}")
+    print(f"  Time slices: {sorted(df['time_slices'].unique())}")
+else:
+    print("No benchmark results found. Run the benchmarks first:")
+    print("  cd benchmarking && python run_benchmarks.py --config quick")
+```
+
+## Scaling Analysis
+
+### Time vs. Number of Demes
+
+The relationship between grid size and computation time shows how spaceprime scales with landscape complexity.
+
+```{python}
+#| label: scaling-plot
+#| fig-cap: "Demography setup time scales roughly quadratically with the number of demes."
+
+if has_data:
+    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+    # Group by num_demes
+    grouped = df.groupby("num_demes").agg({
+        "demography_setup_time_sec": ["mean", "std"],
+        "total_time_sec": ["mean", "std"],
+    })
+
+    x = grouped.index.values
+
+    # Left plot: Demography setup time
+    ax = axes[0]
+    y = grouped["demography_setup_time_sec"]["mean"].values
+    yerr = grouped["demography_setup_time_sec"]["std"].values
+    ax.errorbar(x, y, yerr=yerr, fmt="o-", capsize=3, label="Setup time")
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    ax.set_xlabel("Number of Demes")
+    ax.set_ylabel("Time (seconds)")
+    ax.set_title("Demography Setup Time")
+    ax.grid(True, alpha=0.3)
+
+    # Right plot: Total time
+    ax = axes[1]
+    y = grouped["total_time_sec"]["mean"].values
+    yerr = grouped["total_time_sec"]["std"].values
+    ax.errorbar(x, y, yerr=yerr, fmt="s-", capsize=3, color="C1")
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    ax.set_xlabel("Number of Demes")
+    ax.set_ylabel("Time (seconds)")
+    ax.set_title("Total Benchmark Time")
+    ax.grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    plt.show()
+else:
+    print("No data available for scaling plot.")
+```
+
+### Grid Size × Time Slices Heatmap
+
+This heatmap shows how computation time varies across combinations of spatial and temporal complexity.
+
+```{python}
+#| label: heatmap
+#| fig-cap: "Total time increases with both grid size and number of time slices."
+
+if has_data and len(df["time_slices"].unique()) > 1:
+    df_plot = df.copy()
+    df_plot["grid_size"] = df_plot["grid_rows"].astype(str) + "x" + df_plot["grid_cols"].astype(str)
+
+    pivot = df_plot.pivot_table(
+        values="total_time_sec",
+        index="grid_size",
+        columns="time_slices",
+        aggfunc="mean",
+    )
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    im = ax.imshow(pivot.values, aspect="auto", cmap="YlOrRd")
+    ax.set_xticks(range(len(pivot.columns)))
+    ax.set_xticklabels(pivot.columns)
+    ax.set_yticks(range(len(pivot.index)))
+    ax.set_yticklabels(pivot.index)
+    ax.set_xlabel("Time Slices")
+    ax.set_ylabel("Grid Size")
+    ax.set_title("Mean Total Time (seconds)")
+
+    cbar = plt.colorbar(im, ax=ax)
+    cbar.set_label("Time (s)")
+
+    # Add annotations
+    for i in range(len(pivot.index)):
+        for j in range(len(pivot.columns)):
+            value = pivot.values[i, j]
+            if not np.isnan(value):
+                text_color = "white" if value > pivot.values.max() / 2 else "black"
+                ax.text(j, i, f"{value:.2f}", ha="center", va="center",
+                       color=text_color, fontsize=8)
+
+    plt.tight_layout()
+    plt.show()
+else:
+    print("Insufficient data for heatmap (need multiple time slices).")
+```
+
+## Parameter Effects
+
+### Individual Parameter Impact
+
+Understanding how each parameter affects performance helps optimize simulation design.
+
+```{python}
+#| label: parameter-effects
+#| fig-cap: "Effect of individual parameters on total computation time."
+
+if has_data:
+    fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+
+    # Effect of max_local_size
+    ax = axes[0, 0]
+    if len(df["max_local_size"].unique()) > 1:
+        grouped = df.groupby("max_local_size")["total_time_sec"].agg(["mean", "std"])
+        ax.errorbar(grouped.index, grouped["mean"], yerr=grouped["std"],
+                   fmt="o-", capsize=3)
+    ax.set_xlabel("Max Local Size")
+    ax.set_ylabel("Total Time (s)")
+    ax.set_title("Effect of Deme Size")
+    ax.grid(True, alpha=0.3)
+
+    # Effect of migration rate
+    ax = axes[0, 1]
+    if len(df["migration_rate"].unique()) > 1:
+        grouped = df.groupby("migration_rate")["total_time_sec"].agg(["mean", "std"])
+        ax.errorbar(grouped.index, grouped["mean"], yerr=grouped["std"],
+                   fmt="s-", capsize=3, color="C1")
+        ax.set_xscale("log")
+    ax.set_xlabel("Migration Rate")
+    ax.set_ylabel("Total Time (s)")
+    ax.set_title("Effect of Migration Rate")
+    ax.grid(True, alpha=0.3)
+
+    # Effect of time slices
+    ax = axes[1, 0]
+    if len(df["time_slices"].unique()) > 1:
+        grouped = df.groupby("time_slices")["total_time_sec"].agg(["mean", "std"])
+        ax.errorbar(grouped.index, grouped["mean"], yerr=grouped["std"],
+                   fmt="^-", capsize=3, color="C2")
+    ax.set_xlabel("Time Slices")
+    ax.set_ylabel("Total Time (s)")
+    ax.set_title("Effect of Time Slices")
+    ax.grid(True, alpha=0.3)
+
+    # Memory scaling
+    ax = axes[1, 1]
+    grouped = df.groupby("num_demes")["peak_memory_mb"].agg(["mean", "std", "max"])
+    ax.errorbar(grouped.index, grouped["mean"], yerr=grouped["std"],
+               fmt="d-", capsize=3, color="C3", label="Mean")
+    ax.plot(grouped.index, grouped["max"], "x--", color="C4", label="Max")
+    ax.set_xscale("log")
+    ax.set_xlabel("Number of Demes")
+    ax.set_ylabel("Peak Memory (MB)")
+    ax.set_title("Memory Scaling")
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    plt.show()
+else:
+    print("No data available for parameter effects plot.")
+```
+
+## Time Breakdown
+
+Understanding which operations consume the most time helps identify optimization targets.
+
+```{python}
+#| label: time-breakdown
+#| fig-cap: "Breakdown of time spent in each benchmark component."
+
+if has_data:
+    df_plot = df.copy()
+    df_plot["grid_size"] = df_plot["grid_rows"].astype(str) + "x" + df_plot["grid_cols"].astype(str)
+
+    grouped = df_plot.groupby("grid_size").agg({
+        "migration_matrix_time_sec": "mean",
+        "demography_setup_time_sec": "mean",
+        "simulation_time_sec": "mean",
+    })
+
+    fig, ax = plt.subplots(figsize=(12, 6))
+
+    x = range(len(grouped))
+    width = 0.8
+
+    ax.bar(x, grouped["migration_matrix_time_sec"], width,
+           label="Migration Matrix")
+    ax.bar(x, grouped["demography_setup_time_sec"], width,
+           bottom=grouped["migration_matrix_time_sec"],
+           label="Demography Setup")
+    ax.bar(x, grouped["simulation_time_sec"], width,
+           bottom=grouped["migration_matrix_time_sec"] + grouped["demography_setup_time_sec"],
+           label="Simulation")
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(grouped.index, rotation=45, ha="right")
+    ax.set_xlabel("Grid Size")
+    ax.set_ylabel("Time (seconds)")
+    ax.set_title("Time Breakdown by Component")
+    ax.legend()
+
+    plt.tight_layout()
+    plt.show()
+else:
+    print("No data available for time breakdown plot.")
+```
+
+## Summary Statistics
+
+```{python}
+#| label: summary-stats
+
+if has_data:
+    # Calculate summary by grid size
+    summary = df.groupby(["grid_rows", "grid_cols"]).agg({
+        "total_time_sec": ["mean", "std", "min", "max"],
+        "peak_memory_mb": ["mean", "max"],
+        "num_samples": "first",
+    }).round(3)
+
+    print("Summary by Grid Size:")
+    print(summary.to_string())
+else:
+    print("No data available for summary statistics.")
+```
+
+## Recommendations
+
+Based on typical benchmark results:
+
+1. **Small studies (< 100 demes)**: Run on local machine, expect < 1 minute setup
+2. **Medium studies (100-500 demes)**: Local machine suitable, 1-10 minutes setup
+3. **Large studies (> 500 demes)**: Consider HPC resources, may need > 10 minutes setup
+4. **Time series with many slices**: Scale roughly linearly with slice count
+5. **Memory considerations**: Migration matrix is O(n²), plan accordingly for large grids
+
+## Running Your Own Benchmarks
+
+To generate results specific to your hardware:
+
+```bash
+# Quick test
+cd benchmarking
+python run_benchmarks.py --config quick
+
+# Full suite
+python run_benchmarks.py --config default
+
+# Generate analysis
+python analyze_results.py results/benchmark_*.csv --output figures/
+```

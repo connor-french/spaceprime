@@ -27,6 +27,12 @@ website:
             file: spaceprime-for-r-users.qmd
       - text: CLI
         file: cli.qmd
+      - text: Benchmarking
+        menu:
+          - text: "Overview & Methodology"
+            file: benchmarking.qmd
+          - text: "Results"
+            file: benchmarking-results.qmd
     right:
       - icon: github
         href: https://github.com/connor-french/spaceprime

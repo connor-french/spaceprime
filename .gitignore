@@ -125,3 +125,6 @@ ai_log.md
 benchmarking/results/*.csv
 benchmarking/results/*.json
 !benchmarking/results/.gitkeep
+
+# conda
+conda-recipe

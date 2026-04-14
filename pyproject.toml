@@ -1,6 +1,6 @@
 [project]
 name = "spaceprime"
-version = "0.0.6"
+version = "0.0.5"
 description = "A python package to facilitate spatially explicit coalescent modeling in msprime"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -23,7 +23,6 @@ classifiers = [
 
 dependencies = [
     "numpy",
-    "typing",
     "msprime",
     "rasterio>=1.0.0",
     "scipy",
@@ -34,6 +33,10 @@ dependencies = [
     "matplotlib",
     "folium",
     "mapclassify",
+    "esda >= 2.5.1",
+    "libpysal >= 4.10",
+    "scikit-learn",
+    "pandas",
     # GDAL is intentionally not listed here to avoid version conflicts
 ]
 
@@ -41,17 +44,6 @@ dependencies = [
 spaceprime = "spaceprime.cli:main"
 
 [project.optional-dependencies]
-all = [
-    "spaceprime[analysis]",
-]
-
-analysis = [
-    "esda >= 2.5.1",
-    "libpysal >= 4.10",
-    "scikit-learn",
-    "pandas",
-]
-
 dev = [
     "hatchling>=1.12.0",
     "black",
@@ -100,12 +92,9 @@ platforms = ["linux-64", "osx-arm64", "osx-64"]
 gdal = "*"
 libgdal = "*"
 
-# Restore environments configuration
 [tool.pixi.environments]
 default = { features = [] }
-analysis = { features = ["analysis"] }
 dev = { features = ["dev"] }
-all = { features = ["analysis", "dev"] }
 
 # Define tasks for convenience
 [tool.pixi.tasks]
@@ -147,7 +136,7 @@ docstring-quotes = "double"
 inline-quotes = "single"
 
 [tool.bumpversion]
-current_version = "0.0.6"
+current_version = "0.0.5"
 parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
 serialize = ["{major}.{minor}.{patch}"]
 search = "{current_version}"

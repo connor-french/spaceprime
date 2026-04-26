@@ -23,12 +23,14 @@ The number of demes is the product of grid rows × columns. This affects:
 - **Demography setup**: Linear to quadratic scaling with deme count
 - **Simulation time**: Depends on population structure and sample sizes
 
-| Grid | Demes | Typical Use Case |
-|------|-------|------------------|
-| 5×5 | 25 | Quick tests, small landscapes |
-| 10×10 | 100 | Regional studies |
-| 20×20 | 400 | Continental scale |
-| 30×30 | 900 | High-resolution landscapes |
+| Grid | Demes |
+|------|-------|
+| 5×5 | 25 |
+| 10×10 | 100 |
+| 20×20 | 400 |
+| 30×30 | 900 |
+| 60×60 | 3,600 |
+| 100×100 | 10,000 |
 
 ### Maximum Local Size
 

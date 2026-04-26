@@ -213,7 +213,7 @@ def run_benchmarks(
     Parameters
     ----------
     config_name : str, optional
-        Configuration name. Options: 'quick', 'default', 'full'. Default is 'default'.
+        Configuration name. Options: 'quick', 'default', 'full', 'large', 'large_cont'. Default is 'default'.
     output_path : str, optional
         Path to save results CSV. Default is None (auto-generated).
     verbose : bool, optional
@@ -318,7 +318,7 @@ Examples:
         "-c",
         type=str,
         default="default",
-        choices=["quick", "default", "full"],
+        choices=["quick", "default", "full", "large", "large_cont"],
         help="Benchmark configuration (default: default)",
     )
 

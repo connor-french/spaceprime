@@ -12,7 +12,6 @@ from .benchmark_utils import (
     timer,
     MemoryTracker,
     time_function,
-    estimate_memory_usage,
 )
 
 __all__ = [
@@ -26,5 +25,4 @@ __all__ = [
     "timer",
     "MemoryTracker",
     "time_function",
-    "estimate_memory_usage",
 ]

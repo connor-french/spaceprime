@@ -222,32 +222,4 @@ def time_function(func: Callable, *args, **kwargs) -> Tuple[Any, float]:
     return result, elapsed
 
 
-def estimate_memory_usage(grid_shape: Tuple[int, int], time_slices: int = 1) -> float:
-    """
-    Estimate memory usage for a given grid configuration.
 
-    Parameters
-    ----------
-    grid_shape : Tuple[int, int]
-        Shape of the grid (rows, cols).
-    time_slices : int, optional
-        Number of time slices. Default is 1.
-
-    Returns
-    -------
-    float
-        Estimated memory usage in MB.
-    """
-    rows, cols = grid_shape
-    n_demes = rows * cols
-
-    # Migration matrix: n_demes x n_demes, float64
-    migration_matrix_mb = (n_demes ** 2) * 8 / (1024 * 1024)
-
-    # Demes array
-    demes_mb = (rows * cols * time_slices) * 8 / (1024 * 1024)
-
-    # Rough estimate of msprime overhead (populations, events)
-    msprime_overhead_mb = n_demes * 0.001  # ~1KB per population
-
-    return migration_matrix_mb + demes_mb + msprime_overhead_mb

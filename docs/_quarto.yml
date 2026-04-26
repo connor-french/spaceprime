@@ -2,6 +2,8 @@ project:
   type: website
   output-dir: _site
 
+jupyter: python3
+
 metadata-files: 
   - _sidebar.yml
 

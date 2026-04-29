@@ -1,9 +1,10 @@
 ---
-title: "spaceprime benchmarking results"
+title: "Spaceprime Benchmarking Results"
 date: "2026-04-25"
 execute:
-  echo: true
+  echo: false
   warning: false
+  message: false
 ---
 
 ::: {.callout-note}
@@ -27,7 +28,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.gridspec as gridspec
+import seaborn as sns
+
 from matplotlib.lines import Line2D
+from great_tables import GT
 from scipy import stats
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
@@ -45,28 +49,47 @@ The raw dataset contains `{python} len(df_raw)` runs spanning the following para
 #| label: parameter-ranges
 
 params = ["num_demes", "max_local_size", "migration_rate", "time_slices", "timesteps"]
-for p in params:
-    print(f"{p}: {sorted(df_raw[p].unique())}")
+param_labels = ["Num Demes", "Max Local Size", "Migration Rate", "Time Slices", "Timesteps"]
+
+param_ranges = pd.DataFrame({
+    "Parameter": param_labels,
+    "Values": [", ".join(str(v) for v in sorted(df_raw[p].unique())) for p in params],
+    "N levels": [df_raw[p].nunique() for p in params],
+})
+
+GT(param_ranges).tab_header(title="Simulation parameter ranges").cols_label(
+    Parameter="Parameter",
+    Values="Unique values tested",
+).cols_align(align="left", columns="Values")
 ```
 
-# Data cleaning
 
-Two runs were identified as interrupted by a failed network connection and removed prior to analysis. These runs are preserved in a separate `outliers_removed.csv` file with an explanatory note.
+ The full parameter space coverage is visualised in the pairplot below.
+
+```{python}
+#| label: parameter-pairplot
+#| fig-cap: "Pairplot of simulation parameters across all runs. At larger grid sizes (60x60, 100x100), max deme sizes only up to 1,000 were tested due to memory constraints."
+
+sns.pairplot(df_raw[params], diag_kind="hist", plot_kws={"alpha": 0.3, "s": 20})
+plt.suptitle("Parameter pairplot for all benchmark runs", fontsize=13, fontweight="bold", y=1.02)
+plt.tight_layout()
+plt.show()
+```
 
 ```{python}
 #| label: remove-interrupted
 
+# Two runs were identified as interrupted by a failed network connection and removed prior to analysis. These runs are preserved in a separate `outliers_removed.csv` file with an explanatory note.
 interrupted_ids = ["8f871639", "b8aa0c82"]
 df_clean = df_raw[~df_raw["run_id"].isin(interrupted_ids)].copy()
 
-print(f"Rows removed: {len(df_raw) - len(df_clean)}")
-print(f"Rows remaining: {len(df_clean)}")
 ```
 
-An additional `{python} (df_clean['notes'] == 'Exceeded 16 GB physical RAM; likely swap-impacted').sum()` runs were flagged in the `notes` column as likely swap-impacted, having exceeded the machine's 16 GB physical RAM. These runs are retained in the dataset but analysed separately. See the [RAM threshold effect](#ram-threshold-effect) section for details.
 
 ```{python}
 #| label: define-subsets
+
+# An additional `{python} (df_clean['notes'] == 'Exceeded 16 GB physical RAM; likely swap-impacted').sum()` runs were flagged in the `notes` column as likely swap-impacted, having exceeded the machine's 16 GB physical RAM. These runs are retained in the dataset but analysed separately. See the [RAM threshold effect](#ram-threshold-effect) section for details.
 
 RAM_MB = 16 * 1024
 df_clean["exceeded_ram"] = df_clean["peak_memory_mb"] > RAM_MB
@@ -75,9 +98,6 @@ df_10k = df_clean[df_clean["num_demes"] == 10000].copy()
 
 num_demes_vals = sorted(df_clean["num_demes"].unique())
 colors = cm.viridis(np.linspace(0, 0.9, len(num_demes_vals)))
-
-print(f"Within-RAM runs: {len(df_ram)}")
-print(f"Swap-impacted runs: {df_clean['exceeded_ram'].sum()}")
 ```
 
 # Memory usage analysis

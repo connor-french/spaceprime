@@ -24,13 +24,13 @@ jobs:
                     - { os: ubuntu-latest, py: "3.13" }
         steps:
             - name: Checkout Code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
             - name: Setup Python
-              uses: actions/setup-python@v5
+              uses: actions/setup-python@v6
               with:
                   python-version: ${{ matrix.config.py }}
             - name: Install Pixi
-              uses: prefix-dev/setup-pixi@v0.8.3
+              uses: prefix-dev/setup-pixi@v0.9.5
               
             - name: Install dependencies and test
               run: |
@@ -38,7 +38,7 @@ jobs:
                   pixi run python -c "from osgeo import gdal; print(f\"GDAL version: {gdal.VersionInfo()}\")"
                   pixi run -e all test
             - name: Upload coverage reports to Codecov
-              uses: codecov/codecov-action@v4.0.1
+              uses: codecov/codecov-action@v6.0.0
               with:
                   token: ${{ secrets.CODECOV_TOKEN }}
 

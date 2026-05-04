@@ -43,35 +43,6 @@ dependencies = [
 [project.scripts]
 spaceprime = "spaceprime.cli:main"
 
-[project.optional-dependencies]
-dev = [
-    "hatchling>=1.12.0",
-    "black",
-    "black[jupyter]",
-    "build",
-    "bump-my-version",
-    "codespell",
-    "great_tables",
-    "wheel",
-    "ruff",
-    "twine",
-    "click",
-    "jupyter",
-    "pre-commit",
-    "pytest",
-    "pytest-runner",
-    "pytest-cov",
-    "quarto",
-    "ipykernel",
-    "livereload",
-    "nbconvert",
-    "nbformat",
-    "seaborn",
-    "sphinx",
-    "watchdog",
-    "pygments",
-    "pymdown-extensions",
-]
 
 [project.urls]
 Homepage = "https://github.com/connor-french/spaceprime"
@@ -98,6 +69,36 @@ libgdal = "*"
 gsl = ">=2.7,<3"
 msprime = "*"
 rasterio = "*"
+
+[tool.pixi.feature.dev.dependencies]
+rattler-build = "*"
+hatchling = ">=1.12.0"
+black = "*"
+python-build = "*"
+bump-my-version = "*"
+codespell = "*"
+wheel = "*"
+ruff = "*"
+twine = "*"
+click = "*"
+jupyter = "*"
+pre-commit = "*"
+pytest = "*"
+pytest-runner = "*"
+pytest-cov = "*"
+quarto = "*"
+ipykernel = "*"
+livereload = "*"
+nbconvert = "*"
+nbformat = "*"
+seaborn = "*"
+sphinx = "*"
+watchdog = "*"
+pygments = "*"
+pymdown-extensions = "*"
+
+[tool.pixi.feature.dev.pypi-dependencies]
+great_tables = "*"
 
 [tool.pixi.environments]
 default = { features = [] }

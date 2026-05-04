@@ -2,6 +2,8 @@ project:
   type: website
   output-dir: _site
 
+jupyter: python3
+
 metadata-files: 
   - _sidebar.yml
 
@@ -27,6 +29,12 @@ website:
             file: spaceprime-for-r-users.qmd
       - text: CLI
         file: cli.qmd
+      - text: Benchmarking
+        menu:
+          - text: "Overview & Methodology"
+            file: benchmarking.qmd
+          - text: "Results"
+            file: benchmarking-results.qmd
     right:
       - icon: github
         href: https://github.com/connor-french/spaceprime

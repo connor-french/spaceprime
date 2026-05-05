@@ -28,8 +28,10 @@ jobs:
         run: |
           pixi run pip install .
 
-      - name: Set up Quarto
-        uses: quarto-dev/quarto-actions/setup@v2
+      - name: Check Jupyter Executable
+        run: |
+          pixi run which jupyter
+          pixi run jupyter --version
 
       - name: Build docs
         run: |

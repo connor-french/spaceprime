@@ -29,13 +29,13 @@ jobs:
           pixi run pip install .
 
       - name: Check Jupyter Executable
-        run: |
-          pixi run which jupyter
-          pixi run jupyter --version
+        run: |`
+          pixi run -e dev which jupyter
+          pixi run -e dev jupyter --version
 
       - name: Build docs
         run: |
-          pixi run quarto render docs/
+          pixi run -e dev quarto render docs/
 
       - name: Save docs
         uses: actions/upload-artifact@v4

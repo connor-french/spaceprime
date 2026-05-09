@@ -37,6 +37,9 @@ jobs:
         run: |
           pixi run -e dev which jupyter
           pixi run -e dev jupyter --version
+      
+      - name: Set PYTHONPATH
+        run: echo "PYTHONPATH=${{ github.workspace }}:$PYTHONPATH" >> $GITHUB_ENV
 
       - name: Build docs
         working-directory: ${{ github.workspace }}

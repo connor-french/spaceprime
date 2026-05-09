@@ -71,6 +71,8 @@ msprime = "*"
 rasterio = "*"
 
 [tool.pixi.feature.dev.dependencies]
+scipy = "<1.16"
+scikit-learn = "*"
 rattler-build = "*"
 hatchling = ">=1.12.0"
 black = "*"

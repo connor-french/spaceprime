@@ -30,6 +30,8 @@ This page provides an overview of the package and its main features. For more de
 
 ### Stable release
 
+The recommended 
+
 *spaceprime* can be installed using `pip` or `conda`. Due to the package's reliance on `msprime`, the `pip` installation is only available on unix-based systems (MacOS, Linux). Windows users should install *spaceprime* using `conda`.
 
 To install *spaceprime* using `pip`, run the following command in your terminal:

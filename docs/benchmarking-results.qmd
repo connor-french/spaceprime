@@ -5,6 +5,7 @@ execute:
   echo: false
   warning: false
   message: false
+  freeze: true
 ---
 
 ::: {.callout-note}

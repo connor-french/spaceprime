@@ -13,7 +13,7 @@ __version__ = "0.0.6"
 # lazily on first attribute access so that merely importing ``spaceprime``
 # (e.g. when the CLI entry-point loads) does not pull in heavy scientific
 # dependencies before they are actually needed.
-_lazy_imports: dict = {
+_lazy_imports: dict[str, str] = {
     # utilities
     "create_raster": "spaceprime.utilities",
     "raster_to_demes": "spaceprime.utilities",

@@ -521,6 +521,7 @@ def main():
     """Console script for spaceprime."""
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "-v",
         "--version",
         action="version",
         version=f"%(prog)s {__version__}",
@@ -799,7 +800,6 @@ def main():
         help="Prefix for output files. Default is 'spaceprime'.",
     )
     parser.add_argument(
-        "-v",
         "--verbose",
         type=bool,
         default=False,

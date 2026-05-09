@@ -15,3 +15,14 @@ def test_cli_version_option_prints_version(monkeypatch, capsys):
     assert excinfo.value.code == 0
     captured = capsys.readouterr()
     assert captured.out.strip() == f"spaceprime {__version__}"
+
+
+def test_cli_short_version_option_prints_version(monkeypatch, capsys):
+    monkeypatch.setattr("sys.argv", ["spaceprime", "-v"])
+
+    with pytest.raises(SystemExit) as excinfo:
+        cli.main()
+
+    assert excinfo.value.code == 0
+    captured = capsys.readouterr()
+    assert captured.out.strip() == f"spaceprime {__version__}"

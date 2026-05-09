@@ -16,6 +16,7 @@ from multiprocessing import Pool
 from . import utilities
 from . import demography
 from . import analysis
+from . import __version__
 
 # set up logging
 import logging
@@ -519,6 +520,11 @@ def run_simulation(combo, args):
 def main():
     """Console script for spaceprime."""
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {__version__}",
+    )
     # global arguments
     parser.add_argument(
         "-p",

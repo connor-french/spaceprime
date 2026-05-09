@@ -21,12 +21,12 @@ jobs:
 
       - name: Test GDAL installation
         run: |
-          pixi run python -c "from osgeo import gdal"
-          pixi run gdalinfo --version
+          pixi run -e dev python -c "from osgeo import gdal"
+          pixi run -e dev gdalinfo --version
 
       - name: Install package
         run: |
-          pixi run pip install .
+          pixi run -e dev pip install .
 
       - name: Check Jupyter Executable
         run: |`

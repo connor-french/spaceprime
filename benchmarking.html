@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>spdemography.add_ancestral_populations – spaceprime</title>
+<title>Benchmarking Overview – spaceprime</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -23,27 +23,60 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
-<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="../site_libs/clipboard/clipboard.min.js"></script>
-<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="../site_libs/quarto-search/fuse.min.js"></script>
-<script src="../site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="../">
-<link href="../reference/spDemography.stepping_stone_2d.html" rel="next">
-<link href="../reference/spDemography.html" rel="prev">
-<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
-<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="../site_libs/quarto-html/popper.min.js"></script>
-<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="../site_libs/quarto-html/anchor.min.js"></script>
-<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-da5d8bd06404b93049c0fac9d2ad062f.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-da5d8bd06404b93049c0fac9d2ad062f.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -75,14 +108,14 @@ ul.task-list li input[type="checkbox"] {
 
 </head>
 
-<body class="nav-sidebar floating nav-fixed fullcontent quarto-light">
+<body class="nav-fixed fullcontent quarto-light">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a class="navbar-brand" href="../index.html">
+    <a class="navbar-brand" href="./index.html">
     <span class="navbar-title">spaceprime</span>
     </a>
   </div>
@@ -93,7 +126,7 @@ ul.task-list li input[type="checkbox"] {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link active" href="../reference/index.html" aria-current="page"> 
+    <a class="nav-link" href="./reference/index.html"> 
 <span class="menu-text">Reference</span></a>
   </li>  
   <li class="nav-item dropdown ">
@@ -102,17 +135,17 @@ ul.task-list li input[type="checkbox"] {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-vignettes">    
         <li>
-    <a class="dropdown-item" href="../transformation-functions.html">
+    <a class="dropdown-item" href="./transformation-functions.html">
  <span class="dropdown-text">Transformation functions</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../spaceprime-for-r-users.html">
+    <a class="dropdown-item" href="./spaceprime-for-r-users.html">
  <span class="dropdown-text">spaceprime for R users</span></a>
   </li>  
     </ul>
   </li>
   <li class="nav-item">
-    <a class="nav-link" href="../cli.html"> 
+    <a class="nav-link" href="./cli.html"> 
 <span class="menu-text">CLI</span></a>
   </li>  
   <li class="nav-item dropdown ">
@@ -121,11 +154,11 @@ ul.task-list li input[type="checkbox"] {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-benchmarking">    
         <li>
-    <a class="dropdown-item" href="../benchmarking.html">
+    <a class="dropdown-item" href="./benchmarking.html">
  <span class="dropdown-text">Overview &amp; Methodology</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../benchmarking-results.html">
+    <a class="dropdown-item" href="./benchmarking-results.html">
  <span class="dropdown-text">Results</span></a>
   </li>  
     </ul>
@@ -143,314 +176,242 @@ ul.task-list li input[type="checkbox"] {
 </div>
       </div> <!-- /container-fluid -->
     </nav>
-  <nav class="quarto-secondary-nav">
-    <div class="container-fluid d-flex">
-      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
-        <i class="bi bi-layout-text-sidebar-reverse"></i>
-      </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../reference/spDemography.html">Demography</a></li><li class="breadcrumb-item"><a href="../reference/spDemography.add_ancestral_populations.html">spDemography.add_ancestral_populations</a></li></ol></nav>
-        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
-        </a>
-    </div>
-  </nav>
 </header>
 <!-- content -->
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
-  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
-    <div class="sidebar-menu-container"> 
-    <ul class="list-unstyled mt-1">
-        <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../reference/index.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Reference</span></a>
-  </div>
-</li>
-        <li class="sidebar-item sidebar-item-section">
-      <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
- <span class="menu-text">Utilities</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
-      </div>
-      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../reference/anc_to_deme_dict.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">anc_to_deme_dict</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../reference/calc_migration_matrix.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">calc_migration_matrix</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../reference/coords_to_deme_dict.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">coords_to_deme_dict</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../reference/coords_to_sample_dict.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">coords_to_sample_dict</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../reference/create_raster.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">create_raster</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../reference/mtp_thresh_from_coords.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">mtp_thresh_from_coords</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../reference/raster_to_demes.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">raster_to_demes</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../reference/split_landscape_by_pop.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">split_landscape_by_pop</span></a>
-  </div>
-</li>
-      </ul>
-  </li>
-        <li class="sidebar-item sidebar-item-section">
-      <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
- <span class="menu-text">Demography</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
-      </div>
-      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../reference/spDemography.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">spDemography</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../reference/spDemography.add_ancestral_populations.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text">spDemography.add_ancestral_populations</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../reference/spDemography.stepping_stone_2d.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">spDemography.stepping_stone_2d</span></a>
-  </div>
-</li>
-      </ul>
-  </li>
-        <li class="sidebar-item sidebar-item-section">
-      <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
- <span class="menu-text">Plotting</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
-      </div>
-      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../reference/plot_landscape.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">plot_landscape</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../reference/plot_model.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">plot_model</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../reference/plot_timeseries.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">plot_timeseries</span></a>
-  </div>
-</li>
-      </ul>
-  </li>
-        <li class="sidebar-item sidebar-item-section">
-      <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
- <span class="menu-text">Simulation</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
-      </div>
-      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../reference/sim_ancestry.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">sim_ancestry</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../reference/sim_mutations.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">sim_mutations</span></a>
-  </div>
-</li>
-      </ul>
-  </li>
-        <li class="sidebar-item sidebar-item-section">
-      <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
- <span class="menu-text">Analysis</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
-      </div>
-      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../reference/calc_sumstats.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">calc_sumstats</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../reference/filter_gt.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">filter_gt</span></a>
-  </div>
-</li>
-      </ul>
-  </li>
-    </ul>
-    </div>
-</nav>
-<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../reference/spDemography.html">Demography</a></li><li class="breadcrumb-item"><a href="../reference/spDemography.add_ancestral_populations.html">spDemography.add_ancestral_populations</a></li></ol></nav></header>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Benchmarking Overview</h1>
+</div>
 
 
 
+<div class="quarto-title-meta">
 
-<section id="spaceprime.spDemography.add_ancestral_populations" class="level1">
-<h1>spDemography.add_ancestral_populations</h1>
-<p><code>spDemography.add_ancestral_populations(anc_sizes, merge_time, anc_id=None, anc_merge_times=None, anc_merge_sizes=None, migration_rate=None)</code></p>
-<p>Adds ancestral populations to the given demographic model, mapping demes in the spatial simulation to ancestral populations.</p>
-<section id="parameters" class="level2">
-<h2 class="anchored" data-anchor-id="parameters">Parameters</h2>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="purpose" class="level2">
+<h2 class="anchored" data-anchor-id="purpose">Purpose</h2>
+<p>Understanding the computational requirements of spaceprime simulations helps users:</p>
+<ul>
+<li><strong>Plan resources</strong>: Estimate time and memory needed for different simulation scenarios</li>
+<li><strong>Choose parameters wisely</strong>: Understand trade-offs between model complexity and compute cost</li>
+<li><strong>Identify bottlenecks</strong>: See which operations dominate runtime for different configurations</li>
+<li><strong>Scale appropriately</strong>: Know when to use HPC resources vs.&nbsp;local machines</li>
+</ul>
+</section>
+<section id="key-parameters-affecting-performance" class="level2">
+<h2 class="anchored" data-anchor-id="key-parameters-affecting-performance">Key Parameters Affecting Performance</h2>
+<p>spaceprime performance is primarily affected by:</p>
+<section id="grid-size-number-of-demes" class="level3">
+<h3 class="anchored" data-anchor-id="grid-size-number-of-demes">Grid Size (Number of Demes)</h3>
+<p>The number of demes is the product of grid rows × columns. This affects:</p>
+<ul>
+<li><strong>Migration matrix</strong>: O(n²) memory and computation, where n = number of demes</li>
+<li><strong>Demography setup</strong>: Linear to quadratic scaling with deme count</li>
+<li><strong>Simulation time</strong>: Depends on population structure and sample sizes</li>
+</ul>
 <table class="caption-top table">
-<colgroup>
-<col style="width: 10%">
-<col style="width: 14%">
-<col style="width: 69%">
-<col style="width: 6%">
-</colgroup>
 <thead>
 <tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
+<th>Grid</th>
+<th>Demes</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td><code>anc_sizes</code></td>
-<td>List[float]</td>
-<td>A list of ancestral population sizes.</td>
-<td><em>required</em></td>
+<td>5×5</td>
+<td>25</td>
 </tr>
 <tr class="even">
-<td><code>merge_time</code></td>
-<td>Union[float, int]</td>
-<td>The time at which all demes in the spatial simulation merge into one or more ancestral populations.</td>
-<td><em>required</em></td>
+<td>10×10</td>
+<td>100</td>
 </tr>
 <tr class="odd">
-<td><code>anc_id</code></td>
-<td>Optional[np.ndarray]</td>
-<td>An array of ancestral population IDs- the output of [split_landscape_by_pop][utilities.split_landscape_by_pop]. Defaults to None.</td>
-<td><code>None</code></td>
+<td>20×20</td>
+<td>400</td>
 </tr>
 <tr class="even">
-<td><code>anc_merge_times</code></td>
-<td>Optional[List[float]]</td>
-<td>A list of merge times for ancestral populations. Defaults to None.</td>
-<td><code>None</code></td>
+<td>30×30</td>
+<td>900</td>
 </tr>
 <tr class="odd">
-<td><code>anc_merge_sizes</code></td>
-<td>Optional[List[float]]</td>
-<td>A list of sizes for merged ancestral populations. Defaults to None.</td>
-<td><code>None</code></td>
+<td>60×60</td>
+<td>3,600</td>
 </tr>
 <tr class="even">
-<td><code>migration_rate</code></td>
-<td>Optional[float]</td>
-<td>The symmetric migration rate between ancestral populations. Defaults to None.</td>
-<td><code>None</code></td>
+<td>100×100</td>
+<td>10,000</td>
 </tr>
 </tbody>
 </table>
 </section>
-<section id="returns" class="level2">
-<h2 class="anchored" data-anchor-id="returns">Returns</h2>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 24%">
-<col style="width: 75%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>msprime.Demography</td>
-<td>The demographic model with the added ancestral populations.</td>
-</tr>
-</tbody>
-</table>
+<section id="maximum-local-size" class="level3">
+<h3 class="anchored" data-anchor-id="maximum-local-size">Maximum Local Size</h3>
+<p>The <code>max_local_size</code> parameter sets the upper bound for deme population sizes. Larger populations:</p>
+<ul>
+<li>Increase coalescence times</li>
+<li>May require more simulation time</li>
+<li>Have minimal effect on setup time</li>
+</ul>
 </section>
-<section id="raises" class="level2">
-<h2 class="anchored" data-anchor-id="raises">Raises</h2>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 9%">
-<col style="width: 90%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>ValueError</td>
-<td>If the model already contains ancestral populations.</td>
-</tr>
-<tr class="even">
-<td>ValueError</td>
-<td>If the number of demes in the demographic model does not match the number of demes in the admixture ID raster.</td>
-</tr>
-</tbody>
-</table>
+<section id="migration-rate" class="level3">
+<h3 class="anchored" data-anchor-id="migration-rate">Migration Rate</h3>
+<p>Migration rates affect simulation dynamics but have minimal impact on setup time. Higher rates lead to:</p>
+<ul>
+<li>More migration events during simulation</li>
+<li>Potentially faster coalescence (less population structure)</li>
+</ul>
 </section>
-<section id="notes" class="level2">
-<h2 class="anchored" data-anchor-id="notes">Notes</h2>
-<p>The function adds ancestral populations to the given demographic model. If <code>anc_id</code> is not provided, a single ancestral population is added with the initial size specified in <code>anc_sizes[0]</code>. If <code>anc_id</code> is provided, a new ancestral population is added for each admixture population, with sizes specified in <code>anc_sizes</code>. The demes in the simulation are then merged into their respective ancestral populations based on the values in <code>anc_id</code>. If <code>anc_merge_times</code> is provided, the ancestral populations are merged at the specified times. If <code>migration_rate</code> is provided, symmetric migration is allowed between ancestral populations.</p>
+<section id="time-slices" class="level3">
+<h3 class="anchored" data-anchor-id="time-slices">Time Slices</h3>
+<p>Multiple time slices (3D deme arrays) add temporal dynamics:</p>
+<ul>
+<li>Each time slice adds demographic events</li>
+<li>Migration matrices may be recalculated</li>
+<li>Linear scaling with number of time slices</li>
+</ul>
+</section>
+<section id="timesteps" class="level3">
+<h3 class="anchored" data-anchor-id="timesteps">Timesteps</h3>
+<p>The <code>timesteps</code> parameter controls the time between demographic events:</p>
+<ul>
+<li>Affects simulation dynamics, not setup time</li>
+<li>Shorter timesteps = more events = longer setup</li>
+</ul>
+</section>
+</section>
+<section id="methodology" class="level2">
+<h2 class="anchored" data-anchor-id="methodology">Methodology</h2>
+<p>Our benchmarks measure three key operations:</p>
+<section id="migration-matrix-calculation" class="level3">
+<h3 class="anchored" data-anchor-id="migration-matrix-calculation">1. Migration Matrix Calculation</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> spaceprime.utilities <span class="im">import</span> calc_migration_matrix</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>mig_matrix <span class="op">=</span> calc_migration_matrix(demes, rate<span class="op">=</span><span class="fl">0.01</span>, scale<span class="op">=</span><span class="va">True</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Time complexity: O(n²) where n = number of demes</p>
+</section>
+<section id="demography-setup" class="level3">
+<h3 class="anchored" data-anchor-id="demography-setup">2. Demography Setup</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> spaceprime <span class="im">import</span> spDemography</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>demo <span class="op">=</span> spDemography()</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>demo.stepping_stone_2d(d<span class="op">=</span>demes, rate<span class="op">=</span><span class="fl">0.01</span>, scale<span class="op">=</span><span class="va">True</span>, timesteps<span class="op">=</span><span class="dv">100</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>demo.add_ancestral_populations(anc_sizes<span class="op">=</span>[<span class="dv">10000</span>], merge_time<span class="op">=</span><span class="dv">10000</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This includes:</p>
+<ul>
+<li>Creating population objects</li>
+<li>Setting up migration relationships</li>
+<li>Adding demographic events (for multi-slice scenarios)</li>
+<li>Adding ancestral populations</li>
+</ul>
+</section>
+<section id="ancestry-simulation" class="level3">
+<h3 class="anchored" data-anchor-id="ancestry-simulation">3. Ancestry Simulation</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> msprime</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>ts <span class="op">=</span> msprime.sim_ancestry(</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    samples<span class="op">=</span>sample_dict,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    demography<span class="op">=</span>demo,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    sequence_length<span class="op">=</span><span class="dv">10000</span>,</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    ploidy<span class="op">=</span><span class="dv">2</span>,</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Simulation time depends on:</p>
+<ul>
+<li>Number of samples</li>
+<li>Population sizes and structure</li>
+<li>Sequence length</li>
+<li>Migration dynamics</li>
+</ul>
+</section>
+</section>
+<section id="memory-tracking" class="level2">
+<h2 class="anchored" data-anchor-id="memory-tracking">Memory Tracking</h2>
+<p>We use Python’s <code>tracemalloc</code> to measure peak memory usage:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> tracemalloc</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>tracemalloc.start()</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ... run benchmark ...</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>current, peak <span class="op">=</span> tracemalloc.get_traced_memory()</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>tracemalloc.stop()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Key memory consumers:</p>
+<ul>
+<li><strong>Migration matrix</strong>: n² × 8 bytes (float64)</li>
+<li><strong>Deme arrays</strong>: rows × cols × time_slices × 8 bytes</li>
+<li><strong>msprime internals</strong>: Proportional to population count</li>
+</ul>
+</section>
+<section id="running-benchmarks" class="level2">
+<h2 class="anchored" data-anchor-id="running-benchmarks">Running Benchmarks</h2>
+<section id="quick-test" class="level3">
+<h3 class="anchored" data-anchor-id="quick-test">Quick Test</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> benchmarking</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> run_benchmarks.py <span class="at">--config</span> quick</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="full-suite" class="level3">
+<h3 class="anchored" data-anchor-id="full-suite">Full Suite</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> run_benchmarks.py <span class="at">--config</span> default</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="custom-output" class="level3">
+<h3 class="anchored" data-anchor-id="custom-output">Custom Output</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> run_benchmarks.py <span class="at">--config</span> full <span class="at">--output</span> results/my_benchmark.csv</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+</section>
+<section id="analyzing-results" class="level2">
+<h2 class="anchored" data-anchor-id="analyzing-results">Analyzing Results</h2>
+<p>Generate visualizations from benchmark results:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> analyze_results.py results/benchmark_default_<span class="pp">*</span>.csv <span class="at">--output</span> figures/</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This produces:</p>
+<ul>
+<li><code>scaling_by_demes.png</code>: Log-log scaling plot</li>
+<li><code>heatmap_grid_time.png</code>: Grid size × time slices heatmap</li>
+<li><code>parameter_effects.png</code>: Individual parameter effects</li>
+<li><code>time_breakdown.png</code>: Time by component</li>
+</ul>
+</section>
+<section id="configuration-options" class="level2">
+<h2 class="anchored" data-anchor-id="configuration-options">Configuration Options</h2>
+<p>Three benchmark configurations are available:</p>
+<section id="quick---config-quick" class="level3">
+<h3 class="anchored" data-anchor-id="quick---config-quick">Quick (<code>--config quick</code>)</h3>
+<p>Fast validation run:</p>
+<ul>
+<li>Grid sizes: 5×5, 10×10</li>
+<li>Deme sizes: 1000</li>
+<li>Migration rates: 0.01</li>
+<li>Time slices: 1, 5</li>
+<li>1 replicate</li>
+</ul>
+</section>
+<section id="default---config-default" class="level3">
+<h3 class="anchored" data-anchor-id="default---config-default">Default (<code>--config default</code>)</h3>
+<p>Comprehensive benchmarking:</p>
+<ul>
+<li>Grid sizes: 5×5 to 30×30</li>
+<li>Deme sizes: 100 to 10000</li>
+<li>Migration rates: 0.001, 0.01, 0.1</li>
+<li>Time slices: 1, 5, 10, 20</li>
+<li>3 replicates</li>
+</ul>
+</section>
+<section id="full---config-full" class="level3">
+<h3 class="anchored" data-anchor-id="full---config-full">Full (<code>--config full</code>)</h3>
+<p>Exhaustive analysis:</p>
+<ul>
+<li>More grid sizes and parameter values</li>
+<li>5 replicates for statistical power</li>
+</ul>
+<p>See the <a href="./benchmarking-results.html">Results</a> page for detailed findings.</p>
 
 
 </section>
@@ -857,18 +818,6 @@ ul.task-list li input[type="checkbox"] {
     }
   });
   </script>
-<nav class="page-navigation">
-  <div class="nav-page nav-page-previous">
-      <a href="../reference/spDemography.html" class="pagination-link" aria-label="spDemography">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">spDemography</span>
-      </a>          
-  </div>
-  <div class="nav-page nav-page-next">
-      <a href="../reference/spDemography.stepping_stone_2d.html" class="pagination-link" aria-label="spDemography.stepping_stone_2d">
-        <span class="nav-page-text">spDemography.stepping_stone_2d</span> <i class="bi bi-arrow-right-short"></i>
-      </a>
-  </div>
-</nav>
 </div> <!-- /content -->
 
 

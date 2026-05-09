@@ -9,7 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        working-directory: ${{ github.workspace }}
         uses: actions/checkout@v6
 
       - name: Install Pixi
@@ -45,14 +44,12 @@ jobs:
           pixi run -e dev quarto render docs/
 
       - name: Save docs
-        working-directory: ${{ github.workspace }}
         uses: actions/upload-artifact@v7
         with:
           name: docs-html
           path: docs/_site
 
       - name: Deploy
-        working-directory: ${{ github.workspace }}
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

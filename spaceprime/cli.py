@@ -528,9 +528,15 @@ def run_simulation(combo, args):
 
 def main():
     """Console script for spaceprime."""
-    from importlib.metadata import version as _get_version
+    from importlib.metadata import PackageNotFoundError, version as _get_version
 
-    _version = _get_version("spaceprime")
+    try:
+        _version = _get_version("spaceprime")
+    except PackageNotFoundError:
+        try:
+            from . import __version__ as _version
+        except ImportError:
+            _version = "unknown"
 
     parser = argparse.ArgumentParser()
     parser.add_argument(

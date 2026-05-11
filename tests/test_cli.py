@@ -65,16 +65,13 @@ def test_cli_version_exits_before_loading_packages(monkeypatch, capsys):
 def test_cli_loading_packages_message_printed(monkeypatch, capsys):
     """Test that 'Loading packages...' is printed when proceeding past arg parsing.
 
-    Providing a non-existent raster path causes a FileNotFoundError (or a
-    TypeError from the anc_sizes validation that runs just before the raster
-    check), but in either case 'Loading packages...' must have been printed
-    before the error is raised.
+    Providing a non-existent raster path should raise FileNotFoundError, and
+    'Loading packages...' must have been printed before the error is raised.
     """
     monkeypatch.setattr("sys.argv", ["spaceprime", "-r", "fake.tif", "-co", "fake.csv"])
 
     # FileNotFoundError: raster file does not exist.
-    # TypeError: pre-existing validation bug triggered by default anc_sizes=None.
-    with pytest.raises((FileNotFoundError, TypeError)):
+    with pytest.raises(FileNotFoundError):
         cli.main()
 
     captured = capsys.readouterr()

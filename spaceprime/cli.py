@@ -528,6 +528,7 @@ def run_simulation(combo, args):
 
 def main():
     """Console script for spaceprime."""
+    import sys
     from importlib.metadata import PackageNotFoundError, version as _get_version
 
     try:
@@ -834,7 +835,7 @@ def main():
 
     args = parser.parse_args()
 
-    print("Loading packages...", flush=True)
+    print("Loading packages...", file=sys.stderr, flush=True)
 
     # Import packages that are used directly in main() after argument parsing.
     # Heavy scientific dependencies are imported lazily inside each helper
@@ -860,7 +861,7 @@ def main():
     args.anc_pop_id = check_list_argument(args.anc_pop_id)
     args.anc_sizes = check_list_argument(args.anc_sizes)
     # make sure anc_sizes is a list of single value or a list of lists with two values in each element
-    if args.anc_sizes[0] is not None:
+    if args.anc_sizes is not None and args.anc_sizes[0] is not None:
         if isinstance(args.anc_sizes[0], list):
             args.anc_sizes = [list(map(int, size)) for size in args.anc_sizes]
             for size in args.anc_sizes:

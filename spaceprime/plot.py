@@ -19,8 +19,9 @@ def validate_demographic_model(demo):
 
 
 def validate_timestep(timestep, demo):
-    if timestep < 0 or timestep >= len(demo.demes):
-        raise ValueError(f"The timestep must be between 0 and {len(demo.demes) - 1}.")
+    n_timesteps = 1 if np.ndim(demo.demes) == 2 else len(demo.demes)
+    if timestep < 0 or timestep >= n_timesteps:
+        raise ValueError(f"The timestep must be between 0 and {n_timesteps - 1}.")
 
 
 def get_outgoing_migration_rates(
@@ -141,7 +142,14 @@ def plot_model(
         )
 
     # Get the demes matrix for the specified timestep
-    demes_matrix = demo.demes[timestep]
+    # demo.demes is a raw 2D array for single-timestep models (stepping_stone_2d
+    # with 2D input), so indexing it would return a row. Handle both cases.
+    if np.ndim(demo.demes) == 2:
+        demes_matrix = demo.demes
+        mig_mat = demo.migration_array
+    else:
+        demes_matrix = demo.demes[timestep]
+        mig_mat = demo.migration_array[timestep]
 
     # Mask the array to get only the valid data
     mask = demes_matrix > 1e-10
@@ -161,7 +169,7 @@ def plot_model(
     # build the gdf object over the two lists
     gdf = gpd.GeoDataFrame({"dummy": dummy_vals, "geometry": geometry}, crs=raster.crs)
 
-    mig_df = get_outgoing_migration_rates(demes_matrix, demo.migration_array[timestep])
+    mig_df = get_outgoing_migration_rates(demes_matrix, mig_mat)
 
     # Add the migration rates to the GeoDataFrame
     gdf = pd.concat([gdf, mig_df], axis=1)

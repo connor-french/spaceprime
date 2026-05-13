@@ -84,6 +84,7 @@ def plot_model(
     cmap: str = "viridis",
     legend: bool = True,
     tiles: str = "CartoDB positron",
+    show_anc_pops: bool = False,
 ):
     """
     Plots the demes and migration rates for a given timestep as an interactive map.
@@ -102,6 +103,10 @@ def plot_model(
         Whether to show the color legend. Defaults to True.
     tiles : str, optional
         The basemap tiles to use. Defaults to "CartoDB positron".
+    show_anc_pops : bool, optional
+        Whether to color demes by their ancestral population assignment instead of deme
+        size. Requires that `add_ancestral_populations()` was called with an `anc_id`
+        array. Defaults to False.
 
     Returns
     -------
@@ -113,6 +118,8 @@ def plot_model(
     raster = rasterio.open("path/to/raster.tif")
     # Plot the model at timestep 1
     plot_model(demo, raster, 1)
+    # Color demes by ancestral population assignment
+    plot_model(demo, raster, 1, show_anc_pops=True)
 
     Notes
     -----
@@ -124,6 +131,14 @@ def plot_model(
 
     # check if the number of timesteps is valid
     validate_timestep(timestep, demo)
+
+    if show_anc_pops and (
+        not hasattr(demo, "anc_ids") or demo.anc_ids is None
+    ):
+        raise ValueError(
+            "show_anc_pops=True requires ancestral population IDs on the model. "
+            "Call add_ancestral_populations() with the anc_id parameter first."
+        )
 
     # Get the demes matrix for the specified timestep
     demes_matrix = demo.demes[timestep]
@@ -154,21 +169,39 @@ def plot_model(
     # Add the deme index to the GeoDataFrame
     gdf["deme_index"] = gdf.index.to_list()
 
-    # Plot the GeoDataFrames
-    plot = gdf.explore(
-        column="deme_size",
-        tooltip=[
-            "deme_size",
-            "mig_north",
-            "mig_east",
-            "mig_south",
-            "mig_west",
-            "deme_index",
-        ],
-        cmap=cmap,
-        legend=legend,
-        tiles=tiles,
-    )
+    if show_anc_pops:
+        gdf["anc_pop"] = np.asarray(demo.anc_ids)[mask].astype(int)
+        plot = gdf.explore(
+            column="anc_pop",
+            tooltip=[
+                "anc_pop",
+                "deme_size",
+                "mig_north",
+                "mig_east",
+                "mig_south",
+                "mig_west",
+                "deme_index",
+            ],
+            cmap=cmap,
+            legend=legend,
+            tiles=tiles,
+            categorical=True,
+        )
+    else:
+        plot = gdf.explore(
+            column="deme_size",
+            tooltip=[
+                "deme_size",
+                "mig_north",
+                "mig_east",
+                "mig_south",
+                "mig_west",
+                "deme_index",
+            ],
+            cmap=cmap,
+            legend=legend,
+            tiles=tiles,
+        )
 
     return plot
 

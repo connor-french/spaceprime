@@ -70,6 +70,13 @@ def raster():
     return rasterio.open("tests/data/demes_raster.tif")
 
 
+@pytest.fixture
+def demo_with_anc_ids(demo):
+    # top row belongs to ANC_1, bottom row to ANC_2
+    demo.anc_ids = np.array([[1, 1], [2, 2]])
+    return demo
+
+
 # get_outgoing_migration_rates
 def test_get_outgoing_migration_rates_values(demes, mig_mat):
     outgoing_migration_rates = plot.get_outgoing_migration_rates(demes, mig_mat)
@@ -113,6 +120,25 @@ def test_plot_model_returns_plot(demo, raster) -> None:
 
     # Test 1: Check if a folium.Map object is returned
     assert isinstance(p, folium.Map)
+
+
+def test_plot_model_show_anc_pops_returns_plot(demo_with_anc_ids, raster) -> None:
+    """Test that show_anc_pops=True returns a folium.Map colored by ancestral population"""
+    p = plot.plot_model(demo_with_anc_ids, raster, 0, show_anc_pops=True)
+    assert isinstance(p, folium.Map)
+
+
+def test_plot_model_show_anc_pops_no_anc_ids(demo, raster) -> None:
+    """Test that show_anc_pops=True raises ValueError when anc_ids is not set"""
+    with pytest.raises(ValueError, match="show_anc_pops=True requires"):
+        plot.plot_model(demo, raster, 0, show_anc_pops=True)
+
+
+def test_plot_model_show_anc_pops_anc_ids_none(demo, raster) -> None:
+    """Test that show_anc_pops=True raises ValueError when anc_ids is None"""
+    demo.anc_ids = None
+    with pytest.raises(ValueError, match="show_anc_pops=True requires"):
+        plot.plot_model(demo, raster, 0, show_anc_pops=True)
 
 
 # plot_landscape

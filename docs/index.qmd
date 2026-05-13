@@ -56,13 +56,6 @@ To install spaceprime from source, run this command in your terminal:
 pip install git+https://github.com/connor-french/spaceprime
 ```
 
-### Extras
-
-To install the `analysis` module, which is imported separately from the main package to reduce the number of dependencies:  
-
-```{bash}
-conda install -c conda-forge spaceprime[analysis]
-```
 
 ## Usage
 

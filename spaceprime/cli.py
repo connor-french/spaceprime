@@ -145,7 +145,7 @@ def get_coal_times(tseq, raster, num_anc_pops, sample_num=2, ploidy=2):
 
     coal_1d = np.array(coal_list)[:-num_anc_pops]
 
-    coal_array = np.reshape(coal_1d, newshape=raster.shape)
+    coal_array = np.reshape(coal_1d, raster.shape)
 
     return coal_array
 

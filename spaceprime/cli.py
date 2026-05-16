@@ -145,7 +145,7 @@ def get_coal_times(tseq, raster, num_anc_pops, sample_num=2, ploidy=2):
 
     coal_1d = np.array(coal_list)[:-num_anc_pops]
 
-    coal_array = np.reshape(coal_1d, newshape=raster.shape)
+    coal_array = np.reshape(coal_1d, raster.shape)
 
     return coal_array
 
@@ -321,7 +321,7 @@ def run_simulation(combo, args):
         else:
             min_num_inds = 2
 
-        samples = get_map_dict(d, min_num_inds=min_num_inds)
+        samples = get_map_dict(d, min_num_inds=min_num_inds, sample_num=args.map_sample_num)
     else:
         samples = sample_dicts[0]
 
@@ -434,10 +434,10 @@ def run_simulation(combo, args):
                     r,
                     len(set(anc_pop_id)),
                     ploidy=args.ploidy,
-                    sample_num=2,
+                    sample_num=args.map_sample_num,
                 )
             else:
-                coal_array = get_coal_times(ts, r, 1, ploidy=args.ploidy, sample_num=2)
+                coal_array = get_coal_times(ts, r, 1, ploidy=args.ploidy, sample_num=args.map_sample_num)
 
             utilities.create_raster(
                 coal_array,
@@ -573,7 +573,7 @@ def main():
         nargs="+",
         type=sci_notation_int,
         default=[1000],
-        help="Maximum size of local demes. Accepts a single int or a pair of ints. Default is [1000].",
+        help="Maximum size of local demes. Accepts a single int or a pair of ints [min, max]. When --num_param_combos > 1, a pair is treated as a range and a random value is drawn uniformly from it for each parameter combination. Default is [1000].",
     )
     demography_parser.add_argument(
         "-th",
@@ -581,7 +581,7 @@ def main():
         nargs="+",
         type=float,
         default=None,
-        help="Threshold value for a thresholded transformation. Accepts a single float or a pair of floats. Default is None.",
+        help="Threshold value for a thresholded transformation. Accepts a single float or a pair of floats [min, max]. When --num_param_combos > 1, a pair is treated as a range and a random value is drawn uniformly from it for each parameter combination. Default is None.",
     )
     demography_parser.add_argument(
         "-ip",
@@ -589,7 +589,7 @@ def main():
         nargs="+",
         type=float,
         default=[0.5],
-        help="Inflection point value for a sigmoid transformation. Accepts a single int or a pair of ints. Default is [0.5].",
+        help="Inflection point value for a sigmoid transformation. Accepts a single float or a pair of floats [min, max]. When --num_param_combos > 1, a pair is treated as a range and a random value is drawn uniformly from it for each parameter combination. Default is [0.5].",
     )
     demography_parser.add_argument(
         "-s",
@@ -597,7 +597,7 @@ def main():
         nargs="+",
         type=float,
         default=[0.05],
-        help="Slope value for a sigmoid transformation. Accepts a single int or a pair of ints. Default is [0.05].",
+        help="Slope value for a sigmoid transformation. Accepts a single float or a pair of floats [min, max]. When --num_param_combos > 1, a pair is treated as a range and a random value is drawn uniformly from it for each parameter combination. Default is [0.05].",
     )
     demography_parser.add_argument(
         "-m",
@@ -605,7 +605,7 @@ def main():
         nargs="+",
         type=float,
         default=None,
-        help="Migration rate between demes. Accepts a single int or a pair of ints. Default is None.",
+        help="Migration rate between demes. Accepts a single float or a pair of floats [min, max]. When --num_param_combos > 1, a pair is treated as a range and a random value is drawn uniformly from it for each parameter combination. Default is None.",
     )
     demography_parser.add_argument(
         "-sc",
@@ -634,7 +634,7 @@ def main():
         nargs="+",
         type=lambda x: [int(float(i)) for i in x.split(",")],
         default=None,
-        help="List of sizes for ancestral populations. Accepts a list of single values or a list of pairs of values. Default is None.",
+        help="List of sizes for ancestral populations. Accepts a list of single values or a list of pairs of values [min, max]. When --num_param_combos > 1, each pair is treated as a range and a random value is drawn uniformly from it for each parameter combination. Default is None.",
     )
     demography_parser.add_argument(
         "-mt",
@@ -642,7 +642,7 @@ def main():
         nargs="+",
         type=sci_notation_int,
         default=None,
-        help="Time that demes merge into one or more ancestral populations. Measured in generations. Accepts a single int or a pair of ints. Default is None.",
+        help="Time that demes merge into one or more ancestral populations. Measured in generations. Accepts a single int or a pair of ints [min, max]. When --num_param_combos > 1, a pair is treated as a range and a random int is drawn uniformly from it for each parameter combination. Default is None.",
     )
     demography_parser.add_argument(
         "-amt",
@@ -650,7 +650,7 @@ def main():
         nargs="+",
         type=sci_notation_int,
         default=None,
-        help="Merge time for ancestral populations. Measured in generations. Accepts a single int or a pair of ints. Default is None.",
+        help="Merge time for ancestral populations. Measured in generations. Accepts a single int or a pair of ints [min, max]. When --num_param_combos > 1, a pair is treated as a range and a random int is drawn uniformly from it for each parameter combination. Default is None.",
     )
     demography_parser.add_argument(
         "-ams",
@@ -658,7 +658,7 @@ def main():
         nargs="+",
         type=sci_notation_int,
         default=None,
-        help="Merge size for ancestral populations. Accepts a single int or a pair of ints. Default is None.",
+        help="Merge size for ancestral populations. Accepts a single int or a pair of ints [min, max]. When --num_param_combos > 1, a pair is treated as a range and a random int is drawn uniformly from it for each parameter combination. Default is None.",
     )
     demography_parser.add_argument(
         "-amr",
@@ -666,7 +666,7 @@ def main():
         nargs="+",
         type=float,
         default=None,
-        help="Migration rate between ancestral populations. Accepts a single int or a pair of ints. Default is None.",
+        help="Migration rate between ancestral populations. Accepts a single float or a pair of floats [min, max]. When --num_param_combos > 1, a pair is treated as a range and a random value is drawn uniformly from it for each parameter combination. Default is None.",
     )
     # Simulation Setup
     simulation_parser = parser.add_argument_group("Simulation Setup")
@@ -683,7 +683,7 @@ def main():
         nargs="+",
         type=float,
         default=[1e-8],
-        help="Mutation rate per generation per base pair. Accepts a single float or a pair of floats. Default is [1e-8].",
+        help="Mutation rate per generation per base pair. Accepts a single float or a pair of floats [min, max]. When --num_param_combos > 1, a pair is treated as a range and a random value is drawn uniformly from it for each parameter combination. Default is [1e-8].",
     )
     simulation_parser.add_argument(
         "-rr",
@@ -691,7 +691,7 @@ def main():
         nargs="+",
         type=float,
         default=[0],
-        help="Recombination rate per generation per base pair. Accepts a single float or a pair of floats. Default is [0].",
+        help="Recombination rate per generation per base pair. Accepts a single float or a pair of floats [min, max]. When --num_param_combos > 1, a pair is treated as a range and a random value is drawn uniformly from it for each parameter combination. Default is [0].",
     )
     simulation_parser.add_argument(
         "-pl",
@@ -705,7 +705,7 @@ def main():
         "--num_param_combos",
         type=int,
         default=1,
-        help="Number of parameter combinations to simulate. Default is 1.",
+        help="Number of parameter combinations to simulate. When > 1, any argument that accepts a pair of values treats that pair as a [min, max] range and draws a random value from it for each combination. Default is 1.",
     )
     simulation_parser.add_argument(
         "-ncs",
@@ -781,6 +781,14 @@ def main():
         type=bool,
         default=False,
         help="Simulate the genetic diversity for each deme across entire landscape and output a GeoTiff. Overrides out_type. Default is False.",
+    )
+
+    parser.add_argument(
+        "-msn",
+        "--map_sample_num",
+        type=int,
+        default=2,
+        help="Number of individuals to sample per deme when generating a diversity map (--map). Higher values give more accurate diversity estimates at the cost of simulation time. Default is 2.",
     )
 
     parser.add_argument(

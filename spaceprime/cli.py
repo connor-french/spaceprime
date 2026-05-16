@@ -1,30 +1,33 @@
 """Console script for spaceprime."""
 
 import argparse
+import logging
 import os
-import yaml
-import rasterio
-import msprime
-import pandas as pd
-import numpy as np
-from numpy.random import default_rng
-from geopandas import GeoDataFrame
-from shapely.geometry import Point
 import time
+from datetime import datetime
 from multiprocessing import Pool
+
+import msprime
+import numpy as np
+import pandas as pd
+import rasterio
+import yaml
+from geopandas import GeoDataFrame
+from numpy.random import default_rng
+from shapely.geometry import Point
 
 from . import utilities
 from . import demography
 from . import analysis
 
-# set up logging
-import logging
+logger = logging.getLogger(__name__)
 
-logging.basicConfig(filename="iddc.log", level=logging.INFO)
-# write logs to a file
+_LOG_FORMAT = "%(asctime)s %(levelname)s %(name)s: %(message)s"
 
 
-logging.info("spaceprime CLI script started")
+def _init_worker(log_filename, log_level):
+    """Configure logging in multiprocessing worker processes."""
+    logging.basicConfig(filename=log_filename, level=log_level, format=_LOG_FORMAT)
 
 
 def sci_notation_int(x):
@@ -270,12 +273,15 @@ def generate_param_combinations(args):
 
 def run_simulation(combo, args):
     rng = default_rng()
-    logging.info(f"Running simulation with parameters: {combo}")
+    logger.info("Running simulation with parameters: %s", combo)
+
     # read in raster
     r = rasterio.open(args.raster)
+    logger.debug("Opened raster: %s | shape=%s | CRS=%s", args.raster, r.shape, r.crs)
 
     # read in the coordinates
     coords = read_coords(args.coords)
+    logger.debug("Loaded %d sampling coordinates", len(coords))
 
     # read in individuals
     individuals = read_individuals(args, coords)
@@ -285,9 +291,10 @@ def run_simulation(combo, args):
 
     # sample dictionaries for ancestry sims and optionally for sumstats
     sample_dicts = utilities.coords_to_sample_dict(r, coords)
+    logger.debug("Sample dict: %s", sample_dicts[0])
 
     demo_id = f"demo_{rng.integers(0, 2**30)}"
-    logging.info(f"Setting up demography with ID: {demo_id}")
+    logger.info("Setting up demography (id=%s)", demo_id)
     d = setup_demography(
         raster=r,
         coords=coords,
@@ -305,11 +312,10 @@ def run_simulation(combo, args):
         anc_merge_size=combo["anc_merge_size"],
         anc_mig_rate=combo["anc_mig_rate"],
     )
+    logger.debug("Demography has %d populations", len(d.populations))
 
-    print("Finished setting up demography")
-    logging.info("Beginning tree sequence simulations")
+    logger.info("Beginning tree sequence simulations")
     start_time = time.time()
-    print("Beginning tree sequence simulations")
 
     # if map is True, return a dictionary mapping samples to all nonzero demes
     # replace the sample dictionary with this dictionary
@@ -322,6 +328,7 @@ def run_simulation(combo, args):
             min_num_inds = 2
 
         samples = get_map_dict(d, min_num_inds=min_num_inds, sample_num=args.map_sample_num)
+        logger.debug("Map mode: sampling %d demes with %d individuals each (map_sample_num=%d)", len(samples), min_num_inds, args.map_sample_num)
     else:
         samples = sample_dicts[0]
 
@@ -330,6 +337,11 @@ def run_simulation(combo, args):
         # set a new random seed for each ancestry simulation
         ancestry_seed = rng.integers(0, 2**30)
         mutation_seed = rng.integers(0, 2**30)
+
+        logger.info(
+            "Coalescent replicate %d/%d | ancestry_seed=%d | mutation_seed=%d",
+            ncoal + 1, args.num_coalescent_sims, ancestry_seed, mutation_seed,
+        )
 
         # simulate tree sequence
         ts = msprime.sim_ancestry(
@@ -347,8 +359,8 @@ def run_simulation(combo, args):
             ts, rate=combo["mutation_rate"], random_seed=mutation_seed
         )
 
-        end_time = time.time()
-        elapsed_time = end_time - start_time
+        elapsed_time = time.time() - start_time
+        logger.info("Tree sequence simulated in %.2fs", elapsed_time)
 
         # write metadata to csv
         metadata = {
@@ -425,9 +437,10 @@ def run_simulation(combo, args):
             )
         else:
             pd.DataFrame(metadata, index=[0]).to_csv(metadata_file, index=False)
+        logger.debug("Wrote metadata: %s", metadata_file)
 
-        logging.info("Beginning coalescent array calculations")
         if args.map:
+            logger.info("Computing per-deme diversity (map_sample_num=%d)", args.map_sample_num)
             if anc_pop_id is not None:
                 coal_array = get_coal_times(
                     ts,
@@ -439,13 +452,14 @@ def run_simulation(combo, args):
             else:
                 coal_array = get_coal_times(ts, r, 1, ploidy=args.ploidy, sample_num=args.map_sample_num)
 
+            map_prefix = f"{args.out_prefix}_diversity_map_{ancestry_seed}"
             utilities.create_raster(
                 coal_array,
                 r,
                 out_folder=args.out_folder,
-                out_prefix=f"{args.out_prefix}_diversity_map_{ancestry_seed}",
+                out_prefix=map_prefix,
             )
-        logging.info("Finished coalescent array calculations and wrote to file")
+            logger.info("Wrote diversity map: %s", os.path.join(args.out_folder, map_prefix + ".tif"))
 
         # only output other files if args.map is False
         if not args.map:
@@ -455,6 +469,7 @@ def run_simulation(combo, args):
                     args.out_folder, f"{args.out_prefix}_ancestry_{ancestry_seed}.trees"
                 )
                 ts.dump(ts_file)
+                logger.info("Wrote tree sequence: %s", ts_file)
 
             # if out_type is 1 or 3, write VCF to file
             if args.out_type == 1 or args.out_type == 3:
@@ -462,12 +477,14 @@ def run_simulation(combo, args):
                     args.out_folder, f"{args.out_prefix}_vcf_{ancestry_seed}.vcf"
                 )
                 ts.write_vcf(vcf_file, ploidy=args.ploidy, individual_names=individuals)
+                logger.info("Wrote VCF: %s", vcf_file)
 
             # if out_type is 2 or 3, calculate summary statistics
             #### NEED TO FINISH THIS ####
             if args.out_type == 2 or args.out_type == 3:
                 # convert tree sequence to a genotype matrix
                 gt = ts.genotype_matrix()
+                logger.debug("Genotype matrix shape: %s", gt.shape)
                 # get necessary dictionaries
                 coords_dict = utilities.coords_to_deme_dict(r, coords)
 
@@ -517,8 +534,9 @@ def run_simulation(combo, args):
                     sumstats.to_csv(sumstats_file, mode="a", header=False, index=False)
                 else:
                     sumstats.to_csv(sumstats_file, index=False)
+                logger.info("Wrote summary statistics: %s", sumstats_file)
 
-        print("Finished simulating tree sequences")
+    logger.info("Simulation complete for demo_id=%s", demo_id)
 
 
 def main():
@@ -813,6 +831,14 @@ def main():
         help="Print progress to console. Default is False.",
     )
     parser.add_argument(
+        "-ll",
+        "--log-level",
+        dest="log_level",
+        default="INFO",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
+        help="Logging verbosity. DEBUG includes per-step details; INFO (default) covers major milestones.",
+    )
+    parser.add_argument(
         "-c",
         "--cpu",
         type=int,
@@ -832,6 +858,15 @@ def main():
             # Update command line arguments with parameters from YAML file
             for key, value in params.items():
                 setattr(args, key, value)
+
+    # Configure logging now that we know the output folder and log level
+    log_dir = args.out_folder if args.out_folder is not None else "."
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_filename = os.path.join(log_dir, f"spaceprime_{timestamp}.log")
+    log_level = getattr(logging, args.log_level)
+    logging.basicConfig(filename=log_filename, level=log_level, format=_LOG_FORMAT)
+    logger.info("spaceprime CLI started | log_level=%s | log_file=%s", args.log_level, log_filename)
+    logger.debug("Parsed arguments: %s", vars(args))
 
     args.max_local_size = check_list_argument(args.max_local_size)
     args.inflection_point = check_list_argument(args.inflection_point)
@@ -875,12 +910,17 @@ def main():
 
     # generate parameter combinations
     param_combos = generate_param_combinations(args)
-    logging.info("Generated parameter combinations")
+    logger.info("Generated %d parameter combination(s)", len(param_combos))
 
-    # run simulations in parallel
+    # run simulations
     if args.cpu == 1:
         for combo in param_combos:
             run_simulation(combo, args)
     else:
-        with Pool(args.cpu) as p:
+        logger.info("Starting multiprocessing pool with %d workers", args.cpu)
+        with Pool(
+            args.cpu,
+            initializer=_init_worker,
+            initargs=(log_filename, log_level),
+        ) as p:
             p.starmap(run_simulation, [(combo, args) for combo in param_combos])

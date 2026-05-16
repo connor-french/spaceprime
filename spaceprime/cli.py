@@ -27,6 +27,11 @@ logging.basicConfig(filename="iddc.log", level=logging.INFO)
 logging.info("spaceprime CLI script started")
 
 
+def sci_notation_int(x):
+    """Parse a string to int, accepting scientific notation (e.g. '1e6' → 1000000)."""
+    return int(float(x))
+
+
 # Check if list arguments have more than two elements
 def check_argument_length(arg, max_length):
     if arg is not None and len(arg) > max_length:
@@ -566,7 +571,7 @@ def main():
         "-mls",
         "--max_local_size",
         nargs="+",
-        type=int,
+        type=sci_notation_int,
         default=[1000],
         help="Maximum size of local demes. Accepts a single int or a pair of ints. Default is [1000].",
     )
@@ -627,7 +632,7 @@ def main():
         "-as",
         "--anc_sizes",
         nargs="+",
-        type=lambda x: [int(i) for i in x.split(",")],
+        type=lambda x: [int(float(i)) for i in x.split(",")],
         default=None,
         help="List of sizes for ancestral populations. Accepts a list of single values or a list of pairs of values. Default is None.",
     )
@@ -635,7 +640,7 @@ def main():
         "-mt",
         "--merge_time",
         nargs="+",
-        type=int,
+        type=sci_notation_int,
         default=None,
         help="Time that demes merge into one or more ancestral populations. Measured in generations. Accepts a single int or a pair of ints. Default is None.",
     )
@@ -643,7 +648,7 @@ def main():
         "-amt",
         "--anc_merge_time",
         nargs="+",
-        type=int,
+        type=sci_notation_int,
         default=None,
         help="Merge time for ancestral populations. Measured in generations. Accepts a single int or a pair of ints. Default is None.",
     )
@@ -651,7 +656,7 @@ def main():
         "-ams",
         "--anc_merge_size",
         nargs="+",
-        type=int,
+        type=sci_notation_int,
         default=None,
         help="Merge size for ancestral populations. Accepts a single int or a pair of ints. Default is None.",
     )
@@ -668,8 +673,8 @@ def main():
     simulation_parser.add_argument(
         "-sl",
         "--seq_length",
-        type=int,
-        default=1e6,
+        type=sci_notation_int,
+        default=1000000,
         help="Length of sequence to simulate. Measured in base pairs. Default is 1e6.",
     )
     simulation_parser.add_argument(

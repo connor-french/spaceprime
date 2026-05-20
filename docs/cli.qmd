@@ -1,0 +1,283 @@
+---
+title: "CLI"
+format:
+  html:
+    eval: false
+    echo: true
+    toc: true
+---
+
+The `spaceprime` command-line interface (CLI) provides a streamlined way to run large batches of spatially explicit coalescent simulations without writing Python code. It is designed for two primary workflows: **prior predictive simulation** (drawing random parameter combinations for likelihood-free inference) and **fixed-parameter replication** (running many replicates under the same model).
+
+## Use cases
+
+**Running many simulations for ABC or ML-based inference**
+Likelihood-free methods such as Approximate Bayesian Computation (ABC) and machine learning require hundreds to thousands of simulations drawn from prior distributions. The CLI supports this directly: any numeric argument accepts a `[min, max]` range, and `--num_param_combos` controls how many random draws to make. Each draw produces an independent demographic model whose parameters are recorded in the metadata CSV.
+
+**Parallel execution on a workstation or cluster**
+Use `--cpu` to distribute parameter combinations across multiple cores. On an HPC cluster, combine `--cpu` with a job array: submit one job per chunk of `--num_param_combos` and merge the output CSVs afterward.
+
+**Diversity mapping across the landscape**
+The `--map` flag simulates genetic diversity for every deme in the landscape and writes the result as a GeoTIFF raster, instead of per-sample outputs. This is useful for visualizing expected patterns of diversity under different demographic scenarios.
+
+**Reproducible runs via YAML configuration**
+Pass `--params path/to/config.yaml` to read all arguments from a configuration file. This makes runs reproducible, version-controllable, and easy to share. See [Configuration file](#configuration-file) for a template.
+
+---
+
+## Quickstart
+
+This example runs a single simulation with a linear habitat-to-deme transformation, a fixed migration rate, and all three output types (tree sequence, VCF, and summary statistics).
+
+You need two input files:
+
+- `habitat.tif` — a single-band GeoTIFF of habitat suitability values (0–1)
+- `samples.csv` — a CSV with columns `longitude` and `latitude`
+
+```bash
+spaceprime \
+  --raster habitat.tif \
+  --coords samples.csv \
+  --max_local_size 1000 \
+  --mig_rate 0.01 \
+  --merge_time 10000 \
+  --mutation_rate 1e-8 \
+  --seq_length 1000000 \
+  --out_type 3 \
+  --out_folder results/ \
+  --out_prefix my_sim
+```
+
+This produces:
+
+| File | Contents |
+|---|---|
+| `my_sim_ancestry_<seed>.trees` | msprime tree sequence |
+| `my_sim_vcf_<seed>.vcf` | VCF of simulated variants |
+| `my_sim_sumstats.csv` | Genetic summary statistics |
+| `my_sim_metadata.csv` | Parameters and seeds for each replicate |
+| `spaceprime_<timestamp>.log` | Run log |
+
+::: {.callout-tip}
+## Output seeds
+Each output file name includes the ancestry seed used for that replicate, so you can reproduce any individual simulation later.
+:::
+
+---
+
+## Advanced model setup
+
+### Prior-based simulation for inference
+
+This example draws 500 random parameter combinations from prior ranges and runs each on 4 CPUs in parallel. This is a typical setup for training an ABC or neural network classifier.
+
+```bash
+spaceprime \
+  --raster habitat.tif \
+  --coords samples.csv \
+  --max_local_size 500 5000 \
+  --mig_rate 0.001 0.1 \
+  --merge_time 1000 100000 \
+  --mutation_rate 1e-9 1e-7 \
+  --recombination_rate 0 1e-8 \
+  --num_param_combos 500 \
+  --num_coalescent_sims 1 \
+  --seq_length 500000 \
+  --out_type 2 \
+  --out_folder results/ \
+  --out_prefix abc_run \
+  --cpu 4
+```
+
+Any argument that accepts a `[min, max]` pair (see [Argument reference](#argument-reference)) treats that pair as a uniform prior. One random value is drawn from the range for each of the 500 combinations. The exact value used for every replicate is recorded in `abc_run_metadata.csv`, so you can reconstruct parameter—output pairs for training.
+
+### Model with ancestral populations
+
+When sampling spans historically isolated lineages (e.g., glacial refugia), add ancestral populations that merge into the present-day landscape model at a specified time.
+
+```bash
+spaceprime \
+  --raster habitat.tif \
+  --coords samples.csv \
+  --anc_pop_id anc_pop_ids.csv \
+  --max_local_size 1000 \
+  --mig_rate 0.01 \
+  --merge_time 10000 \
+  --anc_sizes 5000 5000 \
+  --anc_merge_time 50000 \
+  --anc_merge_size 10000 \
+  --anc_mig_rate 0.001 \
+  --out_type 2 \
+  --out_folder results/ \
+  --out_prefix anc_pop_run
+```
+
+`anc_pop_ids.csv` must have a column named `anc_pop_id` with one row per sample coordinate, assigning each sample to a numbered ancestral population.
+
+### Diversity map
+
+To generate a per-deme diversity raster instead of per-sample outputs:
+
+```bash
+spaceprime \
+  --raster habitat.tif \
+  --coords samples.csv \
+  --max_local_size 1000 \
+  --mig_rate 0.01 \
+  --merge_time 10000 \
+  --map true \
+  --map_sample_num 3 \
+  --out_folder results/ \
+  --out_prefix diversity_run
+```
+
+The output is a GeoTIFF (`diversity_run_diversity_map_<seed>.tif`) aligned to the input raster grid. `--map` overrides `--out_type`.
+
+### Using a YAML configuration file
+
+For reproducible runs, write all arguments to a YAML file and pass it with `--params`:
+
+```bash
+spaceprime --params config.yaml
+```
+
+See the [Configuration file](#configuration-file) section for a full template.
+
+---
+
+## Configuration file
+
+The `templates/config.yaml` file in the spaceprime repository provides a full template for all available parameters. Copy it and fill in your paths and values:
+
+```yaml
+# spaceprime configuration file
+# List entries: [entry1, entry2]
+# Ranges (uniform priors): [min, max]
+# Paths must be quoted: "path/to/file"
+# Booleans: true or false
+
+# --- global ---
+raster: "path/to/habitat.tif"
+coords: "path/to/samples.csv"
+individuals: null  # optional: list of IDs or path to CSV with 'individual_id' column
+
+# --- demography ---
+normalize: false
+transformation: "linear"   # linear | threshold | sigmoid
+max_local_size: [1000]     # single value or [min, max] range
+threshold: null            # required when transformation is 'threshold'
+inflection_point: [0.5]    # used with sigmoid transformation
+slope: [0.05]              # used with sigmoid transformation
+mig_rate: [0.01]           # global migration rate, single value or [min, max]
+scale: true
+anc_pop_id: null           # path to CSV with 'anc_pop_id' column, or null
+timesteps: 1
+anc_sizes: null            # list of ints or list of [min, max] pairs, one per ancestral pop
+merge_time: null           # generations; single value or [min, max]
+anc_merge_time: null
+anc_merge_size: null
+anc_mig_rate: null
+
+# --- simulation ---
+seq_length: 1000000
+mutation_rate: [1e-8]      # single value or [min, max]
+recombination_rate: [0]
+ploidy: 2
+num_param_combos: 1
+num_coalescent_sims: 1
+
+# --- analysis ---
+missing_data_perc: 0
+r2_thresh: 0.1
+filter_monomorphic: true
+filter_singletons: true
+sumstats: "all"            # pi | tajima_d | sfs_h | fst | dxy | ibd | all
+within_anc_pop_sumstats: false
+between_anc_pop_sumstats: false
+
+# --- output ---
+out_type: 3     # 0=trees, 1=VCF, 2=sumstats CSV, 3=all
+map: false
+map_sample_num: 2
+out_folder: null  # defaults to current working directory
+out_prefix: "spaceprime"
+log_level: "INFO"   # DEBUG | INFO | WARNING | ERROR
+cpu: 1
+```
+
+::: {.callout-note}
+When `--params` is provided, all command-line arguments are ignored in favour of the YAML file.
+:::
+
+---
+
+## Argument reference
+
+### Global
+
+| Flag | Short | Type | Default | Description |
+|---|---|---|---|---|
+| `--params` | `-p` | str | `null` | Path to YAML config file. When provided, all other CLI arguments are ignored. |
+| `--raster` | `-r` | str | — | Path to habitat suitability raster (any format readable by rasterio). |
+| `--coords` | `-co` | str | — | Path to CSV of sampling coordinates. Must have `longitude` and `latitude` columns. |
+| `--individuals` | `-i` | str/list | `null` | Individual IDs: a comma-separated list or path to a CSV with an `individual_id` column. Length must match `--coords`. Used to label VCF samples. |
+
+### Demography setup
+
+| Flag | Short | Type | Default | Description |
+|---|---|---|---|---|
+| `--normalize` | `-n` | bool | `false` | Normalise raster values to [0, 1] before conversion to deme sizes. |
+| `--transformation` | `-t` | str | `linear` | Function mapping habitat values to deme sizes. Options: `linear`, `threshold`, `sigmoid`. |
+| `--max_local_size` | `-mls` | int | `1000` | Maximum deme size. Accepts a single int or a `[min, max]` range. |
+| `--threshold` | `-th` | float | `null` | Habitat value below which demes are set to zero (threshold transformation). Single value or `[min, max]`. |
+| `--inflection_point` | `-ip` | float | `0.5` | Inflection point of the sigmoid transformation. Single value or `[min, max]`. |
+| `--slope` | `-s` | float | `0.05` | Slope of the sigmoid transformation. Single value or `[min, max]`. |
+| `--mig_rate` | `-m` | float | `null` | Global migration rate between adjacent demes. Single value or `[min, max]`. |
+| `--scale` | `-sc` | bool | `true` | Scale migration by donor/recipient deme size: `m = (N_donor / N_recipient) * m_global`. |
+| `--anc_pop_id` | `-a` | str/list | `null` | Ancestral population assignments. Path to a CSV with column `anc_pop_id`, or a comma-separated list. Length must equal the number of sampling coordinates. |
+| `--timesteps` | `-ts` | int | `1` | Generations between demographic events (for multi-time-slice rasters). |
+| `--anc_sizes` | `-as` | list | `null` | Sizes of ancestral populations, one per population. Each entry can be a single int or a `[min, max]` pair. |
+| `--merge_time` | `-mt` | int | `null` | Generation at which demes collapse into ancestral populations. Single value or `[min, max]`. |
+| `--anc_merge_time` | `-amt` | int | `null` | Generation at which ancestral populations merge into a root. Single value or `[min, max]`. |
+| `--anc_merge_size` | `-ams` | int | `null` | Size of the merged ancestral root population. Single value or `[min, max]`. |
+| `--anc_mig_rate` | `-amr` | float | `null` | Migration rate between ancestral populations. Single value or `[min, max]`. |
+
+### Simulation setup
+
+| Flag | Short | Type | Default | Description |
+|---|---|---|---|---|
+| `--seq_length` | `-sl` | int | `1000000` | Simulated sequence length in base pairs. Accepts scientific notation (e.g. `1e6`). |
+| `--mutation_rate` | `-mu` | float | `1e-8` | Mutation rate per base pair per generation. Single value or `[min, max]`. |
+| `--recombination_rate` | `-rr` | float | `0` | Recombination rate per base pair per generation. Single value or `[min, max]`. |
+| `--ploidy` | `-pl` | int | `2` | Ploidy of simulated individuals. |
+| `--num_param_combos` | `-npc` | int | `1` | Number of random parameter combinations to draw. When > 1, any `[min, max]` argument is treated as a prior and sampled uniformly. |
+| `--num_coalescent_sims` | `-ncs` | int | `1` | Coalescent replicates per parameter combination. |
+
+### Analysis setup
+
+| Flag | Short | Type | Default | Description |
+|---|---|---|---|---|
+| `--missing_data_perc` | `-mdp` | float | `0` | Fraction of genotype data to mask as missing (0–1). |
+| `--r2_thresh` | `-rt` | float | `0.1` | LD pruning threshold. Sites with R² above this value are removed. |
+| `--filter_monomorphic` | `-fm` | bool | `true` | Remove monomorphic sites before computing summary statistics. |
+| `--filter_singletons` | `-fs` | bool | `true` | Remove singleton sites before computing summary statistics. |
+| `--sumstats` | `-ss` | list | `all` | Summary statistics to compute. Options: `pi`, `tajima_d`, `sfs_h`, `fst`, `dxy`, `ibd`, or `all`. |
+| `--within_anc_pop_sumstats` | `-wap` | bool | `false` | Compute summary statistics separately within each ancestral population. |
+| `--between_anc_pop_sumstats` | `-bap` | bool | `false` | Compute Fst and/or Dxy between ancestral populations. |
+
+### Output
+
+| Flag | Short | Type | Default | Description |
+|---|---|---|---|---|
+| `--out_type` | `-ot` | int | `3` | Output format: `0` = tree sequences only, `1` = VCFs only, `2` = summary statistics CSV only, `3` = all outputs. |
+| `--map` | `-map` | bool | `false` | Output a per-deme diversity GeoTIFF instead of per-sample files. Overrides `--out_type`. |
+| `--map_sample_num` | `-msn` | int | `2` | Individuals sampled per deme when generating a diversity map. Higher values improve accuracy at the cost of speed. |
+| `--out_folder` | `-of` | str | CWD | Directory for output files. Must already exist. |
+| `--out_prefix` | `-op` | str | `spaceprime` | Prefix applied to all output file names. |
+| `--log_level` | `-ll` | str | `INFO` | Logging verbosity: `DEBUG`, `INFO`, `WARNING`, or `ERROR`. Log is written to `<out_folder>/spaceprime_<timestamp>.log`. |
+| `--cpu` | `-c` | int | `1` | Number of CPUs for parallel execution. Each CPU processes one parameter combination at a time. |
+
+::: {.callout-note}
+## Range arguments
+Any argument listed as accepting a `[min, max]` range behaves as a **fixed value** when `--num_param_combos 1` (the default). A range only has effect when `--num_param_combos > 1`, in which case one value is sampled uniformly from `[min, max]` for each combination.
+:::

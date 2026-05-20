@@ -30,25 +30,23 @@ This page provides an overview of the package and its main features. For more de
 
 ### Stable release
 
-The recommended 
+The recommended way to install *spaceprime* is with [pixi](https://pixi.sh), a fast cross-platform package manager. *spaceprime* is available on MacOS, Linux, and Windows.
 
-*spaceprime* can be installed using `pip` or `conda`. Due to the package's reliance on `msprime`, the `pip` installation is only available on unix-based systems (MacOS, Linux). Windows users should install *spaceprime* using `conda`.
+```bash
+pixi add spaceprime
+```
 
-To install *spaceprime* using `pip`, run the following command in your terminal:
+*spaceprime* can also be installed using `pip`:
 
 ```bash
 pip install spaceprime
 ```
 
-To install *spaceprime* using `conda`, run the following command in your terminal:
+Or using `conda`/`mamba`:
 
 ```bash
 conda install -c conda-forge spaceprime
-```
-
-The `mamba` package manager can also be used to install *spaceprime* using `conda`. `mamba` tends to be much faster than conda. To install *spaceprime* using `mamba`, install `mamba`, then run the following command in your terminal:
-
-```bash
+# or, using mamba (faster):
 mamba install -c conda-forge spaceprime
 ```
 
@@ -56,7 +54,7 @@ mamba install -c conda-forge spaceprime
 
 To install spaceprime from source, run this command in your terminal:
 
-```
+```bash
 pip install git+https://github.com/connor-french/spaceprime
 ```
 

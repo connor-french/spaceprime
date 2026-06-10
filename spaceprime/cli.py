@@ -72,6 +72,7 @@ def read_coords(file_path):
 # read in individual IDs if a path is provided, otherwise use the list
 # also perform a series of checks
 def read_individuals(args, coords):
+    individuals = None
     if args.individuals is not None:
         if isinstance(args.individuals, str):
             if not os.path.exists(args.individuals):
@@ -187,20 +188,19 @@ def setup_demography(
         anc_pop_mat = None
 
     # create demography
-    d = demography.stepping_stone_2d(
-        d=demes, rate=mig_rate, scale=scale, timesteps=timesteps
-    )
+    d = demography.spDemography()
+    d.stepping_stone_2d(d=demes, rate=mig_rate, scale=scale, timesteps=timesteps)
 
     # add ancestral populations
-    d = demography.add_ancestral_populations(
-        model=d,
-        anc_sizes=anc_sizes,
-        merge_time=merge_time,
-        anc_id=anc_pop_mat,
-        anc_merge_times=anc_merge_time,
-        anc_merge_sizes=anc_merge_size,
-        migration_rate=anc_mig_rate,
-    )
+    if anc_sizes is not None and merge_time is not None:
+        d.add_ancestral_populations(
+            anc_sizes=anc_sizes,
+            merge_time=merge_time,
+            anc_id=anc_pop_mat,
+            anc_merge_times=anc_merge_time,
+            anc_merge_sizes=anc_merge_size,
+            migration_rate=anc_mig_rate,
+        )
 
     return d
 
@@ -539,8 +539,8 @@ def run_simulation(combo, args):
     logger.info("Simulation complete for demo_id=%s", demo_id)
 
 
-def main():
-    """Console script for spaceprime."""
+def build_parser():
+    """Return the CLI argument parser."""
     parser = argparse.ArgumentParser()
     # global arguments
     parser.add_argument(
@@ -622,8 +622,8 @@ def main():
         "--mig_rate",
         nargs="+",
         type=float,
-        default=None,
-        help="Migration rate between demes. Accepts a single float or a pair of floats [min, max]. When --num_param_combos > 1, a pair is treated as a range and a random value is drawn uniformly from it for each parameter combination. Default is None.",
+        default=[1e-8],
+        help="Migration rate between demes. Accepts a single float or a pair of floats [min, max]. When --num_param_combos > 1, a pair is treated as a range and a random value is drawn uniformly from it for each parameter combination. Default is 1e-8.",
     )
     demography_parser.add_argument(
         "-sc",
@@ -650,7 +650,7 @@ def main():
         "-as",
         "--anc_sizes",
         nargs="+",
-        type=lambda x: [int(float(i)) for i in x.split(",")],
+        type=lambda x: [int(float(i)) for i in x.split(",")] if "," in x else int(float(x)),
         default=None,
         help="List of sizes for ancestral populations. Accepts a list of single values or a list of pairs of values [min, max]. When --num_param_combos > 1, each pair is treated as a range and a random value is drawn uniformly from it for each parameter combination. Default is None.",
     )
@@ -846,6 +846,12 @@ def main():
         help="Number of CPUs to use for parallel processing. Default is 1.",
     )
 
+    return parser
+
+
+def main():
+    """Console script for spaceprime."""
+    parser = build_parser()
     args = parser.parse_args()
 
     # Check if params YAML file exists. If so, update command line arguments with parameters from YAML file
@@ -875,7 +881,7 @@ def main():
     args.anc_pop_id = check_list_argument(args.anc_pop_id)
     args.anc_sizes = check_list_argument(args.anc_sizes)
     # make sure anc_sizes is a list of single value or a list of lists with two values in each element
-    if args.anc_sizes[0] is not None:
+    if args.anc_sizes is not None and args.anc_sizes[0] is not None:
         if isinstance(args.anc_sizes[0], list):
             args.anc_sizes = [list(map(int, size)) for size in args.anc_sizes]
             for size in args.anc_sizes:

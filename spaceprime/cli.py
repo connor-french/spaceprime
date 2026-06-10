@@ -16,6 +16,7 @@ from geopandas import GeoDataFrame
 from numpy.random import default_rng
 from shapely.geometry import Point
 
+from . import __version__ as _version
 from . import utilities
 from . import demography
 from . import analysis

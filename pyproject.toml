@@ -69,6 +69,7 @@ libgdal = "*"
 gsl = ">=2.7,<3"
 msprime = "*"
 rasterio = "*"
+pip = ">=26.1.1,<27"
 
 [tool.pixi.feature.dev.dependencies]
 scipy = "<1.16"
@@ -98,6 +99,7 @@ sphinx = "*"
 watchdog = "*"
 pygments = "*"
 pymdown-extensions = "*"
+pip = ">=26.1.1,<27"
 
 [tool.pixi.feature.dev.pypi-dependencies]
 great_tables = "*"
@@ -110,7 +112,7 @@ dev = { features = ["dev"] }
 [tool.pixi.tasks]
 test = "pytest tests/"
 coverage = "pytest --cov=spaceprime tests/"
-build = "pip install -e ."
+build = "python -m pip install -e ."
 
 # Ruff configuration (replacing flake8)
 [tool.ruff]

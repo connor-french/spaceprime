@@ -421,5 +421,8 @@ class spDemography(msprime.Demography):
                             rate=migration_rate,
                         )
 
+        # store anc_ids for use in plot_model; None when there's a single ancestral pop
+        self.anc_ids = anc_id if anc_id is not None else None
+
         # sort the events to make sure everything runs in order
         self.sort_events()

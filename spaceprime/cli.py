@@ -1,16 +1,38 @@
 """Console script for spaceprime."""
 
 import argparse
-import os
-
-# set up logging
 import logging
+import os
+import time
+from datetime import datetime
+from multiprocessing import Pool
 
-logging.basicConfig(filename="iddc.log", level=logging.INFO)
-# write logs to a file
+import msprime
+import numpy as np
+import pandas as pd
+import rasterio
+import yaml
+from geopandas import GeoDataFrame
+from numpy.random import default_rng
+from shapely.geometry import Point
+
+from . import utilities
+from . import demography
+from . import analysis
+
+logger = logging.getLogger(__name__)
+
+_LOG_FORMAT = "%(asctime)s %(levelname)s %(name)s: %(message)s"
 
 
-logging.info("spaceprime CLI script started")
+def _init_worker(log_filename, log_level):
+    """Configure logging in multiprocessing worker processes."""
+    logging.basicConfig(filename=log_filename, level=log_level, format=_LOG_FORMAT)
+
+
+def sci_notation_int(x):
+    """Parse a string to int, accepting scientific notation (e.g. '1e6' → 1000000)."""
+    return int(float(x))
 
 
 # Check if list arguments have more than two elements
@@ -54,8 +76,7 @@ def read_coords(file_path):
 # read in individual IDs if a path is provided, otherwise use the list
 # also perform a series of checks
 def read_individuals(args, coords):
-    import pandas as pd
-
+    individuals = None
     if args.individuals is not None:
         if isinstance(args.individuals, str):
             if not os.path.exists(args.individuals):
@@ -136,7 +157,7 @@ def get_coal_times(tseq, raster, num_anc_pops, sample_num=2, ploidy=2):
 
     coal_1d = np.array(coal_list)[:-num_anc_pops]
 
-    coal_array = np.reshape(coal_1d, newshape=raster.shape)
+    coal_array = np.reshape(coal_1d, raster.shape)
 
     return coal_array
 
@@ -178,20 +199,19 @@ def setup_demography(
         anc_pop_mat = None
 
     # create demography
-    d = demography.stepping_stone_2d(
-        d=demes, rate=mig_rate, scale=scale, timesteps=timesteps
-    )
+    d = demography.spDemography()
+    d.stepping_stone_2d(d=demes, rate=mig_rate, scale=scale, timesteps=timesteps)
 
     # add ancestral populations
-    d = demography.add_ancestral_populations(
-        model=d,
-        anc_sizes=anc_sizes,
-        merge_time=merge_time,
-        anc_id=anc_pop_mat,
-        anc_merge_times=anc_merge_time,
-        anc_merge_sizes=anc_merge_size,
-        migration_rate=anc_mig_rate,
-    )
+    if anc_sizes is not None and merge_time is not None:
+        d.add_ancestral_populations(
+            anc_sizes=anc_sizes,
+            merge_time=merge_time,
+            anc_id=anc_pop_mat,
+            anc_merge_times=anc_merge_time,
+            anc_merge_sizes=anc_merge_size,
+            migration_rate=anc_mig_rate,
+        )
 
     return d
 
@@ -275,12 +295,15 @@ def run_simulation(combo, args):
     from . import analysis
 
     rng = default_rng()
-    logging.info(f"Running simulation with parameters: {combo}")
+    logger.info("Running simulation with parameters: %s", combo)
+
     # read in raster
     r = rasterio.open(args.raster)
+    logger.debug("Opened raster: %s | shape=%s | CRS=%s", args.raster, r.shape, r.crs)
 
     # read in the coordinates
     coords = read_coords(args.coords)
+    logger.debug("Loaded %d sampling coordinates", len(coords))
 
     # read in individuals
     individuals = read_individuals(args, coords)
@@ -290,9 +313,10 @@ def run_simulation(combo, args):
 
     # sample dictionaries for ancestry sims and optionally for sumstats
     sample_dicts = utilities.coords_to_sample_dict(r, coords)
+    logger.debug("Sample dict: %s", sample_dicts[0])
 
     demo_id = f"demo_{rng.integers(0, 2**30)}"
-    logging.info(f"Setting up demography with ID: {demo_id}")
+    logger.info("Setting up demography (id=%s)", demo_id)
     d = setup_demography(
         raster=r,
         coords=coords,
@@ -310,11 +334,10 @@ def run_simulation(combo, args):
         anc_merge_size=combo["anc_merge_size"],
         anc_mig_rate=combo["anc_mig_rate"],
     )
+    logger.debug("Demography has %d populations", len(d.populations))
 
-    print("Finished setting up demography")
-    logging.info("Beginning tree sequence simulations")
+    logger.info("Beginning tree sequence simulations")
     start_time = time.time()
-    print("Beginning tree sequence simulations")
 
     # if map is True, return a dictionary mapping samples to all nonzero demes
     # replace the sample dictionary with this dictionary
@@ -326,7 +349,8 @@ def run_simulation(combo, args):
         else:
             min_num_inds = 2
 
-        samples = get_map_dict(d, min_num_inds=min_num_inds)
+        samples = get_map_dict(d, min_num_inds=min_num_inds, sample_num=args.map_sample_num)
+        logger.debug("Map mode: sampling %d demes with %d individuals each (map_sample_num=%d)", len(samples), min_num_inds, args.map_sample_num)
     else:
         samples = sample_dicts[0]
 
@@ -335,6 +359,11 @@ def run_simulation(combo, args):
         # set a new random seed for each ancestry simulation
         ancestry_seed = rng.integers(0, 2**30)
         mutation_seed = rng.integers(0, 2**30)
+
+        logger.info(
+            "Coalescent replicate %d/%d | ancestry_seed=%d | mutation_seed=%d",
+            ncoal + 1, args.num_coalescent_sims, ancestry_seed, mutation_seed,
+        )
 
         # simulate tree sequence
         ts = msprime.sim_ancestry(
@@ -352,8 +381,8 @@ def run_simulation(combo, args):
             ts, rate=combo["mutation_rate"], random_seed=mutation_seed
         )
 
-        end_time = time.time()
-        elapsed_time = end_time - start_time
+        elapsed_time = time.time() - start_time
+        logger.info("Tree sequence simulated in %.2fs", elapsed_time)
 
         # write metadata to csv
         metadata = {
@@ -430,27 +459,29 @@ def run_simulation(combo, args):
             )
         else:
             pd.DataFrame(metadata, index=[0]).to_csv(metadata_file, index=False)
+        logger.debug("Wrote metadata: %s", metadata_file)
 
-        logging.info("Beginning coalescent array calculations")
         if args.map:
+            logger.info("Computing per-deme diversity (map_sample_num=%d)", args.map_sample_num)
             if anc_pop_id is not None:
                 coal_array = get_coal_times(
                     ts,
                     r,
                     len(set(anc_pop_id)),
                     ploidy=args.ploidy,
-                    sample_num=2,
+                    sample_num=args.map_sample_num,
                 )
             else:
-                coal_array = get_coal_times(ts, r, 1, ploidy=args.ploidy, sample_num=2)
+                coal_array = get_coal_times(ts, r, 1, ploidy=args.ploidy, sample_num=args.map_sample_num)
 
+            map_prefix = f"{args.out_prefix}_diversity_map_{ancestry_seed}"
             utilities.create_raster(
                 coal_array,
                 r,
                 out_folder=args.out_folder,
-                out_prefix=f"{args.out_prefix}_diversity_map_{ancestry_seed}",
+                out_prefix=map_prefix,
             )
-        logging.info("Finished coalescent array calculations and wrote to file")
+            logger.info("Wrote diversity map: %s", os.path.join(args.out_folder, map_prefix + ".tif"))
 
         # only output other files if args.map is False
         if not args.map:
@@ -460,6 +491,7 @@ def run_simulation(combo, args):
                     args.out_folder, f"{args.out_prefix}_ancestry_{ancestry_seed}.trees"
                 )
                 ts.dump(ts_file)
+                logger.info("Wrote tree sequence: %s", ts_file)
 
             # if out_type is 1 or 3, write VCF to file
             if args.out_type == 1 or args.out_type == 3:
@@ -467,12 +499,14 @@ def run_simulation(combo, args):
                     args.out_folder, f"{args.out_prefix}_vcf_{ancestry_seed}.vcf"
                 )
                 ts.write_vcf(vcf_file, ploidy=args.ploidy, individual_names=individuals)
+                logger.info("Wrote VCF: %s", vcf_file)
 
             # if out_type is 2 or 3, calculate summary statistics
             #### NEED TO FINISH THIS ####
             if args.out_type == 2 or args.out_type == 3:
                 # convert tree sequence to a genotype matrix
                 gt = ts.genotype_matrix()
+                logger.debug("Genotype matrix shape: %s", gt.shape)
                 # get necessary dictionaries
                 coords_dict = utilities.coords_to_deme_dict(r, coords)
 
@@ -522,23 +556,13 @@ def run_simulation(combo, args):
                     sumstats.to_csv(sumstats_file, mode="a", header=False, index=False)
                 else:
                     sumstats.to_csv(sumstats_file, index=False)
+                logger.info("Wrote summary statistics: %s", sumstats_file)
 
-        print("Finished simulating tree sequences")
+    logger.info("Simulation complete for demo_id=%s", demo_id)
 
 
-def main():
-    """Console script for spaceprime."""
-    import sys
-    from importlib.metadata import PackageNotFoundError, version as _get_version
-
-    try:
-        _version = _get_version("spaceprime")
-    except PackageNotFoundError:
-        try:
-            from . import __version__ as _version
-        except ImportError:
-            _version = "unknown"
-
+def build_parser():
+    """Return the CLI argument parser."""
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-v",
@@ -593,9 +617,9 @@ def main():
         "-mls",
         "--max_local_size",
         nargs="+",
-        type=int,
+        type=sci_notation_int,
         default=[1000],
-        help="Maximum size of local demes. Accepts a single int or a pair of ints. Default is [1000].",
+        help="Maximum size of local demes. Accepts a single int or a pair of ints [min, max]. When --num_param_combos > 1, a pair is treated as a range and a random value is drawn uniformly from it for each parameter combination. Default is [1000].",
     )
     demography_parser.add_argument(
         "-th",
@@ -603,7 +627,7 @@ def main():
         nargs="+",
         type=float,
         default=None,
-        help="Threshold value for a thresholded transformation. Accepts a single float or a pair of floats. Default is None.",
+        help="Threshold value for a thresholded transformation. Accepts a single float or a pair of floats [min, max]. When --num_param_combos > 1, a pair is treated as a range and a random value is drawn uniformly from it for each parameter combination. Default is None.",
     )
     demography_parser.add_argument(
         "-ip",
@@ -611,7 +635,7 @@ def main():
         nargs="+",
         type=float,
         default=[0.5],
-        help="Inflection point value for a sigmoid transformation. Accepts a single int or a pair of ints. Default is [0.5].",
+        help="Inflection point value for a sigmoid transformation. Accepts a single float or a pair of floats [min, max]. When --num_param_combos > 1, a pair is treated as a range and a random value is drawn uniformly from it for each parameter combination. Default is [0.5].",
     )
     demography_parser.add_argument(
         "-s",
@@ -619,15 +643,15 @@ def main():
         nargs="+",
         type=float,
         default=[0.05],
-        help="Slope value for a sigmoid transformation. Accepts a single int or a pair of ints. Default is [0.05].",
+        help="Slope value for a sigmoid transformation. Accepts a single float or a pair of floats [min, max]. When --num_param_combos > 1, a pair is treated as a range and a random value is drawn uniformly from it for each parameter combination. Default is [0.05].",
     )
     demography_parser.add_argument(
         "-m",
         "--mig_rate",
         nargs="+",
         type=float,
-        default=None,
-        help="Migration rate between demes. Accepts a single int or a pair of ints. Default is None.",
+        default=[1e-8],
+        help="Migration rate between demes. Accepts a single float or a pair of floats [min, max]. When --num_param_combos > 1, a pair is treated as a range and a random value is drawn uniformly from it for each parameter combination. Default is 1e-8.",
     )
     demography_parser.add_argument(
         "-sc",
@@ -654,33 +678,33 @@ def main():
         "-as",
         "--anc_sizes",
         nargs="+",
-        type=lambda x: [int(i) for i in x.split(",")],
+        type=lambda x: [int(float(i)) for i in x.split(",")] if "," in x else int(float(x)),
         default=None,
-        help="List of sizes for ancestral populations. Accepts a list of single values or a list of pairs of values. Default is None.",
+        help="List of sizes for ancestral populations. Accepts a list of single values or a list of pairs of values [min, max]. When --num_param_combos > 1, each pair is treated as a range and a random value is drawn uniformly from it for each parameter combination. Default is None.",
     )
     demography_parser.add_argument(
         "-mt",
         "--merge_time",
         nargs="+",
-        type=int,
+        type=sci_notation_int,
         default=None,
-        help="Time that demes merge into one or more ancestral populations. Measured in generations. Accepts a single int or a pair of ints. Default is None.",
+        help="Time that demes merge into one or more ancestral populations. Measured in generations. Accepts a single int or a pair of ints [min, max]. When --num_param_combos > 1, a pair is treated as a range and a random int is drawn uniformly from it for each parameter combination. Default is None.",
     )
     demography_parser.add_argument(
         "-amt",
         "--anc_merge_time",
         nargs="+",
-        type=int,
+        type=sci_notation_int,
         default=None,
-        help="Merge time for ancestral populations. Measured in generations. Accepts a single int or a pair of ints. Default is None.",
+        help="Merge time for ancestral populations. Measured in generations. Accepts a single int or a pair of ints [min, max]. When --num_param_combos > 1, a pair is treated as a range and a random int is drawn uniformly from it for each parameter combination. Default is None.",
     )
     demography_parser.add_argument(
         "-ams",
         "--anc_merge_size",
         nargs="+",
-        type=int,
+        type=sci_notation_int,
         default=None,
-        help="Merge size for ancestral populations. Accepts a single int or a pair of ints. Default is None.",
+        help="Merge size for ancestral populations. Accepts a single int or a pair of ints [min, max]. When --num_param_combos > 1, a pair is treated as a range and a random int is drawn uniformly from it for each parameter combination. Default is None.",
     )
     demography_parser.add_argument(
         "-amr",
@@ -688,15 +712,15 @@ def main():
         nargs="+",
         type=float,
         default=None,
-        help="Migration rate between ancestral populations. Accepts a single int or a pair of ints. Default is None.",
+        help="Migration rate between ancestral populations. Accepts a single float or a pair of floats [min, max]. When --num_param_combos > 1, a pair is treated as a range and a random value is drawn uniformly from it for each parameter combination. Default is None.",
     )
     # Simulation Setup
     simulation_parser = parser.add_argument_group("Simulation Setup")
     simulation_parser.add_argument(
         "-sl",
         "--seq_length",
-        type=int,
-        default=1e6,
+        type=sci_notation_int,
+        default=1000000,
         help="Length of sequence to simulate. Measured in base pairs. Default is 1e6.",
     )
     simulation_parser.add_argument(
@@ -705,7 +729,7 @@ def main():
         nargs="+",
         type=float,
         default=[1e-8],
-        help="Mutation rate per generation per base pair. Accepts a single float or a pair of floats. Default is [1e-8].",
+        help="Mutation rate per generation per base pair. Accepts a single float or a pair of floats [min, max]. When --num_param_combos > 1, a pair is treated as a range and a random value is drawn uniformly from it for each parameter combination. Default is [1e-8].",
     )
     simulation_parser.add_argument(
         "-rr",
@@ -713,7 +737,7 @@ def main():
         nargs="+",
         type=float,
         default=[0],
-        help="Recombination rate per generation per base pair. Accepts a single float or a pair of floats. Default is [0].",
+        help="Recombination rate per generation per base pair. Accepts a single float or a pair of floats [min, max]. When --num_param_combos > 1, a pair is treated as a range and a random value is drawn uniformly from it for each parameter combination. Default is [0].",
     )
     simulation_parser.add_argument(
         "-pl",
@@ -727,7 +751,7 @@ def main():
         "--num_param_combos",
         type=int,
         default=1,
-        help="Number of parameter combinations to simulate. Default is 1.",
+        help="Number of parameter combinations to simulate. When > 1, any argument that accepts a pair of values treats that pair as a [min, max] range and draws a random value from it for each combination. Default is 1.",
     )
     simulation_parser.add_argument(
         "-ncs",
@@ -806,6 +830,14 @@ def main():
     )
 
     parser.add_argument(
+        "-msn",
+        "--map_sample_num",
+        type=int,
+        default=2,
+        help="Number of individuals to sample per deme when generating a diversity map (--map). Higher values give more accurate diversity estimates at the cost of simulation time. Default is 2.",
+    )
+
+    parser.add_argument(
         "-of",
         "--out_folder",
         type=str,
@@ -826,6 +858,14 @@ def main():
         help="Print progress to console. Default is False.",
     )
     parser.add_argument(
+        "-ll",
+        "--log-level",
+        dest="log_level",
+        default="INFO",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
+        help="Logging verbosity. DEBUG includes per-step details; INFO (default) covers major milestones.",
+    )
+    parser.add_argument(
         "-c",
         "--cpu",
         type=int,
@@ -833,6 +873,12 @@ def main():
         help="Number of CPUs to use for parallel processing. Default is 1.",
     )
 
+    return parser
+
+
+def main():
+    """Console script for spaceprime."""
+    parser = build_parser()
     args = parser.parse_args()
 
     print("Loading packages...", file=sys.stderr, flush=True)
@@ -853,6 +899,15 @@ def main():
             # Update command line arguments with parameters from YAML file
             for key, value in params.items():
                 setattr(args, key, value)
+
+    # Configure logging now that we know the output folder and log level
+    log_dir = args.out_folder if args.out_folder is not None else "."
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_filename = os.path.join(log_dir, f"spaceprime_{timestamp}.log")
+    log_level = getattr(logging, args.log_level)
+    logging.basicConfig(filename=log_filename, level=log_level, format=_LOG_FORMAT)
+    logger.info("spaceprime CLI started | log_level=%s | log_file=%s", args.log_level, log_filename)
+    logger.debug("Parsed arguments: %s", vars(args))
 
     args.max_local_size = check_list_argument(args.max_local_size)
     args.inflection_point = check_list_argument(args.inflection_point)
@@ -896,12 +951,17 @@ def main():
 
     # generate parameter combinations
     param_combos = generate_param_combinations(args)
-    logging.info("Generated parameter combinations")
+    logger.info("Generated %d parameter combination(s)", len(param_combos))
 
-    # run simulations in parallel
+    # run simulations
     if args.cpu == 1:
         for combo in param_combos:
             run_simulation(combo, args)
     else:
-        with Pool(args.cpu) as p:
+        logger.info("Starting multiprocessing pool with %d workers", args.cpu)
+        with Pool(
+            args.cpu,
+            initializer=_init_worker,
+            initargs=(log_filename, log_level),
+        ) as p:
             p.starmap(run_simulation, [(combo, args) for combo in param_combos])

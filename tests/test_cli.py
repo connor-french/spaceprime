@@ -1,11 +1,22 @@
 #!/usr/bin/env python
 
 """Tests for `cli` module."""
+import argparse
+
 import numpy as np
 import pytest
+from geopandas import GeoDataFrame
+from shapely.geometry import Point
 
 from spaceprime import demography, simulation
-from spaceprime.cli import get_coal_times, get_map_dict, sci_notation_int
+from spaceprime.cli import (
+    build_parser,
+    get_coal_times,
+    get_map_dict,
+    read_individuals,
+    sci_notation_int,
+    setup_demography,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -119,3 +130,134 @@ def test_sci_notation_int_scientific_notation_small_exponent():
 def test_sci_notation_int_raises_on_non_numeric():
     with pytest.raises((ValueError, TypeError)):
         sci_notation_int("abc")
+
+
+# ---------------------------------------------------------------------------
+# read_individuals
+# ---------------------------------------------------------------------------
+
+
+class TestReadIndividuals:
+    def test_returns_none_when_individuals_omitted(self):
+        """No UnboundLocalError when --individuals is not supplied."""
+        args = argparse.Namespace(individuals=None)
+        assert read_individuals(args, coords=[]) is None
+
+    def test_returns_list_when_given_list(self):
+        """Inline list of IDs is passed through unchanged."""
+        ids = ["ind_1", "ind_2"]
+        args = argparse.Namespace(individuals=ids)
+        coords = [None, None]
+        assert read_individuals(args, coords) == ids
+
+    def test_raises_when_length_mismatch(self):
+        """Mismatched individuals / coords length raises ValueError."""
+        args = argparse.Namespace(individuals=["ind_1", "ind_2", "ind_3"])
+        coords = [None, None]
+        with pytest.raises(ValueError, match="Number of individuals"):
+            read_individuals(args, coords)
+
+
+# ---------------------------------------------------------------------------
+# Argument parser defaults and type lambdas
+# ---------------------------------------------------------------------------
+
+
+class TestBuildParser:
+    def test_mig_rate_default_is_1e8(self):
+        """--mig_rate defaults to [1e-8], not None."""
+        args = build_parser().parse_args([])
+        assert args.mig_rate == [1e-8]
+
+    def test_anc_sizes_single_value_is_scalar_int(self):
+        """Single --anc_sizes token parses as a plain int, not a list."""
+        args = build_parser().parse_args(["-as", "5000"])
+        assert args.anc_sizes == [5000]
+        assert isinstance(args.anc_sizes[0], int)
+
+    def test_anc_sizes_comma_pair_is_list(self):
+        """Comma-separated --anc_sizes pair parses as a list of two ints."""
+        args = build_parser().parse_args(["-as", "5000,8000"])
+        assert args.anc_sizes == [[5000, 8000]]
+
+    def test_anc_sizes_multiple_singles(self):
+        """Multiple space-separated --anc_sizes values parse as a flat int list."""
+        args = build_parser().parse_args(["-as", "5000", "6000"])
+        assert args.anc_sizes == [5000, 6000]
+        assert all(isinstance(v, int) for v in args.anc_sizes)
+
+    def test_anc_sizes_defaults_to_none(self):
+        """--anc_sizes defaults to None when omitted."""
+        args = build_parser().parse_args([])
+        assert args.anc_sizes is None
+
+
+# ---------------------------------------------------------------------------
+# setup_demography
+# ---------------------------------------------------------------------------
+
+
+class TestSetupDemography:
+    def test_returns_spdemography_with_default_mig_rate(self, raster):
+        """setup_demography succeeds with mig_rate=0.0 and no ancestral pops."""
+        result = setup_demography(
+            raster=raster,
+            coords=None,
+            max_local_size=1000,
+            threshold=None,
+            inflection_point=0.5,
+            slope=0.05,
+            mig_rate=0.0,
+            scale=True,
+            anc_pop_id=None,
+            timesteps=1,
+            anc_sizes=None,
+            merge_time=None,
+            anc_merge_time=None,
+            anc_merge_size=None,
+            anc_mig_rate=None,
+        )
+        assert isinstance(result, demography.spDemography)
+        assert len(result.populations) > 0
+
+    def test_anc_sizes_none_skips_ancestral_populations(self, raster):
+        """No ancestral populations are added when anc_sizes is None."""
+        result = setup_demography(
+            raster=raster,
+            coords=None,
+            max_local_size=1000,
+            threshold=None,
+            inflection_point=0.5,
+            slope=0.05,
+            mig_rate=0.0,
+            scale=True,
+            anc_pop_id=None,
+            timesteps=1,
+            anc_sizes=None,
+            merge_time=None,
+            anc_merge_time=None,
+            anc_merge_size=None,
+            anc_mig_rate=None,
+        )
+        assert not any("ANC" in p.name for p in result.populations)
+
+    def test_anc_sizes_provided_adds_ancestral_population(self, raster):
+        """Ancestral population is added when anc_sizes and merge_time are set."""
+        result = setup_demography(
+            raster=raster,
+            coords=None,
+            max_local_size=1000,
+            threshold=None,
+            inflection_point=0.5,
+            slope=0.05,
+            mig_rate=0.0,
+            scale=True,
+            anc_pop_id=None,
+            timesteps=1,
+            anc_sizes=[5000],
+            merge_time=500,
+            anc_merge_time=None,
+            anc_merge_size=None,
+            anc_mig_rate=None,
+        )
+        assert any("ANC" in p.name for p in result.populations)

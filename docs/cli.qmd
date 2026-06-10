@@ -232,7 +232,7 @@ When `--params` is provided, all command-line arguments are ignored in favour of
 | `--threshold` | `-th` | float | `null` | Habitat value below which demes are set to zero (threshold transformation). Single value or `[min, max]`. |
 | `--inflection_point` | `-ip` | float | `0.5` | Inflection point of the sigmoid transformation. Single value or `[min, max]`. |
 | `--slope` | `-s` | float | `0.05` | Slope of the sigmoid transformation. Single value or `[min, max]`. |
-| `--mig_rate` | `-m` | float | `null` | Global migration rate between adjacent demes. Single value or `[min, max]`. |
+| `--mig_rate` | `-m` | float | `1e-8` | Global migration rate between adjacent demes. Single value or `[min, max]`. |
 | `--scale` | `-sc` | bool | `true` | Scale migration by donor/recipient deme size: `m = (N_donor / N_recipient) * m_global`. |
 | `--anc_pop_id` | `-a` | str/list | `null` | Ancestral population assignments. Path to a CSV with column `anc_pop_id`, or a comma-separated list. Length must equal the number of sampling coordinates. |
 | `--timesteps` | `-ts` | int | `1` | Generations between demographic events (for multi-time-slice rasters). |

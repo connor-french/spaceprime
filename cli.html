@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>cli – spaceprime</title>
+<title>CLI – spaceprime</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -22,6 +22,41 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -41,7 +76,7 @@ ul.task-list li input[type="checkbox"] {
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-cc6929a15fb9099bfe956caf54bcaad2.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-3d8f878e03345f136be0b8cd79165ceb.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -73,7 +108,7 @@ ul.task-list li input[type="checkbox"] {
 
 </head>
 
-<body class="nav-fixed fullcontent quarto-light">
+<body class="nav-fixed quarto-light">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
@@ -128,6 +163,10 @@ ul.task-list li input[type="checkbox"] {
   </li>  
     </ul>
   </li>
+  <li class="nav-item">
+    <a class="nav-link" href="./stepping-stone-validation.html"> 
+<span class="menu-text">Validation</span></a>
+  </li>  
 </ul>
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item compact">
@@ -146,15 +185,669 @@ ul.task-list li input[type="checkbox"] {
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#use-cases" id="toc-use-cases" class="nav-link active" data-scroll-target="#use-cases">Use cases</a></li>
+  <li><a href="#quickstart" id="toc-quickstart" class="nav-link" data-scroll-target="#quickstart">Quickstart</a></li>
+  <li><a href="#advanced-model-setup" id="toc-advanced-model-setup" class="nav-link" data-scroll-target="#advanced-model-setup">Advanced model setup</a>
+  <ul class="collapse">
+  <li><a href="#prior-based-simulation-for-inference" id="toc-prior-based-simulation-for-inference" class="nav-link" data-scroll-target="#prior-based-simulation-for-inference">Prior-based simulation for inference</a></li>
+  <li><a href="#model-with-ancestral-populations" id="toc-model-with-ancestral-populations" class="nav-link" data-scroll-target="#model-with-ancestral-populations">Model with ancestral populations</a></li>
+  <li><a href="#diversity-map" id="toc-diversity-map" class="nav-link" data-scroll-target="#diversity-map">Diversity map</a></li>
+  <li><a href="#using-a-yaml-configuration-file" id="toc-using-a-yaml-configuration-file" class="nav-link" data-scroll-target="#using-a-yaml-configuration-file">Using a YAML configuration file</a></li>
+  </ul></li>
+  <li><a href="#configuration-file" id="toc-configuration-file" class="nav-link" data-scroll-target="#configuration-file">Configuration file</a></li>
+  <li><a href="#argument-reference" id="toc-argument-reference" class="nav-link" data-scroll-target="#argument-reference">Argument reference</a>
+  <ul class="collapse">
+  <li><a href="#global" id="toc-global" class="nav-link" data-scroll-target="#global">Global</a></li>
+  <li><a href="#demography-setup" id="toc-demography-setup" class="nav-link" data-scroll-target="#demography-setup">Demography setup</a></li>
+  <li><a href="#simulation-setup" id="toc-simulation-setup" class="nav-link" data-scroll-target="#simulation-setup">Simulation setup</a></li>
+  <li><a href="#analysis-setup" id="toc-analysis-setup" class="nav-link" data-scroll-target="#analysis-setup">Analysis setup</a></li>
+  <li><a href="#output" id="toc-output" class="nav-link" data-scroll-target="#output">Output</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"></header>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">CLI</h1>
+</div>
 
 
 
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
 
 
+</header>
 
+
+<p>The <code>spaceprime</code> command-line interface (CLI) provides a streamlined way to run large batches of spatially explicit coalescent simulations without writing Python code. It is designed for two primary workflows: <strong>prior predictive simulation</strong> (drawing random parameter combinations for likelihood-free inference) and <strong>fixed-parameter replication</strong> (running many replicates under the same model).</p>
+<section id="use-cases" class="level2">
+<h2 class="anchored" data-anchor-id="use-cases">Use cases</h2>
+<p><strong>Running many simulations for ABC or ML-based inference</strong> Likelihood-free methods such as Approximate Bayesian Computation (ABC) and machine learning require hundreds to thousands of simulations drawn from prior distributions. The CLI supports this directly: any numeric argument accepts a <code>[min, max]</code> range, and <code>--num_param_combos</code> controls how many random draws to make. Each draw produces an independent demographic model whose parameters are recorded in the metadata CSV.</p>
+<p><strong>Parallel execution on a workstation or cluster</strong> Use <code>--cpu</code> to distribute parameter combinations across multiple cores. On an HPC cluster, combine <code>--cpu</code> with a job array: submit one job per chunk of <code>--num_param_combos</code> and merge the output CSVs afterward.</p>
+<p><strong>Diversity mapping across the landscape</strong> The <code>--map</code> flag simulates genetic diversity for every deme in the landscape and writes the result as a GeoTIFF raster, instead of per-sample outputs. This is useful for visualizing expected patterns of diversity under different demographic scenarios.</p>
+<p><strong>Reproducible runs via YAML configuration</strong> Pass <code>--params path/to/config.yaml</code> to read all arguments from a configuration file. This makes runs reproducible, version-controllable, and easy to share. See <a href="#configuration-file">Configuration file</a> for a template.</p>
+<hr>
+</section>
+<section id="quickstart" class="level2">
+<h2 class="anchored" data-anchor-id="quickstart">Quickstart</h2>
+<p>This example runs a single simulation with a linear habitat-to-deme transformation, a fixed migration rate, and all three output types (tree sequence, VCF, and summary statistics).</p>
+<p>You need two input files:</p>
+<ul>
+<li><code>habitat.tif</code> — a single-band GeoTIFF of habitat suitability values (0–1)</li>
+<li><code>samples.csv</code> — a CSV with columns <code>longitude</code> and <code>latitude</code></li>
+</ul>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">spaceprime</span> <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--raster</span> habitat.tif <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--coords</span> samples.csv <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--max_local_size</span> 1000 <span class="dt">\</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--mig_rate</span> 0.01 <span class="dt">\</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">--merge_time</span> 10000 <span class="dt">\</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">--mutation_rate</span> 1e-8 <span class="dt">\</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">--seq_length</span> 1000000 <span class="dt">\</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">--out_type</span> 3 <span class="dt">\</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">--out_folder</span> results/ <span class="dt">\</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">--out_prefix</span> my_sim</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This produces:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>File</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>my_sim_ancestry_&lt;seed&gt;.trees</code></td>
+<td>msprime tree sequence</td>
+</tr>
+<tr class="even">
+<td><code>my_sim_vcf_&lt;seed&gt;.vcf</code></td>
+<td>VCF of simulated variants</td>
+</tr>
+<tr class="odd">
+<td><code>my_sim_sumstats.csv</code></td>
+<td>Genetic summary statistics</td>
+</tr>
+<tr class="even">
+<td><code>my_sim_metadata.csv</code></td>
+<td>Parameters and seeds for each replicate</td>
+</tr>
+<tr class="odd">
+<td><code>spaceprime_&lt;timestamp&gt;.log</code></td>
+<td>Run log</td>
+</tr>
+</tbody>
+</table>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Output seeds
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Each output file name includes the ancestry seed used for that replicate, so you can reproduce any individual simulation later.</p>
+</div>
+</div>
+<hr>
+</section>
+<section id="advanced-model-setup" class="level2">
+<h2 class="anchored" data-anchor-id="advanced-model-setup">Advanced model setup</h2>
+<section id="prior-based-simulation-for-inference" class="level3">
+<h3 class="anchored" data-anchor-id="prior-based-simulation-for-inference">Prior-based simulation for inference</h3>
+<p>This example draws 500 random parameter combinations from prior ranges and runs each on 4 CPUs in parallel. This is a typical setup for training an ABC or neural network classifier.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">spaceprime</span> <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--raster</span> habitat.tif <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--coords</span> samples.csv <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--max_local_size</span> 500 5000 <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--mig_rate</span> 0.001 0.1 <span class="dt">\</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">--merge_time</span> 1000 100000 <span class="dt">\</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">--mutation_rate</span> 1e-9 1e-7 <span class="dt">\</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">--recombination_rate</span> 0 1e-8 <span class="dt">\</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">--num_param_combos</span> 500 <span class="dt">\</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">--num_coalescent_sims</span> 1 <span class="dt">\</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">--seq_length</span> 500000 <span class="dt">\</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">--out_type</span> 2 <span class="dt">\</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">--out_folder</span> results/ <span class="dt">\</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">--out_prefix</span> abc_run <span class="dt">\</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">--cpu</span> 4</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Any argument that accepts a <code>[min, max]</code> pair (see <a href="#argument-reference">Argument reference</a>) treats that pair as a uniform prior. One random value is drawn from the range for each of the 500 combinations. The exact value used for every replicate is recorded in <code>abc_run_metadata.csv</code>, so you can reconstruct parameter—output pairs for training.</p>
+</section>
+<section id="model-with-ancestral-populations" class="level3">
+<h3 class="anchored" data-anchor-id="model-with-ancestral-populations">Model with ancestral populations</h3>
+<p>When sampling spans historically isolated lineages (e.g., glacial refugia), add ancestral populations that merge into the present-day landscape model at a specified time.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">spaceprime</span> <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--raster</span> habitat.tif <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--coords</span> samples.csv <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--anc_pop_id</span> anc_pop_ids.csv <span class="dt">\</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--max_local_size</span> 1000 <span class="dt">\</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">--mig_rate</span> 0.01 <span class="dt">\</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">--merge_time</span> 10000 <span class="dt">\</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">--anc_sizes</span> 5000 5000 <span class="dt">\</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">--anc_merge_time</span> 50000 <span class="dt">\</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">--anc_merge_size</span> 10000 <span class="dt">\</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">--anc_mig_rate</span> 0.001 <span class="dt">\</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">--out_type</span> 2 <span class="dt">\</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">--out_folder</span> results/ <span class="dt">\</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">--out_prefix</span> anc_pop_run</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>anc_pop_ids.csv</code> must have a column named <code>anc_pop_id</code> with one row per sample coordinate, assigning each sample to a numbered ancestral population.</p>
+</section>
+<section id="diversity-map" class="level3">
+<h3 class="anchored" data-anchor-id="diversity-map">Diversity map</h3>
+<p>To generate a per-deme diversity raster instead of per-sample outputs:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">spaceprime</span> <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--raster</span> habitat.tif <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--coords</span> samples.csv <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--max_local_size</span> 1000 <span class="dt">\</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--mig_rate</span> 0.01 <span class="dt">\</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">--merge_time</span> 10000 <span class="dt">\</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">--map</span> true <span class="dt">\</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">--map_sample_num</span> 3 <span class="dt">\</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">--out_folder</span> results/ <span class="dt">\</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">--out_prefix</span> diversity_run</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The output is a GeoTIFF (<code>diversity_run_diversity_map_&lt;seed&gt;.tif</code>) aligned to the input raster grid. <code>--map</code> overrides <code>--out_type</code>.</p>
+</section>
+<section id="using-a-yaml-configuration-file" class="level3">
+<h3 class="anchored" data-anchor-id="using-a-yaml-configuration-file">Using a YAML configuration file</h3>
+<p>For reproducible runs, write all arguments to a YAML file and pass it with <code>--params</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">spaceprime</span> <span class="at">--params</span> config.yaml</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>See the <a href="#configuration-file">Configuration file</a> section for a full template.</p>
+<hr>
+</section>
+</section>
+<section id="configuration-file" class="level2">
+<h2 class="anchored" data-anchor-id="configuration-file">Configuration file</h2>
+<p>The <code>templates/config.yaml</code> file in the spaceprime repository provides a full template for all available parameters. Copy it and fill in your paths and values:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># spaceprime configuration file</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co"># List entries: [entry1, entry2]</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Ranges (uniform priors): [min, max]</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Paths must be quoted: "path/to/file"</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Booleans: true or false</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co"># --- global ---</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="fu">raster</span><span class="kw">:</span><span class="at"> </span><span class="st">"path/to/habitat.tif"</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="fu">coords</span><span class="kw">:</span><span class="at"> </span><span class="st">"path/to/samples.csv"</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="fu">individuals</span><span class="kw">:</span><span class="at"> </span><span class="ch">null</span><span class="co">  # optional: list of IDs or path to CSV with 'individual_id' column</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="co"># --- demography ---</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="fu">normalize</span><span class="kw">:</span><span class="at"> </span><span class="ch">false</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="fu">transformation</span><span class="kw">:</span><span class="at"> </span><span class="st">"linear"</span><span class="co">   # linear | threshold | sigmoid</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="fu">max_local_size</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="dv">1000</span><span class="kw">]</span><span class="co">     # single value or [min, max] range</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="fu">threshold</span><span class="kw">:</span><span class="at"> </span><span class="ch">null</span><span class="co">            # required when transformation is 'threshold'</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="fu">inflection_point</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="fl">0.5</span><span class="kw">]</span><span class="co">    # used with sigmoid transformation</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a><span class="fu">slope</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="fl">0.05</span><span class="kw">]</span><span class="co">              # used with sigmoid transformation</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a><span class="fu">mig_rate</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="fl">0.01</span><span class="kw">]</span><span class="co">           # global migration rate, single value or [min, max]</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a><span class="fu">scale</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a><span class="fu">anc_pop_id</span><span class="kw">:</span><span class="at"> </span><span class="ch">null</span><span class="co">           # path to CSV with 'anc_pop_id' column, or null</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a><span class="fu">timesteps</span><span class="kw">:</span><span class="at"> </span><span class="dv">1</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a><span class="fu">anc_sizes</span><span class="kw">:</span><span class="at"> </span><span class="ch">null</span><span class="co">            # list of ints or list of [min, max] pairs, one per ancestral pop</span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a><span class="fu">merge_time</span><span class="kw">:</span><span class="at"> </span><span class="ch">null</span><span class="co">           # generations; single value or [min, max]</span></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a><span class="fu">anc_merge_time</span><span class="kw">:</span><span class="at"> </span><span class="ch">null</span></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a><span class="fu">anc_merge_size</span><span class="kw">:</span><span class="at"> </span><span class="ch">null</span></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a><span class="fu">anc_mig_rate</span><span class="kw">:</span><span class="at"> </span><span class="ch">null</span></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a><span class="co"># --- simulation ---</span></span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a><span class="fu">seq_length</span><span class="kw">:</span><span class="at"> </span><span class="dv">1000000</span></span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a><span class="fu">mutation_rate</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="fl">1e-8</span><span class="kw">]</span><span class="co">      # single value or [min, max]</span></span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a><span class="fu">recombination_rate</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="dv">0</span><span class="kw">]</span></span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a><span class="fu">ploidy</span><span class="kw">:</span><span class="at"> </span><span class="dv">2</span></span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a><span class="fu">num_param_combos</span><span class="kw">:</span><span class="at"> </span><span class="dv">1</span></span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a><span class="fu">num_coalescent_sims</span><span class="kw">:</span><span class="at"> </span><span class="dv">1</span></span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a><span class="co"># --- analysis ---</span></span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a><span class="fu">missing_data_perc</span><span class="kw">:</span><span class="at"> </span><span class="dv">0</span></span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a><span class="fu">r2_thresh</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.1</span></span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a><span class="fu">filter_monomorphic</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a><span class="fu">filter_singletons</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a><span class="fu">sumstats</span><span class="kw">:</span><span class="at"> </span><span class="st">"all"</span><span class="co">            # pi | tajima_d | sfs_h | fst | dxy | ibd | all</span></span>
+<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a><span class="fu">within_anc_pop_sumstats</span><span class="kw">:</span><span class="at"> </span><span class="ch">false</span></span>
+<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a><span class="fu">between_anc_pop_sumstats</span><span class="kw">:</span><span class="at"> </span><span class="ch">false</span></span>
+<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a><span class="co"># --- output ---</span></span>
+<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a><span class="fu">out_type</span><span class="kw">:</span><span class="at"> </span><span class="dv">3</span><span class="co">     # 0=trees, 1=VCF, 2=sumstats CSV, 3=all</span></span>
+<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a><span class="fu">map</span><span class="kw">:</span><span class="at"> </span><span class="ch">false</span></span>
+<span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a><span class="fu">map_sample_num</span><span class="kw">:</span><span class="at"> </span><span class="dv">2</span></span>
+<span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a><span class="fu">out_folder</span><span class="kw">:</span><span class="at"> </span><span class="ch">null</span><span class="co">  # defaults to current working directory</span></span>
+<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a><span class="fu">out_prefix</span><span class="kw">:</span><span class="at"> </span><span class="st">"spaceprime"</span></span>
+<span id="cb6-52"><a href="#cb6-52" aria-hidden="true" tabindex="-1"></a><span class="fu">log_level</span><span class="kw">:</span><span class="at"> </span><span class="st">"INFO"</span><span class="co">   # DEBUG | INFO | </span><span class="al">WARNING</span><span class="co"> | ERROR</span></span>
+<span id="cb6-53"><a href="#cb6-53" aria-hidden="true" tabindex="-1"></a><span class="fu">cpu</span><span class="kw">:</span><span class="at"> </span><span class="dv">1</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>When <code>--params</code> is provided, all command-line arguments are ignored in favour of the YAML file.</p>
+</div>
+</div>
+<hr>
+</section>
+<section id="argument-reference" class="level2">
+<h2 class="anchored" data-anchor-id="argument-reference">Argument reference</h2>
+<section id="global" class="level3">
+<h3 class="anchored" data-anchor-id="global">Global</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Flag</th>
+<th>Short</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>--params</code></td>
+<td><code>-p</code></td>
+<td>str</td>
+<td><code>null</code></td>
+<td>Path to YAML config file. When provided, all other CLI arguments are ignored.</td>
+</tr>
+<tr class="even">
+<td><code>--raster</code></td>
+<td><code>-r</code></td>
+<td>str</td>
+<td>—</td>
+<td>Path to habitat suitability raster (any format readable by rasterio).</td>
+</tr>
+<tr class="odd">
+<td><code>--coords</code></td>
+<td><code>-co</code></td>
+<td>str</td>
+<td>—</td>
+<td>Path to CSV of sampling coordinates. Must have <code>longitude</code> and <code>latitude</code> columns.</td>
+</tr>
+<tr class="even">
+<td><code>--individuals</code></td>
+<td><code>-i</code></td>
+<td>str/list</td>
+<td><code>null</code></td>
+<td>Individual IDs: a comma-separated list or path to a CSV with an <code>individual_id</code> column. Length must match <code>--coords</code>. Used to label VCF samples.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="demography-setup" class="level3">
+<h3 class="anchored" data-anchor-id="demography-setup">Demography setup</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Flag</th>
+<th>Short</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>--normalize</code></td>
+<td><code>-n</code></td>
+<td>bool</td>
+<td><code>false</code></td>
+<td>Normalise raster values to [0, 1] before conversion to deme sizes.</td>
+</tr>
+<tr class="even">
+<td><code>--transformation</code></td>
+<td><code>-t</code></td>
+<td>str</td>
+<td><code>linear</code></td>
+<td>Function mapping habitat values to deme sizes. Options: <code>linear</code>, <code>threshold</code>, <code>sigmoid</code>.</td>
+</tr>
+<tr class="odd">
+<td><code>--max_local_size</code></td>
+<td><code>-mls</code></td>
+<td>int</td>
+<td><code>1000</code></td>
+<td>Maximum deme size. Accepts a single int or a <code>[min, max]</code> range.</td>
+</tr>
+<tr class="even">
+<td><code>--threshold</code></td>
+<td><code>-th</code></td>
+<td>float</td>
+<td><code>null</code></td>
+<td>Habitat value below which demes are set to zero (threshold transformation). Single value or <code>[min, max]</code>.</td>
+</tr>
+<tr class="odd">
+<td><code>--inflection_point</code></td>
+<td><code>-ip</code></td>
+<td>float</td>
+<td><code>0.5</code></td>
+<td>Inflection point of the sigmoid transformation. Single value or <code>[min, max]</code>.</td>
+</tr>
+<tr class="even">
+<td><code>--slope</code></td>
+<td><code>-s</code></td>
+<td>float</td>
+<td><code>0.05</code></td>
+<td>Slope of the sigmoid transformation. Single value or <code>[min, max]</code>.</td>
+</tr>
+<tr class="odd">
+<td><code>--mig_rate</code></td>
+<td><code>-m</code></td>
+<td>float</td>
+<td><code>1e-8</code></td>
+<td>Global migration rate between adjacent demes. Single value or <code>[min, max]</code>.</td>
+</tr>
+<tr class="even">
+<td><code>--scale</code></td>
+<td><code>-sc</code></td>
+<td>bool</td>
+<td><code>true</code></td>
+<td>Scale migration by donor/recipient deme size: <code>m = (N_donor / N_recipient) * m_global</code>.</td>
+</tr>
+<tr class="odd">
+<td><code>--anc_pop_id</code></td>
+<td><code>-a</code></td>
+<td>str/list</td>
+<td><code>null</code></td>
+<td>Ancestral population assignments. Path to a CSV with column <code>anc_pop_id</code>, or a comma-separated list. Length must equal the number of sampling coordinates.</td>
+</tr>
+<tr class="even">
+<td><code>--timesteps</code></td>
+<td><code>-ts</code></td>
+<td>int</td>
+<td><code>1</code></td>
+<td>Generations between demographic events (for multi-time-slice rasters).</td>
+</tr>
+<tr class="odd">
+<td><code>--anc_sizes</code></td>
+<td><code>-as</code></td>
+<td>list</td>
+<td><code>null</code></td>
+<td>Sizes of ancestral populations, one per population. Each entry can be a single int or a <code>[min, max]</code> pair.</td>
+</tr>
+<tr class="even">
+<td><code>--merge_time</code></td>
+<td><code>-mt</code></td>
+<td>int</td>
+<td><code>null</code></td>
+<td>Generation at which demes collapse into ancestral populations. Single value or <code>[min, max]</code>.</td>
+</tr>
+<tr class="odd">
+<td><code>--anc_merge_time</code></td>
+<td><code>-amt</code></td>
+<td>int</td>
+<td><code>null</code></td>
+<td>Generation at which ancestral populations merge into a root. Single value or <code>[min, max]</code>.</td>
+</tr>
+<tr class="even">
+<td><code>--anc_merge_size</code></td>
+<td><code>-ams</code></td>
+<td>int</td>
+<td><code>null</code></td>
+<td>Size of the merged ancestral root population. Single value or <code>[min, max]</code>.</td>
+</tr>
+<tr class="odd">
+<td><code>--anc_mig_rate</code></td>
+<td><code>-amr</code></td>
+<td>float</td>
+<td><code>null</code></td>
+<td>Migration rate between ancestral populations. Single value or <code>[min, max]</code>.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="simulation-setup" class="level3">
+<h3 class="anchored" data-anchor-id="simulation-setup">Simulation setup</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Flag</th>
+<th>Short</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>--seq_length</code></td>
+<td><code>-sl</code></td>
+<td>int</td>
+<td><code>1000000</code></td>
+<td>Simulated sequence length in base pairs. Accepts scientific notation (e.g.&nbsp;<code>1e6</code>).</td>
+</tr>
+<tr class="even">
+<td><code>--mutation_rate</code></td>
+<td><code>-mu</code></td>
+<td>float</td>
+<td><code>1e-8</code></td>
+<td>Mutation rate per base pair per generation. Single value or <code>[min, max]</code>.</td>
+</tr>
+<tr class="odd">
+<td><code>--recombination_rate</code></td>
+<td><code>-rr</code></td>
+<td>float</td>
+<td><code>0</code></td>
+<td>Recombination rate per base pair per generation. Single value or <code>[min, max]</code>.</td>
+</tr>
+<tr class="even">
+<td><code>--ploidy</code></td>
+<td><code>-pl</code></td>
+<td>int</td>
+<td><code>2</code></td>
+<td>Ploidy of simulated individuals.</td>
+</tr>
+<tr class="odd">
+<td><code>--num_param_combos</code></td>
+<td><code>-npc</code></td>
+<td>int</td>
+<td><code>1</code></td>
+<td>Number of random parameter combinations to draw. When &gt; 1, any <code>[min, max]</code> argument is treated as a prior and sampled uniformly.</td>
+</tr>
+<tr class="even">
+<td><code>--num_coalescent_sims</code></td>
+<td><code>-ncs</code></td>
+<td>int</td>
+<td><code>1</code></td>
+<td>Coalescent replicates per parameter combination.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="analysis-setup" class="level3">
+<h3 class="anchored" data-anchor-id="analysis-setup">Analysis setup</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Flag</th>
+<th>Short</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>--missing_data_perc</code></td>
+<td><code>-mdp</code></td>
+<td>float</td>
+<td><code>0</code></td>
+<td>Fraction of genotype data to mask as missing (0–1).</td>
+</tr>
+<tr class="even">
+<td><code>--r2_thresh</code></td>
+<td><code>-rt</code></td>
+<td>float</td>
+<td><code>0.1</code></td>
+<td>LD pruning threshold. Sites with R² above this value are removed.</td>
+</tr>
+<tr class="odd">
+<td><code>--filter_monomorphic</code></td>
+<td><code>-fm</code></td>
+<td>bool</td>
+<td><code>true</code></td>
+<td>Remove monomorphic sites before computing summary statistics.</td>
+</tr>
+<tr class="even">
+<td><code>--filter_singletons</code></td>
+<td><code>-fs</code></td>
+<td>bool</td>
+<td><code>true</code></td>
+<td>Remove singleton sites before computing summary statistics.</td>
+</tr>
+<tr class="odd">
+<td><code>--sumstats</code></td>
+<td><code>-ss</code></td>
+<td>list</td>
+<td><code>all</code></td>
+<td>Summary statistics to compute. Options: <code>pi</code>, <code>tajima_d</code>, <code>sfs_h</code>, <code>fst</code>, <code>dxy</code>, <code>ibd</code>, or <code>all</code>.</td>
+</tr>
+<tr class="even">
+<td><code>--within_anc_pop_sumstats</code></td>
+<td><code>-wap</code></td>
+<td>bool</td>
+<td><code>false</code></td>
+<td>Compute summary statistics separately within each ancestral population.</td>
+</tr>
+<tr class="odd">
+<td><code>--between_anc_pop_sumstats</code></td>
+<td><code>-bap</code></td>
+<td>bool</td>
+<td><code>false</code></td>
+<td>Compute Fst and/or Dxy between ancestral populations.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="output" class="level3">
+<h3 class="anchored" data-anchor-id="output">Output</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Flag</th>
+<th>Short</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>--out_type</code></td>
+<td><code>-ot</code></td>
+<td>int</td>
+<td><code>3</code></td>
+<td>Output format: <code>0</code> = tree sequences only, <code>1</code> = VCFs only, <code>2</code> = summary statistics CSV only, <code>3</code> = all outputs.</td>
+</tr>
+<tr class="even">
+<td><code>--map</code></td>
+<td><code>-map</code></td>
+<td>bool</td>
+<td><code>false</code></td>
+<td>Output a per-deme diversity GeoTIFF instead of per-sample files. Overrides <code>--out_type</code>.</td>
+</tr>
+<tr class="odd">
+<td><code>--map_sample_num</code></td>
+<td><code>-msn</code></td>
+<td>int</td>
+<td><code>2</code></td>
+<td>Individuals sampled per deme when generating a diversity map. Higher values improve accuracy at the cost of speed.</td>
+</tr>
+<tr class="even">
+<td><code>--out_folder</code></td>
+<td><code>-of</code></td>
+<td>str</td>
+<td>CWD</td>
+<td>Directory for output files. Must already exist.</td>
+</tr>
+<tr class="odd">
+<td><code>--out_prefix</code></td>
+<td><code>-op</code></td>
+<td>str</td>
+<td><code>spaceprime</code></td>
+<td>Prefix applied to all output file names.</td>
+</tr>
+<tr class="even">
+<td><code>--log_level</code></td>
+<td><code>-ll</code></td>
+<td>str</td>
+<td><code>INFO</code></td>
+<td>Logging verbosity: <code>DEBUG</code>, <code>INFO</code>, <code>WARNING</code>, or <code>ERROR</code>. Log is written to <code>&lt;out_folder&gt;/spaceprime_&lt;timestamp&gt;.log</code>.</td>
+</tr>
+<tr class="odd">
+<td><code>--cpu</code></td>
+<td><code>-c</code></td>
+<td>int</td>
+<td><code>1</code></td>
+<td>Number of CPUs for parallel execution. Each CPU processes one parameter combination at a time.</td>
+</tr>
+</tbody>
+</table>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Range arguments
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Any argument listed as accepting a <code>[min, max]</code> range behaves as a <strong>fixed value</strong> when <code>--num_param_combos 1</code> (the default). A range only has effect when <code>--num_param_combos &gt; 1</code>, in which case one value is sampled uniformly from <code>[min, max]</code> for each combination.</p>
+</div>
+</div>
+
+
+</section>
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

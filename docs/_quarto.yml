@@ -35,6 +35,8 @@ website:
             file: benchmarking.qmd
           - text: "Results"
             file: benchmarking-results.qmd
+      - text: Validation
+        file: stepping-stone-validation.qmd
     right:
       - icon: github
         href: https://github.com/connor-french/spaceprime

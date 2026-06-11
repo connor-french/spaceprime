@@ -8,7 +8,7 @@ import pytest
 from geopandas import GeoDataFrame
 from shapely.geometry import Point
 
-from spaceprime import demography, simulation
+from spaceprime import __version__, demography, simulation
 from spaceprime.cli import (
     build_parser,
     get_coal_times,
@@ -164,6 +164,14 @@ class TestReadIndividuals:
 
 
 class TestBuildParser:
+    def test_version_flag_reports_package_version(self, capsys):
+        """--version returns exit code 0 and includes the package version."""
+        with pytest.raises(SystemExit) as exc:
+            build_parser().parse_args(["--version"])
+        assert exc.value.code == 0
+        out = capsys.readouterr().out
+        assert __version__ in out
+
     def test_mig_rate_default_is_1e8(self):
         """--mig_rate defaults to [1e-8], not None."""
         args = build_parser().parse_args([])

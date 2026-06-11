@@ -16,6 +16,7 @@ from geopandas import GeoDataFrame
 from numpy.random import default_rng
 from shapely.geometry import Point
 
+from . import __version__ as _version
 from . import utilities
 from . import demography
 from . import analysis
@@ -53,6 +54,10 @@ def check_list_argument(arg):
 
 # Assuming your columns are named 'longitude' and 'latitude'
 def read_coords(file_path):
+    import pandas as pd
+    from geopandas import GeoDataFrame
+    from shapely.geometry import Point
+
     # check if coords file exists
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"Coordinates file {file_path} not found")
@@ -99,6 +104,8 @@ def read_individuals(args, coords):
 
 
 def read_anc_pop_id(anc_pop_id):
+    import pandas as pd
+
     if anc_pop_id is not None and not len(anc_pop_id) > 1:
         if not os.path.exists(anc_pop_id[0]):
             raise FileNotFoundError(f"anc_pop_id file {anc_pop_id[0]} not found")
@@ -131,6 +138,8 @@ def get_map_dict(m, min_num_inds=2, sample_num=2):
 
 # get coalescent times for each deme if the map is True
 def get_coal_times(tseq, raster, num_anc_pops, sample_num=2, ploidy=2):
+    import numpy as np
+
     # account for merged ancestral population
     if num_anc_pops > 1:
         num_anc_pops += 1
@@ -171,6 +180,9 @@ def setup_demography(
     anc_merge_size,
     anc_mig_rate,
 ):
+    from . import utilities
+    from . import demography
+
     # convert raster to demes
     demes = utilities.raster_to_demes(
         raster=raster,
@@ -206,6 +218,8 @@ def setup_demography(
 
 
 def get_random_value(arg):
+    from numpy.random import default_rng
+
     rng = default_rng()
     if arg is None:
         return None
@@ -272,6 +286,15 @@ def generate_param_combinations(args):
 
 
 def run_simulation(combo, args):
+    import rasterio
+    import msprime
+    import numpy as np
+    import pandas as pd
+    import time
+    from numpy.random import default_rng
+    from . import utilities
+    from . import analysis
+
     rng = default_rng()
     logger.info("Running simulation with parameters: %s", combo)
 
@@ -542,6 +565,12 @@ def run_simulation(combo, args):
 def build_parser():
     """Return the CLI argument parser."""
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        version=f"%(prog)s {_version}",
+    )
     # global arguments
     parser.add_argument(
         "-p",
@@ -824,7 +853,6 @@ def build_parser():
         help="Prefix for output files. Default is 'spaceprime'.",
     )
     parser.add_argument(
-        "-v",
         "--verbose",
         type=bool,
         default=False,
@@ -853,6 +881,14 @@ def main():
     """Console script for spaceprime."""
     parser = build_parser()
     args = parser.parse_args()
+
+    print("Loading packages...", file=sys.stderr, flush=True)
+
+    # Import packages that are used directly in main() after argument parsing.
+    # Heavy scientific dependencies are imported lazily inside each helper
+    # function, so --help and --version exit before any slow imports run.
+    import yaml
+    from multiprocessing import Pool
 
     # Check if params YAML file exists. If so, update command line arguments with parameters from YAML file
     if args.params is not None:

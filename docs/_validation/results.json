@@ -4,7 +4,7 @@
     "seed": 20240611,
     "mut_rate": 1e-07,
     "recomb_rate": 1e-08,
-    "runtime_sec": 2326.7
+    "runtime_sec": 2315.0
   },
   "experiment_a": {
     "1d": {

@@ -11,13 +11,12 @@ bibliography: references.bib
 ## Summary {#sec-summary}
 
 `spaceprime` turns habitat-suitability rasters into 2D stepping-stone demographic
-models and simulates genetic data with `msprime`. This report asks a basic but
-important question: **do the genetic patterns that come out of `spaceprime`
+models and simulates genetic data with `msprime`. This report confirms the basic theoretical underpinnings of the stepping-stone model: **do the genetic patterns that come out of `spaceprime`
 simulations match what population-genetic theory predicts for stepping-stone
 models?** If the package is wiring up demes, migration, and coalescent events
 correctly, then simulated data should reproduce well-established theoretical
-expectations — from the simplest one-dimensional isolation-by-distance law to the
-behaviour of genetically structured, *heterogeneous* landscapes.
+expectations, from one-dimensional isolation-by-distance to the
+behavior of genetically structured, *heterogeneous* landscapes.
 
 We test four predictions of increasing complexity:
 
@@ -28,32 +27,26 @@ We test four predictions of increasing complexity:
 | C | In a landscape with a barrier, **resistance distance predicts differentiation better than Euclidean distance** | McRae 2006 | ✅ reproduced |
 | D | Differentiation approaches the **panmictic limit** ($F_{ST}\to 0$) as $Nm$ grows large | Wright 1943; Whitlock & McCauley 1999 | ✅ reproduced (see B) |
 
-The headline: **`spaceprime` simulations behave as stepping-stone theory says they
-should.** The clearest signal is the dimensionality law (A) and isolation by
-resistance (C); the gene-flow scaling (B/D) is monotonic and quantitatively
-sensible.
-
 ::: {.callout-note}
 ## Scope and methodology
-Models are built **with `spaceprime`** — this is the machinery under test. The
+Models are built **with `spaceprime`**. The
 analysis side (pairwise $F_{ST}$, $d_{xy}$, regressions, resistance distances) is
 written from scratch with `scikit-allel` and `numpy` so that the validation does
-**not** lean on the same package's summary-statistic functions. All code,
+**not** require the same package's summary-statistic functions. All code,
 parameters, and the random seed live in
 [`docs/_validation/run_validation.py`](_validation/run_validation.py).
 :::
 
-## Background: what theory predicts {#sec-theory}
+## Theoretical background {#sec-theory}
 
 ### The stepping-stone model
 
 In a stepping-stone model the species occupies a lattice of discrete demes and
-migration occurs only between neighbouring demes [@kimura1964]. This is exactly
-the structure `spaceprime` builds: each occupied raster cell becomes an `msprime`
-population, and `calc_migration_matrix` connects each cell to its four rook
-neighbours. Kimura & Weiss [-@kimura1964] showed that the genetic correlation
-between demes **declines with the number of steps between them**, and that the
-*rate* of decline depends on dimensionality — falling off faster in one dimension
+migration occurs only between neighboring demes [@kimura1964]. `spaceprime` builds
+a landscape where each occupied raster cell becomes an `msprime` population, and
+`calc_migration_matrix` connects each cell to its four rook neighbors. Kimura & Weiss [-@kimura1964]
+showed that the genetic correlation between demes declines with the number of steps between them,
+and that the rate of decline depends on dimensionality, falling off faster in one dimension
 than in two.
 
 ### Isolation by distance and dimensionality (Predictions A & B)
@@ -70,7 +63,7 @@ equilibrium:
 
 where $D$ is effective density and $\sigma^2$ is the axial variance of parent–
 offspring dispersal. The quantity $4\pi D\sigma^2$ (or $4D\sigma^2$ in 1D) is
-**Wright's neighborhood size** — the local panmictic unit that controls how much
+**Wright's neighborhood size**, the local panmictic unit that controls how much
 differentiation accumulates, and the 2D analogue of the island model's $Nm$
 [@wright1943; @rousset1997]. Two consequences we test:
 
@@ -86,19 +79,18 @@ differentiation accumulates, and the 2D analogue of the island model's $Nm$
 ### Heterogeneous landscapes: isolation by resistance (Prediction C)
 
 Real landscapes are not homogeneous lattices. When suitability varies in space,
-gene flow is channelled around low-quality areas. McRae [-@mcrae2006] proposed
+gene flow is channeled around low-quality areas. McRae [-@mcrae2006] proposed
 that equilibrium differentiation in such landscapes is best predicted by the
-**resistance distance** — the effective resistance between nodes in an electrical
-network whose conductances are the migration rates — rather than by straight-line
+**resistance distance** (the effective resistance between nodes in an electrical
+network whose conductances are the migration rates), rather than by straight-line
 Euclidean distance or least-cost paths. In `spaceprime`, size-scaled migration
 (`scale=True`) makes low-suitability cells low-conductance, so the package
 naturally produces a resistance-structured landscape. **Prediction C:** simulated
 genetic differentiation should track resistance distance more tightly than
 Euclidean distance, especially for population pairs separated by a barrier.
 
-This whole exercise — using spatially explicit coalescent simulations to check
-whether standard theory holds — follows the approach of Szép et al. [-@szep2022],
-who built the `gridCoal` `msprime` wrapper for the same purpose.
+This exercise is inspired by the approach of Szép et al. [-@szep2022],
+who built the `gridCoal` `msprime` wrapper for a similar purpose.
 
 ## Methods {#sec-methods}
 
@@ -119,7 +111,7 @@ effectively independent loci, and mutation rate $\mu=10^{-7}$. A fixed seed
 
 **Analysis (independent of spaceprime).** From each tree sequence we recover
 per-deme allele counts by mapping sample nodes back to their populations, then
-compute pairwise **Hudson $F_{ST}$** and **$d_{xy}$** with `scikit-allel` — the
+compute pairwise **Hudson $F_{ST}$** and **$d_{xy}$** with `scikit-allel`, the
 same estimators `spaceprime` uses internally, but called here directly.
 Differentiation is linearized as $F_{ST}/(1-F_{ST})$ following Rousset
 [-@rousset1997]. Geographic distance is the Euclidean distance between lattice
@@ -127,6 +119,48 @@ cells (in deme-step units). Resistance distances are computed from the
 `spaceprime` migration matrix by treating symmetrized migration rates as
 conductances and taking $R_{ij}=L^{+}_{ii}+L^{+}_{jj}-2L^{+}_{ij}$ from the
 Moore–Penrose pseudoinverse of the graph Laplacian.
+
+**Simulation parameters.** Global parameters shared across all experiments:
+mutation rate $\mu=10^{-7}$, recombination rate $r=10^{-8}$, random seed
+`20240611`. Each experiment-specific scenario is detailed in the tables below.
+
+: Experiment A: dimensionality signature. Both sub-scenarios use $N=300$, $Nm=2$
+per neighbour, an ancestral backstop ($N_{\text{anc}}=1000$, merge at generation
+$200\,000$), and 3 independent replicates averaged per pair. {#tbl-params-a}
+
+| Sub-scenario | Grid | Diploid samples / deme | Sequence length |
+|---|---|---|---|
+| 1D chain | $1\times30$ | 8 | 5 Mb |
+| 2D grid  | $10\times10$ | 6 | 5 Mb |
+
+: Experiment B: neighborhood size scaling. One-dimensional chain ($1\times25$),
+$N=200$ per deme, 6 diploid samples per deme, 3 Mb sequence, ancestral backstop
+($N_{\text{anc}}=1000$, merge at generation $200\,000$); one independent replicate
+per $Nm$ value. {#tbl-params-b}
+
+| $Nm$ (per neighbour) | Per-neighbour migration rate |
+|---|---|
+| 0.5 | $2.5\times10^{-3}$ |
+| 1.0 | $5.0\times10^{-3}$ |
+| 2.0 | $1.0\times10^{-2}$ |
+| 4.0 | $2.0\times10^{-2}$ |
+| 8.0 | $4.0\times10^{-2}$ |
+
+: Experiment C: isolation by resistance. An $11\times11$ suitability raster
+(uniform suitability $= 1$ except column 5 set to $0$, with a single-cell corridor
+at row 5) converted to demes via `raster_to_demes` (linear transform,
+$N_{\text{max}}=200$). Sampled columns: 0, 2, 3, 7, 8, 10 (all rows).
+Ancestral backstop: $N_{\text{anc}}=1000$, merge at generation $300\,000$.
+{#tbl-params-c}
+
+| Parameter | Value |
+|---|---|
+| Grid dimensions | $11\times11$ |
+| $Nm$ (suitable cells) | $\approx2$ per neighbour |
+| Diploid samples / deme | 6 |
+| Sequence length | 4 Mb |
+| Sampled demes | 66 (6 columns $\times$ 11 rows) |
+| Cross-barrier pairs | 1089 of 2145 total |
 
 ## Results {#sec-results}
 
@@ -139,12 +173,13 @@ linearized $F_{ST}$ was averaged over three independent replicates to suppress t
 sampling noise of pairwise $F_{ST}$, then regressed on distance and on
 log-distance.
 
-![Isolation by distance for a 1D chain (left) and a 2D grid (right); each point is
-a deme pair (mean of 3 replicates). Blue = fit linear in distance, red dashed = fit
-linear in log-distance, with $R^2$ in the legend. In 1D the linear-in-distance
-model clearly wins. In 2D the two fits nearly coincide for linearized $F_{ST}$; as
-the table below shows, the predicted log-distance signature emerges most clearly in
-the coalescence-based $d_{xy}$ statistic.](_validation/figures/exp_a_dimensionality.png){#fig-dim width=100%}
+![Isolation by distance for a 1D chain (top left), a 2D grid using linearized $F_{ST}$
+(top right), and a 2D grid using $d_{xy}$ (bottom centre); each point is a deme pair
+(mean of 3 replicates). Blue = fit linear in distance, red dashed = fit linear in
+log-distance, with $R^2$ in the legend. In 1D the linear-in-distance model clearly
+wins. In 2D the two fits nearly coincide for linearized $F_{ST}$; the predicted
+log-distance signature emerges most clearly in the coalescence-based $d_{xy}$
+statistic (bottom panel).](_validation/figures/exp_a_dimensionality.png){#fig-dim width=100%}
 
 | Habitat | statistic | $R^2$ vs **distance** | $R^2$ vs **log-distance** | better fit |
 |---|---|---|---|---|
@@ -155,22 +190,22 @@ the coalescence-based $d_{xy}$ statistic.](_validation/figures/exp_a_dimensional
 
 : Goodness of fit of the IBD relationship by dimensionality, statistic, and
 distance transform (435 pairs in 1D, 4950 in 2D; mean of 3 replicates). Rousset
-(1997) derived F-statistics for the 1D case and coalescence times for the 2D case —
-and accordingly the 1D linear signature is clearest in $F_{ST}$ while the 2D log
+(1997) derived F-statistics for the 1D case and coalescence times for the 2D case;
+accordingly, the 1D linear signature is clearest in $F_{ST}$ while the 2D log
 signature is clearest in $d_{xy}$ ($\propto$ coalescence time). {#tbl-dim}
 
-**Interpretation.** The dimensionality fingerprint appears as a **shift in the
-better-fitting distance transform** as the habitat goes from one to two dimensions.
+**Interpretation.** The dimensionality fingerprint appears as a shift in the
+better-fitting distance transform as the habitat goes from one to two dimensions.
 In the 1D chain, IBD is unambiguously linear in raw distance ($F_{ST}/(1-F_{ST})$:
 $R^2=0.97$ linear vs $0.79$ log). On the 2D grid the linear advantage collapses:
 for linearized $F_{ST}$ the linear and log fits become nearly indistinguishable
 ($0.68$ vs $0.64$), and for the smoother coalescence-based $d_{xy}$ the
-log-distance fit *overtakes* the linear one ($0.72$ vs $0.64$). That is exactly the
-1D-linear / 2D-log contrast predicted by Kimura & Weiss [-@kimura1964] and Rousset
-[-@rousset1997], who — tellingly — derived F-statistics for 1D habitats and
-coalescence times for 2D habitats. `spaceprime` reproduces the signature. Note that
+log-distance fit *overtakes* the linear one ($0.72$ vs $0.64$). This is the
+1D-linear / 2D-log contrast that Kimura & Weiss [-@kimura1964] and Rousset
+[-@rousset1997] predicted; tellingly, Rousset derived F-statistics for 1D habitats
+and coalescence times for 2D habitats. `spaceprime` reproduces the signature. Note that
 `spaceprime`'s own shipped IBD statistic (`analysis.calc_sumstats`) regresses
-linearized differentiation on **log10** distance — i.e. it assumes the 2D habitat
+linearized differentiation on **log10** distance, i.e., it assumes the 2D habitat
 that is the correct default for raster-based landscapes.
 
 ### B. Neighborhood size controls the IBD slope (and the panmictic limit) {#sec-resB}
@@ -196,7 +231,7 @@ the panmictic limit.](_validation/figures/exp_b_slope_vs_nm.png){#fig-nm width=9
 : IBD slope and differentiation decrease monotonically with gene flow. {#tbl-nm}
 
 **Interpretation.** The IBD slope falls roughly an order of magnitude as $Nm$ goes
-from 0.5 to 8, and mean $F_{ST}$ drops from ~0.56 toward ~0.12 — the population
+from 0.5 to 8, and mean $F_{ST}$ drops from ~0.56 toward ~0.12 as the population
 approaches panmixia (Prediction D). Both trends are monotonic and match the
 inverse dependence of the slope on neighborhood size [@rousset1997] and the
 island-model intuition that differentiation scales as $\sim 1/(1+4Nm)$
@@ -216,7 +251,7 @@ explained by Euclidean distance vs by resistance distance derived from the
 `spaceprime` migration matrix.
 
 ![Left: the simulated landscape (deme size) with sampled cells marked. Middle:
-linearized $F_{ST}$ vs Euclidean distance — cross-barrier pairs (orange) are far
+linearized $F_{ST}$ vs Euclidean distance: cross-barrier pairs (orange) are far
 more differentiated than same-side pairs (blue) at the same straight-line distance,
 so Euclidean distance explains the pattern poorly. Right: against resistance
 distance the two clouds collapse onto one relationship, and fit quality jumps.
@@ -236,7 +271,7 @@ differentiation far better than straight-line distance in a barriered landscape
 over-differentiated cloud ($R^2=0.57$), while resistance distance absorbs that
 structure into a single tight relationship ($R^2=0.91$). In other words, the
 genetic structure that `spaceprime` produces on a heterogeneous landscape is the
-structure McRae [-@mcrae2006] predicts — differentiation follows the conductance
+structure McRae [-@mcrae2006] predicts: differentiation follows the conductance
 geometry of the landscape, not its raw geography. This is the most demanding test
 here, because it depends on the size-to-migration scaling, the raster→deme
 transform, and the coalescent all behaving correctly together.
@@ -248,7 +283,7 @@ transform, and the coalescent all behaving correctly together.
   IBD equilibrates quickly [@slatkin1993], but very-long-distance pairs on a finite
   grid may not be fully equilibrated. This, plus boundary effects on small grids
   and the intrinsic noise of pairwise $F_{ST}$, is why the 2D dimensionality
-  contrast (A) is real but more modest than the very clean 1D contrast — consistent
+  contrast (A) is real but more modest than the very clean 1D contrast, consistent
   with Rousset's [-@rousset1997] caveat that the IBD law holds at *intermediate*
   spatial scales. Replicate averaging was used to expose the 2D signal.
 - **Scope.** We tested equilibrium, homogeneous-rate scenarios plus one barrier

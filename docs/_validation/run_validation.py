@@ -206,27 +206,36 @@ def experiment_a():
         print(f"  {tag.upper()}: FST/(1-FST)  linear R2={r2_f_d:.3f}  log R2={r2_f_l:.3f}"
               f"  |  dxy  linear R2={r2_x_d:.3f}  log R2={r2_x_l:.3f}")
 
-    # ---- figure: linearized FST (theory statistic) with both fits ----
-    fig, axes = plt.subplots(1, 2, figsize=(11, 4.6))
-    for ax, dist, flin, title in [
-        (axes[0], dist1, flin1, "1D habitat (1 x 30)"),
-        (axes[1], dist2, flin2, "2D habitat (10 x 10)"),
+    # ---- figure: FST panels on top row, 2D dxy centered on bottom row ----
+    fig = plt.figure(figsize=(14, 9))
+    gs = fig.add_gridspec(2, 4, hspace=0.45, wspace=0.35)
+    ax_1d  = fig.add_subplot(gs[0, 0:2])   # 1D FST (top-left half)
+    ax_2d  = fig.add_subplot(gs[0, 2:4])   # 2D FST (top-right half)
+    ax_dxy = fig.add_subplot(gs[1, 1:3])   # 2D dxy (bottom centre)
+
+    for ax, dist, y, ylabel, title in [
+        (ax_1d,  dist1, flin1,
+         r"$F_{ST}/(1-F_{ST})$  (mean of 3 reps)", "1D habitat (1 × 30)"),
+        (ax_2d,  dist2, flin2,
+         r"$F_{ST}/(1-F_{ST})$  (mean of 3 reps)", "2D habitat (10 × 10)"),
+        (ax_dxy, dist2, dxy2,
+         r"$d_{xy}$  (mean of 3 reps)",             "2D habitat (10 × 10)"),
     ]:
-        ax.scatter(dist, flin, s=10, alpha=0.30, color="#3b6", edgecolor="none")
+        ax.scatter(dist, y, s=10, alpha=0.30, color="#3b6", edgecolor="none")
         xs = np.linspace(dist.min(), dist.max(), 100)
-        sl_d, ic_d, r2d = linregress(dist, flin)
+        sl_d, ic_d, r2d = linregress(dist, y)
         ax.plot(xs, sl_d * xs + ic_d, "b-", lw=1.7,
                 label=f"linear in dist  R$^2$={r2d:.2f}")
-        sl_l, ic_l, r2l = linregress(np.log(dist), flin)
+        sl_l, ic_l, r2l = linregress(np.log(dist), y)
         ax.plot(xs, sl_l * np.log(xs) + ic_l, "r--", lw=1.7,
                 label=f"linear in log(dist)  R$^2$={r2l:.2f}")
         ax.set_xlabel("geographic distance (deme steps)")
-        ax.set_ylabel(r"$F_{ST}/(1-F_{ST})$  (mean of 3 reps)")
+        ax.set_ylabel(ylabel)
         ax.set_title(title)
         ax.legend(frameon=False, fontsize=9)
+
     fig.suptitle("Isolation by distance: 1D is linear in distance, 2D in log-distance "
                  "(Rousset 1997)", fontsize=12)
-    fig.tight_layout()
     fig.savefig(FIG / "exp_a_dimensionality.png", dpi=130, bbox_inches="tight")
     plt.close(fig)
     print("  wrote figures/exp_a_dimensionality.png")
